@@ -41,9 +41,9 @@ claude --plugin-dir plugins/gsx --plugin-dir plugins/sdd
 
 | Plugin | 内容 | 说明 |
 | --- | --- | --- |
-| `jinsyin-skills`（仓库根） | `skills/` 下全部 27 个 skill | 全量合集，等于 `gsx` + `sdd` + 独立 skill（`to-md`） |
+| `jinsyin-skills`（仓库根） | `skills/` 下全部 28 个 skill | 全量合集，等于 `gsx` + `sdd` + 独立 skill（`to-md`） |
 | [`gsx`](plugins/gsx/) | 20 个 `gsx-*` skill | GSD 工作流薄前门，覆盖计划、执行、评审、UAT 全流程 |
-| [`sdd`](plugins/sdd/) | 4 套 `*-best-practices` + `setup-rules` + `design-to-code` | 规范驱动开发：立规范 → 按规范产出代码 |
+| [`sdd`](plugins/sdd/) | 4 套 `*-best-practices` + `setup-rules` + `product-spec` + `design-to-code` | 规范驱动开发：立规范 → 定产品功能 → 出设计 → 产出代码 |
 
 `gsx` / `sdd` 通过符号链接复用 `skills/` 下的原始目录，`jinsyin-skills` 直接以仓库根为 plugin 根、`skills/` 即其 skill 目录，因此**内容单一来源**：编辑 `skills/<name>/SKILL.md` 即可，三个 plugin 全部自动生效。
 
@@ -55,6 +55,7 @@ claude --plugin-dir plugins/gsx --plugin-dir plugins/sdd
 - `spring-boot-best-practices` - Spring Boot 后端开发最佳实践
 - `setup-rules` - Agent 规则配置指南
 - `to-md` - 内容转换 Markdown 工具
+- `product-spec` - 管理产品功能规范（功能、交互、Flyway 式版本化变更记录），合成的 `CURRENT.md` 直接喂 Claude Design / v0 / Figma Make / Lovable
 - `design-to-code` - 将高保真设计/原型（HTML + React JSX）还原为 Vite + React + TypeScript + Tailwind + shadcn/ui 生产级代码
 - `gsx-*`（20 个）- GSD 工作流的薄前门 skill，包裹 `/gsd:*` 命令并附加项目专属校验（Context7 文档核对、讨论前置等），覆盖计划、执行、评审、UAT 全流程
 
