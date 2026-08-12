@@ -17,15 +17,9 @@ npx skills@latest add jinsyin/skills
 ```
 /plugin marketplace add jinsyin/skills
 
-# 全部 skills（推荐）
-/plugin install jinsyin-skills@jinsyin-skills
-
-# 或者按需安装单个 plugin
-/plugin install gsx@jinsyin-skills
-/plugin install sdd@jinsyin-skills
+/plugin install gsx@jinsyin
+/plugin install sdd@jinsyin
 ```
-
-`jinsyin-skills` 与 `gsx` / `sdd` **二选一**：前者已包含后两者的全部 skill，同时安装会导致同名 skill 重复加载。
 
 本地调试：
 
@@ -41,11 +35,10 @@ claude --plugin-dir plugins/gsx --plugin-dir plugins/sdd
 
 | Plugin | 内容 | 说明 |
 | --- | --- | --- |
-| `jinsyin-skills`（仓库根） | `skills/` 下全部 28 个 skill | 全量合集，等于 `gsx` + `sdd` + 独立 skill（`to-md`） |
 | [`gsx`](plugins/gsx/) | 20 个 `gsx-*` skill | GSD 工作流薄前门，覆盖计划、执行、评审、UAT 全流程 |
 | [`sdd`](plugins/sdd/) | 4 套 `*-best-practices` + `setup-rules` + `product-spec` + `design-to-code` | 规范驱动开发：立规范 → 定产品功能 → 出设计 → 产出代码 |
 
-`gsx` / `sdd` 通过符号链接复用 `skills/` 下的原始目录，`jinsyin-skills` 直接以仓库根为 plugin 根、`skills/` 即其 skill 目录，因此**内容单一来源**：编辑 `skills/<name>/SKILL.md` 即可，三个 plugin 全部自动生效。
+`gsx` / `sdd` 通过符号链接复用 `skills/` 下的原始目录，因此**内容单一来源**：编辑 `skills/<name>/SKILL.md` 即可，两个 plugin 全部自动生效。
 
 ## 包含技能
 

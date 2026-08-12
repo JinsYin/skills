@@ -7,7 +7,7 @@ GSD 工作流的薄前门（thin front-door）skill 集。每个 skill 包裹一
 ```bash
 # 在 Claude Code 中
 /plugin marketplace add jinsyin/skills
-/plugin install gsx@jinsyin-skills
+/plugin install gsx@jinsyin
 ```
 
 本地开发：

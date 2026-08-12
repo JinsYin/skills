@@ -1,5 +1,5 @@
 {
-  "name": "jinsyin-skills",
+  "name": "jinsyin",
   "owner": {
     "name": "JinsYin",
     "email": "jinsyin@gmail.com"
@@ -9,19 +9,6 @@
     "version": "0.1.0"
   },
   "plugins": [
-    {
-      "name": "jinsyin-skills",
-      "source": "./",
-      "description": "全量合集：一次安装即获得 gsx（GSD 工作流薄前门）、sdd（规范驱动开发）以及未被单独打包的独立 skill（如 to-md）。与 gsx / sdd 二选一，不要同时安装",
-      "version": "0.1.0",
-      "author": {
-        "name": "JinsYin",
-        "email": "jinsyin@gmail.com"
-      },
-      "license": "MIT",
-      "keywords": ["skills", "gsd", "workflow", "best-practices", "spec-driven-development", "design-to-code"],
-      "category": "development"
-    },
     {
       "name": "gsx",
       "source": "./plugins/gsx",

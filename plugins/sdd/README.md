@@ -7,7 +7,7 @@
 ```bash
 # 在 Claude Code 中
 /plugin marketplace add jinsyin/skills
-/plugin install sdd@jinsyin-skills
+/plugin install sdd@jinsyin
 ```
 
 本地开发：
