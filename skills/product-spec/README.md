@@ -68,7 +68,9 @@
 ## 启用
 
 ```bash
-ln -s ~/AI/@jinsyin/skills/skills/product-spec ~/.claude/skills/product-spec
+# 在仓库根目录执行
+mkdir -p "$HOME/.claude/skills"
+ln -s "$(pwd)/skills/product-spec" "$HOME/.claude/skills/product-spec"
 ```
 
 用符号链接而非拷贝，源仓才是唯一事实来源。

@@ -52,9 +52,12 @@ metadata.json       版本、摘要、参考链接
 5. 校验索引与文件一一对应：
 
 ```bash
-grep -oE '^- `[a-z]+-[a-z-]+`' SKILL.md | tr -d '`' | sed 's/^- //' | sort > /tmp/idx.txt
-ls rules/[a-z]*.md | xargs -n1 basename | sed 's/\.md$//' | sort > /tmp/files.txt
-diff /tmp/idx.txt /tmp/files.txt && echo OK
+index_file="$(mktemp)"
+rules_file="$(mktemp)"
+trap 'rm -f "$index_file" "$rules_file"' EXIT
+grep -oE '^- `[a-z]+-[a-z-]+`' SKILL.md | tr -d '`' | sed 's/^- //' | sort > "$index_file"
+ls rules/[a-z]*.md | xargs -n1 basename | sed 's/\.md$//' | sort > "$rules_file"
+diff "$index_file" "$rules_file" && echo OK
 ```
 
 索引与文件不一致是本结构唯一的沉默故障：索引多写 → agent Read 失败；索引漏写 → 规则永远不被发现。每次改动后跑一遍。
@@ -65,12 +68,15 @@ skill 需放在 Claude Code 能发现的位置：
 
 ```bash
 # 全局启用（所有项目）
-ln -s /Users/jins/AI/@jinsyin/agent/skills/spring-boot-best-practices \
-      ~/.claude/skills/spring-boot-best-practices
+# 在仓库根目录执行
+mkdir -p "$HOME/.claude/skills"
+ln -s "$(pwd)/skills/spring-boot-best-practices" \
+      "$HOME/.claude/skills/spring-boot-best-practices"
 
 # 或单项目启用
-ln -s /Users/jins/AI/@jinsyin/agent/skills/spring-boot-best-practices \
-      <project>/.claude/skills/spring-boot-best-practices
+mkdir -p "<project>/.claude/skills"
+ln -s "$(pwd)/skills/spring-boot-best-practices" \
+      "<project>/.claude/skills/spring-boot-best-practices"
 ```
 
 用符号链接而非拷贝，本仓才是唯一事实来源。

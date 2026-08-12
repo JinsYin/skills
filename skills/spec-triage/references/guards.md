@@ -88,9 +88,12 @@ grep -rn '<被删文件名>' .claude/ CLAUDE.md AGENTS.md *.md 2>/dev/null
 **检查**：
 
 ```bash
-grep -oE '^- `[a-z]+-[a-z-]+`' SKILL.md | tr -d '`' | sed 's/^- //' | sort > /tmp/i.txt
-ls rules/[a-z]*.md | xargs -n1 basename | sed 's/\.md$//' | sort > /tmp/f.txt
-diff /tmp/i.txt /tmp/f.txt && echo OK
+index_file="$(mktemp)"
+rules_file="$(mktemp)"
+trap 'rm -f "$index_file" "$rules_file"' EXIT
+grep -oE '^- `[a-z]+-[a-z-]+`' SKILL.md | tr -d '`' | sed 's/^- //' | sort > "$index_file"
+ls rules/[a-z]*.md | xargs -n1 basename | sed 's/\.md$//' | sort > "$rules_file"
+diff "$index_file" "$rules_file" && echo OK
 ```
 
 同时确认索引里的分类条数与实际文件数一致——改动后忘了同步计数很常见。

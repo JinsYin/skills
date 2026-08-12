@@ -7,7 +7,7 @@ tags: proc, process-compose, portability
 
 ## 不写死本机路径，继承启动 shell 的环境
 
-`process-compose.yml` 是入库文件，会被所有人用。写死 `JAVA_HOME: /Users/someone/.sdkman/candidates/java/21.0.1` 之后，其他人克隆下来直接跑不起来，而且修法是改一个入库文件——改完又会误提交回去。
+`process-compose.yml` 是入库文件，会被所有人用。写死 `JAVA_HOME: ${HOME}/.sdkman/candidates/java/21.0.1` 之后，其他人克隆下来仍可能因安装方式或版本不同而跑不起来，而且修法是改一个入库文件——改完又会误提交回去。
 
 process-compose 继承启动它的 shell 环境，因此**版本选择应该交给 shell**（sdkman / nvm / asdf / direnv），文件里只描述进程本身。
 
@@ -17,7 +17,7 @@ process-compose 继承启动它的 shell 环境，因此**版本选择应该交�
 processes:
   app:
     environment:
-      - "JAVA_HOME=/Users/jins/.sdkman/candidates/java/21.0.5-tem"
+      - "JAVA_HOME=${HOME}/.sdkman/candidates/java/21.0.5-tem"
 ```
 
 **正确（在文件头注释里声明前提，必要时用守护进程强制）：**

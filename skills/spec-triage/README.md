@@ -56,7 +56,9 @@ skill 本身不依赖任何特定工作流。GSD 只作为实测案例出现在�
 ## 启用
 
 ```bash
-ln -s /Users/jins/AI/@jinsyin/agent/skills/spec-triage ~/.claude/skills/spec-triage
+# 在仓库根目录执行
+mkdir -p "$HOME/.claude/skills"
+ln -s "$(pwd)/skills/spec-triage" "$HOME/.claude/skills/spec-triage"
 ```
 
 用符号链接而非拷贝，本仓才是唯一事实来源。

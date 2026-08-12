@@ -44,16 +44,21 @@ React + shadcn/ui 后台管理系统的界面与交互规范，16 条规则分 6
 改完务必校验索引与文件一一对应，这是本结构唯一的沉默故障：
 
 ```bash
-grep -oE '^- `[a-z]+-[a-z-]+`' SKILL.md | tr -d '`' | sed 's/^- //' | sort > /tmp/i.txt
-ls rules/[a-z]*.md | xargs -n1 basename | sed 's/\.md$//' | sort > /tmp/f.txt
-diff /tmp/i.txt /tmp/f.txt && echo OK
+index_file="$(mktemp)"
+rules_file="$(mktemp)"
+trap 'rm -f "$index_file" "$rules_file"' EXIT
+grep -oE '^- `[a-z]+-[a-z-]+`' SKILL.md | tr -d '`' | sed 's/^- //' | sort > "$index_file"
+ls rules/[a-z]*.md | xargs -n1 basename | sed 's/\.md$//' | sort > "$rules_file"
+diff "$index_file" "$rules_file" && echo OK
 ```
 
 ## 启用
 
 ```bash
-ln -s /Users/jins/AI/@jinsyin/agent/skills/frontend-ui-best-practices \
-      ~/.claude/skills/frontend-ui-best-practices
+# 在仓库根目录执行
+mkdir -p "$HOME/.claude/skills"
+ln -s "$(pwd)/skills/frontend-ui-best-practices" \
+      "$HOME/.claude/skills/frontend-ui-best-practices"
 ```
 
 用符号链接而非拷贝，本仓才是唯一事实来源。

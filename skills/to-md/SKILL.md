@@ -52,18 +52,20 @@ lint 走 `npx markdownlint-cli2`，需要 `npx`（Node）。没有 `npx` 时脚�
 
 ### 3. 调用脚本（确定性段）
 
+先把本 `SKILL.md` 所在目录解析为 `SKILL_DIR`，再通过该变量调用随 skill 分发的脚本；不要假定 skill 安装在某个用户目录。
+
 ```bash
 # 单个文件
-~/.claude/skills/to-md/scripts/convert.sh path/to/report.pdf
+"$SKILL_DIR/scripts/convert.sh" path/to/report.pdf
 
 # 批量：多个文件
-~/.claude/skills/to-md/scripts/convert.sh a.docx b.pptx c.html
+"$SKILL_DIR/scripts/convert.sh" a.docx b.pptx c.html
 
 # 批量：一个目录（转换该目录下所有受支持的文档，不递归子目录）
-~/.claude/skills/to-md/scripts/convert.sh ./docs
+"$SKILL_DIR/scripts/convert.sh" ./docs
 
 # 用户已确认覆盖后
-~/.claude/skills/to-md/scripts/convert.sh --force path/to/report.pdf
+"$SKILL_DIR/scripts/convert.sh" --force path/to/report.pdf
 ```
 
 输出路径是脚本自己推导的：`report.pdf` → 同目录下的 `report.md`。源文件本身是 `.md` 会被跳过（避免自我覆盖）。
@@ -111,7 +113,7 @@ markitdown 抽出的 Markdown 有些结构问题 lint 修不了，`scripts/postp
 
 1. 先 `Read` 源文件（PDF、图片、docx 等 Read 都能渲染），它是**唯一事实来源**；再 `Read` 刚生成的 `.md`。
 2. 对照着用 `Edit` 做**定点修改**——只改错的地方，别整篇重写。定点改既诚实（改了什么一目了然），又避免整篇重写时手滑丢内容。只有当结构烂到没法定点修时才整篇重写，且重写后要拿源文件核对章节数 / 篇幅，确认没漏。
-3. 改完跑 `~/.claude/skills/to-md/scripts/convert.sh --lint-only <那些.md>` 收尾排版（精修是手动 Edit，缩进 / 空行 / 行尾空格可能乱，交给 lint 规整；它**不会**重新转换覆盖你的成果）。
+3. 改完跑 `"$SKILL_DIR/scripts/convert.sh" --lint-only <那些.md>` 收尾排版（精修是手动 Edit，缩进 / 空行 / 行尾空格可能乱，交给 lint 规整；它**不会**重新转换覆盖你的成果）。
 
 **精修清单（适中强度：结构修复 + 清噪，不动正文表达）**
 
