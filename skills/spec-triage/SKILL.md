@@ -1,6 +1,6 @@
 ---
 name: spec-triage
-description: 为一个项目建立或整顿编码规范：勘察代码库取证、只就推断不了的事访谈、再把每条约定按加载成本分诊到 CLAUDE.md / 通用 skill / .claude-rules / 项目文档四层，并检测既有规范与代码库的漂移。在用户说「给这个项目建规范」「整顿 CLAUDE.md 和 rules」「规范和代码对不上了」「检查规范漂移」「spec-triage」时使用，也用于新项目初始化规范、或规范文件膨胀到该拆分时。
+description: 为**已有代码的存量项目**整顿编码规范：勘察代码库取证、只就推断不了的事访谈、再把每条约定按加载成本分诊到 CLAUDE.md / 通用 skill / .claude-rules / 项目文档四层，并检测既有规范与代码库的漂移。在用户说「给这个项目建规范」「整顿 CLAUDE.md 和 rules」「规范和代码对不上了」「检查规范漂移」「spec-triage」时使用，也用于规范文件膨胀到该拆分时。空仓或刚跑完脚手架的新项目改用 spec-setup。
 argument-hint: "[--check | --tier claude-md|skill|rules | --dry-run]"
 allowed-tools:
   - Read
@@ -24,7 +24,11 @@ In Codex, translate this wrapper instead of rewriting it:
 
 ---
 
-建立或整顿一个项目的编码规范。**核心不是「生成规则文件」，而是分诊** —— 把每条约定路由到加载成本正确的那一层。Reply in Chinese.
+整顿一个**存量项目**的编码规范。**核心不是「生成规则文件」，而是分诊** —— 把每条约定路由到加载成本正确的那一层。Reply in Chinese.
+
+**适用边界**：本 skill 的每一步都建立在「有代码可取证」之上。若仓库是空的、或刚跑完脚手架而业务代码近乎为零，取证得不到任何东西，访谈会变成唯一输入——那是 `spec-setup` 的场景，转过去。
+
+**依赖**：分诊判例、硬闸、规则写法三份 reference 由 `spec-setup` 持有（`../spec-setup/references/`）。两者同属 `sdd` plugin，成对安装。**单独安装本 skill 会让这些引用悬空，且不报错**——若确实要单独用，先把那三份文件复制进本 skill 的 `references/`。
 
 ## 为什么分诊是核心
 
@@ -44,7 +48,7 @@ In Codex, translate this wrapper instead of rewriting it:
 | `.claude/rules` + `paths:` | 命中路径时注入全文 | 按文件类型付 | 窄领域、内容极少、不值得建 skill | 单文件 ≤ 60 行 |
 | 项目文档 / references | 显式查阅 | 仅查表时付 | 长尾查表、脚手架模板 | 不限 |
 
-**决策树**（完整判例见 `references/tier-routing.md`）：
+**决策树**（完整判例见 `../spec-setup/references/tier-routing.md`）：
 
 ```
 这条约定换个项目还成立吗？
@@ -114,9 +118,9 @@ In Codex, translate this wrapper instead of rewriting it:
 
 ## 4 — 落地
 
-按路由表写入。写之前**逐条过 `references/guards.md` 的硬闸**，命中即停下报告，不要自行放宽。
+按路由表写入。写之前**逐条过 `../spec-setup/references/guards.md` 的硬闸**，命中即停下报告，不要自行放宽。
 
-新增或修改规则内容时，遵守 `references/rule-authoring.md`：每条必须写清「为什么」和「违反的后果」——只写「应该这样」的规则，agent 遵守率显著低。
+新增或修改规则内容时，遵守 `../spec-setup/references/rule-authoring.md`：每条必须写清「为什么」和「违反的后果」——只写「应该这样」的规则，agent 遵守率显著低。
 
 **删除既有规范时，三步缺一不可**（这三条都是实战踩出来的）：
 
@@ -129,7 +133,7 @@ In Codex, translate this wrapper instead of rewriting it:
 改完必须验，逐项报告结果：
 
 - **skill 索引 ↔ 规则文件严格一一对应** —— 这是索引式结构唯一的沉默故障：索引多写一条，agent `Read` 失败；漏写一条，规则永远不被发现
-- **`paths:` 合法** —— 不覆盖高频文档与工作流产物（判据见 `references/guards.md` G1）、glob 锚到模块
+- **`paths:` 合法** —— 不覆盖高频文档与工作流产物（判据见 `../spec-setup/references/guards.md` G1）、glob 锚到模块
 - **无跨层重复**
 - **各层未超预算**
 - **全仓无悬空引用**

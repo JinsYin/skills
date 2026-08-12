@@ -25,14 +25,14 @@
     {
       "name": "sdd",
       "source": "./plugins/sdd",
-      "description": "规范驱动开发（Spec-Driven Development）工具包：前端 UI / DevOps / 文档 / Spring Boot 四套最佳实践规则集，加上项目规范建立与漂移检测（spec-triage）、产品功能规范管理（product-spec）和高保真设计还原（design-to-code）",
+      "description": "规范驱动开发（Spec-Driven Development）工具包：前端 UI / DevOps / 文档 / Spring Boot 四套最佳实践规则集，加上新项目规范初始化（spec-setup）、存量项目规范整顿与漂移检测（spec-triage）、产品功能规范管理（product-spec）和高保真设计还原（design-to-code）",
       "version": "0.1.0",
       "author": {
         "name": "JinsYin",
         "email": "jinsyin@gmail.com"
       },
       "license": "MIT",
-      "keywords": ["best-practices", "coding-standards", "spec-driven-development", "rules", "product-spec", "design-to-code"],
+      "keywords": ["best-practices", "coding-standards", "spec-driven-development", "rules", "project-init", "product-spec", "design-to-code"],
       "category": "development"
     }
   ]

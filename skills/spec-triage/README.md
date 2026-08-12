@@ -1,16 +1,21 @@
 # spec-triage
 
-为一个项目建立或整顿编码规范。**核心是分诊，不是生成文件。**
+整顿**存量项目**的编码规范。**核心是分诊，不是生成文件。**
 
-## 与两个规范 skill 的关系
+空仓或刚跑完脚手架的新项目用 `spec-setup`——那里没有代码可取证，本 skill 的每一步都会落空。
+
+## 与其他规范 skill 的关系
 
 | Skill | 是什么 |
 |---|---|
 | `spring-boot-best-practices` | 规范**内容**（跨项目通用的后端规则） |
 | `frontend-ui-best-practices` | 规范**内容**（跨项目通用的前端规则） |
-| `spec-triage` | 规范的**流程**：决定每条约定该放哪层、检测漂移、整顿既有规范 |
+| `spec-setup` | 规范的**流程·新项目**：从访谈定形态与栈，只固化已裁决的，其余留白 |
+| `spec-triage` | 规范的**流程·存量**：决定每条约定该放哪层、检测漂移、整顿既有规范 |
 
-前两者是被读的，这个是被执行的。
+前两者是被读的，后两者是被执行的。
+
+`spec-setup` 治**猜写**（代码还没写就铺满规则），本 skill 治**漂移**（规范与代码对不上）。新项目跑完 `spec-setup`，首个模块合并后就换成 `spec-triage --check`。
 
 ## 分诊的四层
 
@@ -35,16 +40,18 @@ skill 本身不依赖任何特定工作流。GSD 只作为实测案例出现在�
 
 ## references
 
-| 文件 | 内容 |
-|---|---|
-| `tier-routing.md` | 分诊判例、五种常见误判、拆分时机、何时不动 |
-| `guards.md` | 10 条硬闸，每条对应一次实际故障 |
-| `interview-bank.md` | 问题库，按通用/按栈分类；含「不要问的」 |
-| `rule-authoring.md` | 规则写法：为什么必须写「后果」、原子化判据、影响级别 |
+| 文件 | 位置 | 内容 |
+|---|---|---|
+| `interview-bank.md` | 本 skill | 问题库，按通用/按栈分类；含「不要问的」 |
+| `tier-routing.md` | `../spec-setup/references/` | 分诊判例、五种常见误判、拆分时机、何时不动 |
+| `guards.md` | `../spec-setup/references/` | 硬闸，每条对应一次实际故障 |
+| `rule-authoring.md` | `../spec-setup/references/` | 规则写法：为什么必须写「后果」、原子化判据、影响级别 |
+
+后三份是两个 skill 的共用地基，由 `spec-setup` 持有。**两者同属 `sdd` plugin，成对安装**；单独安装本 skill 会让这三处引用悬空且不报错，若确实要单独用，先把文件复制进本 skill 的 `references/`。
 
 ## 硬闸从哪来
 
-`guards.md` 的 10 条都不是推演的，是实际踩出来的。几个例子：
+`guards.md` 的 G1～G10 都不是推演的，是实际踩出来的（G11 是 `spec-setup` 专属，不适用于本 skill）。几个例子：
 
 - **G1**（`paths:` 禁止覆盖高频文档与工作流产物）：11 个规则文件都带着工作流产物通配（那个项目用 GSD，是 `.planning/**/*-PLAN.md`），任意规划命令无差别注入 36788 B，子代理各付一遍。不用 GSD 也一样中招——只是路径换成 `docs/**` 或 `**/*.md`。
 - **G3**（glob 必须真能命中）：某前端规则 `paths` 写 `**/*.vue`，项目零个 `.vue`、组件全是 `.tsx`——从未命中过，且描述里写着另一个框架的名字。两种失效都不报错。
@@ -56,9 +63,10 @@ skill 本身不依赖任何特定工作流。GSD 只作为实测案例出现在�
 ## 启用
 
 ```bash
-# 在仓库根目录执行
+# 在仓库根目录执行；两者必须成对链接
 mkdir -p "$HOME/.claude/skills"
 ln -s "$(pwd)/skills/spec-triage" "$HOME/.claude/skills/spec-triage"
+ln -s "$(pwd)/skills/spec-setup"  "$HOME/.claude/skills/spec-setup"
 ```
 
 用符号链接而非拷贝，本仓才是唯一事实来源。
