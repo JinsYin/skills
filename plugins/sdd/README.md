@@ -20,7 +20,7 @@ claude --plugin-dir plugins/sdd
 
 | Skill | 作用 | 触发方式 |
 | --- | --- | --- |
-| `setup-rules` | 勘察代码库取证 → 只就推断不了的事访谈 → 把约定按加载成本分诊到 CLAUDE.md / skill / .claude-rules / 项目文档四层，并检测规范与代码的漂移 | 自动 + `/sdd:setup-rules` |
+| `spec-triage` | 勘察代码库取证 → 只就推断不了的事访谈 → 把约定按加载成本分诊到 CLAUDE.md / skill / .claude-rules / 项目文档四层，并检测规范与代码的漂移 | 自动 + `/sdd:spec-triage` |
 | `frontend-ui-best-practices` | 前端 UI 规则集：表单、列表、弹层、格式化、一致性 | 自动 |
 | `devops-best-practices` | 容器化与部署规则集（26 条 / 6 类）：Dockerfile、K8s、compose、CI、凭据 | 自动 |
 | `doc-writing-best-practices` | 文档规则集：中英混排、标点、结构、示例可复制 | 自动 |
@@ -38,9 +38,9 @@ claude --plugin-dir plugins/sdd
 
 **代码规范**：
 
-1. `/sdd:setup-rules` —— 为项目建立或整顿分层规范
+1. `/sdd:spec-triage` —— 为项目建立或整顿分层规范
 2. 日常开发中，四套 `*-best-practices` 按文件类型自动介入
-3. `/sdd:setup-rules --check` —— 定期检测规范与代码库的漂移
+3. `/sdd:spec-triage --check` —— 定期检测规范与代码库的漂移
 
 **产品 → 设计 → 代码**：
 

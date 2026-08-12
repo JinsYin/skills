@@ -1,6 +1,6 @@
 ---
-name: setup-rules
-description: 为一个项目建立或整顿编码规范：勘察代码库取证、只就推断不了的事访谈、再把每条约定按加载成本分诊到 CLAUDE.md / 通用 skill / .claude-rules / 项目文档四层，并检测既有规范与代码库的漂移。在用户说「给这个项目建规范」「整顿 CLAUDE.md 和 rules」「规范和代码对不上了」「检查规范漂移」「setup-rules」时使用，也用于新项目初始化规范、或规范文件膨胀到该拆分时。
+name: spec-triage
+description: 为一个项目建立或整顿编码规范：勘察代码库取证、只就推断不了的事访谈、再把每条约定按加载成本分诊到 CLAUDE.md / 通用 skill / .claude-rules / 项目文档四层，并检测既有规范与代码库的漂移。在用户说「给这个项目建规范」「整顿 CLAUDE.md 和 rules」「规范和代码对不上了」「检查规范漂移」「spec-triage」时使用，也用于新项目初始化规范、或规范文件膨胀到该拆分时。
 argument-hint: "[--check | --tier claude-md|skill|rules | --dry-run]"
 allowed-tools:
   - Read
@@ -12,7 +12,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# setup-rules
+# spec-triage
 
 ## Codex Adapter
 

@@ -1,4 +1,4 @@
-# setup-rules
+# spec-triage
 
 为一个项目建立或整顿编码规范。**核心是分诊，不是生成文件。**
 
@@ -8,7 +8,7 @@
 |---|---|
 | `spring-boot-best-practices` | 规范**内容**（跨项目通用的后端规则） |
 | `frontend-ui-best-practices` | 规范**内容**（跨项目通用的前端规则） |
-| `setup-rules` | 规范的**流程**：决定每条约定该放哪层、检测漂移、整顿既有规范 |
+| `spec-triage` | 规范的**流程**：决定每条约定该放哪层、检测漂移、整顿既有规范 |
 
 前两者是被读的，这个是被执行的。
 
@@ -54,7 +54,7 @@ CLAUDE.md            每会话常驻    本项目已裁决的具体约束、锁�
 ## 启用
 
 ```bash
-ln -s /Users/jins/AI/@jinsyin/agent/skills/setup-rules ~/.claude/skills/setup-rules
+ln -s /Users/jins/AI/@jinsyin/agent/skills/spec-triage ~/.claude/skills/spec-triage
 ```
 
 用符号链接而非拷贝，本仓才是唯一事实来源。
