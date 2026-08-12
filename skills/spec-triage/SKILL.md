@@ -30,7 +30,7 @@ In Codex, translate this wrapper instead of rewriting it:
 
 规范出问题从来不是「写得不够多」，而是两种错配：
 
-- **放错层** —— 只在写 Java 时才需要的 DTO 命名表，被放进规划期必然加载的位置。实测案例：11 个规则文件的 `paths:` 都带着 `.planning/**/*-PLAN.md`，导致任何 `plan-phase` 无差别注入约 10.5 KB，且子代理各付一遍。
+- **放错层** —— 只在写 Java 时才需要的 DTO 命名表，被放进「写代码之前就必然加载」的位置。实测案例：11 个规则文件的 `paths:` 都带着该项目工作流的产物通配（那次是 GSD 的 `.planning/**/*-PLAN.md`），导致任何规划命令无差别注入约 10.5 KB，且子代理各付一遍。换个工作流只是路径不同，机制一样。
 - **漂移** —— 规则说 Flyway 是双路、项目早已三层；`paths` 写 `**/*.vue` 而项目零个 `.vue`，规则从未命中过。两种失效都不报错，只能靠审计发现。
 
 分诊同时解决这两点：路由正确则成本正确，且每层有明确归属后，漂移检测才有靶子。
@@ -77,6 +77,7 @@ In Codex, translate this wrapper instead of rewriting it:
 - **既有规范** —— `CLAUDE.md`、`.claude/rules/**`、已启用 skill、`AGENTS.md` 等入口文件各覆盖了什么
 - **真实模式与偏离率** —— 不是"应该怎么写"，是"实际怎么写的，多少处不一致"
 - **构建 / 测试 / lint 命令** —— 从脚本与 CI 配置里取，不猜
+- **高频文档与工作流产物路径** —— 本项目有没有在用某种规划/任务工作流（GSD、`docs/adr/**`、issue 模板…），它的产物落在哪；这是 G1 判定的输入，**不要假定，查了再说**
 - **规范时效性** —— `git log -1 -- CLAUDE.md` 之后有多少提交；差距大就默认它已漂移
 
 勘察产出一张证据表，作为后续每一步的依据。**没有出处的结论不得进入分诊。**
@@ -128,7 +129,7 @@ In Codex, translate this wrapper instead of rewriting it:
 改完必须验，逐项报告结果：
 
 - **skill 索引 ↔ 规则文件严格一一对应** —— 这是索引式结构唯一的沉默故障：索引多写一条，agent `Read` 失败；漏写一条，规则永远不被发现
-- **`paths:` 合法** —— 无 `.planning/**`、无 `**/*-PLAN.md`、glob 锚到模块
+- **`paths:` 合法** —— 不覆盖高频文档与工作流产物（判据见 `references/guards.md` G1）、glob 锚到模块
 - **无跨层重复**
 - **各层未超预算**
 - **全仓无悬空引用**
@@ -147,4 +148,4 @@ In Codex, translate this wrapper instead of rewriting it:
    实际 mysql 挂在 profile 下不默认启动
 ```
 
-适合在 phase 收尾后跑。规范烂掉是渐进的，等到有人踩坑才发现就晚了。
+适合在一个阶段收尾时跑——发版前、大改动合并后，或（若项目用阶段化工作流）挂在 phase 收尾之后。规范烂掉是渐进的，等到有人踩坑才发现就晚了。

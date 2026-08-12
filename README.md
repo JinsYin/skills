@@ -46,7 +46,7 @@ claude --plugin-dir plugins/gsx --plugin-dir plugins/sdd
 - `devops-best-practices` - DevOps 运维最佳实践
 - `doc-writing-best-practices` - 文档编写最佳实践
 - `spring-boot-best-practices` - Spring Boot 后端开发最佳实践
-- `spec-triage` - Agent 规则配置指南
+- `spec-triage` - 建立/整顿项目编码规范：勘察取证 → 按加载成本分诊到 CLAUDE.md / skill / .claude/rules / 项目文档四层 → 检测规范与代码的漂移
 - `to-md` - 内容转换 Markdown 工具
 - `product-spec` - 管理产品功能规范（功能、交互、Flyway 式版本化变更记录），合成的 `CURRENT.md` 直接喂 Claude Design / v0 / Figma Make / Lovable
 - `design-to-code` - 将高保真设计/原型（HTML + React JSX）还原为 Vite + React + TypeScript + Tailwind + shadcn/ui 生产级代码
