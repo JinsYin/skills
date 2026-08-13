@@ -10,13 +10,16 @@ tags: db, migration, flyway, build, deploy
 Flyway 的 `spring.flyway.locations` 不要在配置文件里写死，用构建期 profile 注入占位符——哪套方言/形态由出包时决定，源码里保持单一写法。
 
 ```xml
-<!-- 父 pom：每个 profile 注入自己的 locations -->
+<!-- 父 pom：一个部署目标一个 profile，各自注入自己的 locations -->
 <profiles>
-  <profile><id>gaussdb</id>      <!-- 分布式集群 -->
+  <profile><id>distributed-gaussdb</id>
     <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-distributed</spring.flyway.locations></properties>
   </profile>
-  <profile><id>opengauss</id>    <!-- 单机 / 集中式 -->
+  <profile><id>centralized-gaussdb</id>
     <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-centralized</spring.flyway.locations></properties>
+  </profile>
+  <profile><id>opengauss</id>
+    <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-opengauss</spring.flyway.locations></properties>
   </profile>
 </profiles>
 ```
@@ -29,6 +32,8 @@ spring:
 ```
 
 **关键一条：注入的是「激活哪些 location」，不是「打包哪些文件」。** 所有 overlay 目录都在 `src/main/resources` 下，无论当次构建激不激活，都会一并进 jar 的 classpath。这不是冗余，而是运行期覆盖的前提：
+
+profile 名字带上部署目标（`distributed-` / `centralized-`），比笼统的 `gaussdb` 更难接错——它和 location 目录名一一对应，肉眼就能核。
 
 **错误（按 profile 裁剪资源目录）：**
 

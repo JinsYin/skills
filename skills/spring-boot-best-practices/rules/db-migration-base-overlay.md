@@ -16,12 +16,20 @@ tags: db, migration, flyway, multi-dialect, overlay
 | `<db>-base` | **共通基线**：建表、种子、ALTER、注释——凡两种形态语法一致的，全部放这里 |
 | `<db>-<形态>` overlay | **只放确实分叉的那几条**，每种形态一份，版本号与名称严格一致 |
 
-激活的 location 是 `base + 某一个 overlay`。因此同一版本号**只能出现在一个激活 location**——base 与 overlay 之间绝不能重复版本号，否则 Flyway 报重复版本直接启动失败。
+**overlay 之间互斥**：激活的 location 恒为 `base + 恰好一个 overlay`，构建期与运行期都不得同时挂两个。因此同一版本号**只能出现在一个激活 location**——base 与 overlay 之间绝不能重复版本号，否则 Flyway 报重复版本直接启动失败。
 
-**何时才分叉**——判据是「有没有两端共通的写法」，不是「这条迁移涉不涉及分布式概念」：
+分层要回答两个不同的问题，别混为一谈：
+
+**问题一：这条迁移放 base 还是 overlay？** 判据是「有没有两端共通的写法」，不是「这条迁移涉不涉及分布式概念」：
 
 - 有共通写法 → 留在 base。例：新建表的唯一约束写成表内联 `CONSTRAINT uk_x UNIQUE(...)`，分布式下自动建全局索引、单机下是普通约束，一份通吃。
 - 确无共通写法 → 才分叉。例：对**既有**表追加非分布键唯一索引，分布式必须用 `CREATE GLOBAL UNIQUE INDEX ... DISTRIBUTE BY HASH(...)`，而单机不认这个语法。
+
+**问题二：overlay 分几份？** 按**部署目标**分，一个目标一份——即便其中两份当下的可执行 SQL 完全相同。这与问题一的「能共通就别分」不矛盾：那条管的是 base 与 overlay 的边界，这条管的是 overlay 的粒度。
+
+理由是 profile ↔ location 保持一一对应。两个目标共用一个 overlay 时，目录名会对其中一个说谎（`gauss-centralized` 实际同时服务集中式 GaussDB 和单机 openGauss），运维改 `SPRING_FLYWAY_LOCATIONS` 时得先在脑子里做一次映射，而这个映射没有任何地方能校验。代价是多一份等价副本——用 `diff` 核可执行 SQL 一致即可，比一次接错 location 便宜。
+
+> 等价副本里**注释可以按产品归属分别写**（这往往正是拆分的直接动因），但改注释会改 Flyway checksum，见 `db-migration-immutable-after-apply`。
 
 **错误（同一张新表在两个 overlay 里各写一遍）：**
 
@@ -38,6 +46,6 @@ gauss-centralized/V25__add_authcode_agreement.sql   -- 建表 60 行 + 唯一索
 gauss-base/V25__add_authcode_agreement.sql          -- 建表，唯一约束写表内联 CONSTRAINT
 ```
 
-只有真的无法共通时才留在 overlay，且**两份 overlay 除分叉语句外必须逐字一致**（建表体、ALTER、DROP、注释同步维护）。新增 overlay 后用 `diff` 核一遍是最省事的校验方式。
+只有真的无法共通时才留在 overlay，且**各份 overlay 除分叉语句与产品归属注释外必须逐字一致**（建表体、ALTER、DROP 同步维护）。新增或修改 overlay 后逐对 `diff` 一遍是最省事的校验方式。
 
-配套见 `db-migration-parity`（多方言同版本同步）、`db-migration-locations-injection`（location 怎么注入）、`db-distributed-unique-index`（分叉的根因）。
+配套见 `db-migration-parity`（多方言同版本同步）、`db-migration-locations-injection`（location 怎么注入）、`db-distributed-unique-index`（分叉的根因）、`db-migration-immutable-after-apply`（改已执行的迁移要 repair）。

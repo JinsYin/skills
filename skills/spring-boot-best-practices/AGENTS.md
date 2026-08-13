@@ -1,7 +1,7 @@
 # Spring Boot Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-08-12 23:48:56
+> 生成时间：2026-08-13 01:45:29
 
 ## 1. 分层纪律
 
@@ -492,12 +492,20 @@ CREATE INDEX idx_order_created_at ON t_order(created_at);
 | `<db>-base` | **共通基线**：建表、种子、ALTER、注释——凡两种形态语法一致的，全部放这里 |
 | `<db>-<形态>` overlay | **只放确实分叉的那几条**，每种形态一份，版本号与名称严格一致 |
 
-激活的 location 是 `base + 某一个 overlay`。因此同一版本号**只能出现在一个激活 location**——base 与 overlay 之间绝不能重复版本号，否则 Flyway 报重复版本直接启动失败。
+**overlay 之间互斥**：激活的 location 恒为 `base + 恰好一个 overlay`，构建期与运行期都不得同时挂两个。因此同一版本号**只能出现在一个激活 location**——base 与 overlay 之间绝不能重复版本号，否则 Flyway 报重复版本直接启动失败。
 
-**何时才分叉**——判据是「有没有两端共通的写法」，不是「这条迁移涉不涉及分布式概念」：
+分层要回答两个不同的问题，别混为一谈：
+
+**问题一：这条迁移放 base 还是 overlay？** 判据是「有没有两端共通的写法」，不是「这条迁移涉不涉及分布式概念」：
 
 - 有共通写法 → 留在 base。例：新建表的唯一约束写成表内联 `CONSTRAINT uk_x UNIQUE(...)`，分布式下自动建全局索引、单机下是普通约束，一份通吃。
 - 确无共通写法 → 才分叉。例：对**既有**表追加非分布键唯一索引，分布式必须用 `CREATE GLOBAL UNIQUE INDEX ... DISTRIBUTE BY HASH(...)`，而单机不认这个语法。
+
+**问题二：overlay 分几份？** 按**部署目标**分，一个目标一份——即便其中两份当下的可执行 SQL 完全相同。这与问题一的「能共通就别分」不矛盾：那条管的是 base 与 overlay 的边界，这条管的是 overlay 的粒度。
+
+理由是 profile ↔ location 保持一一对应。两个目标共用一个 overlay 时，目录名会对其中一个说谎（`gauss-centralized` 实际同时服务集中式 GaussDB 和单机 openGauss），运维改 `SPRING_FLYWAY_LOCATIONS` 时得先在脑子里做一次映射，而这个映射没有任何地方能校验。代价是多一份等价副本——用 `diff` 核可执行 SQL 一致即可，比一次接错 location 便宜。
+
+> 等价副本里**注释可以按产品归属分别写**（这往往正是拆分的直接动因），但改注释会改 Flyway checksum，见 `db-migration-immutable-after-apply`。
 
 **错误（同一张新表在两个 overlay 里各写一遍）：**
 
@@ -514,9 +522,34 @@ gauss-centralized/V25__add_authcode_agreement.sql   -- 建表 60 行 + 唯一索
 gauss-base/V25__add_authcode_agreement.sql          -- 建表，唯一约束写表内联 CONSTRAINT
 ```
 
-只有真的无法共通时才留在 overlay，且**两份 overlay 除分叉语句外必须逐字一致**（建表体、ALTER、DROP、注释同步维护）。新增 overlay 后用 `diff` 核一遍是最省事的校验方式。
+只有真的无法共通时才留在 overlay，且**各份 overlay 除分叉语句与产品归属注释外必须逐字一致**（建表体、ALTER、DROP 同步维护）。新增或修改 overlay 后逐对 `diff` 一遍是最省事的校验方式。
 
-配套见 `db-migration-parity`（多方言同版本同步）、`db-migration-locations-injection`（location 怎么注入）、`db-distributed-unique-index`（分叉的根因）。
+配套见 `db-migration-parity`（多方言同版本同步）、`db-migration-locations-injection`（location 怎么注入）、`db-distributed-unique-index`（分叉的根因）、`db-migration-immutable-after-apply`（改已执行的迁移要 repair）。
+
+
+### 已执行的迁移不可编辑，改注释也算改
+
+Flyway 对每个迁移文件存一份 checksum，算的是**整个文件内容**——注释、空行、缩进全在内。改一个已经执行过的版本，下次启动 validate 阶段就会报 checksum 失配并拒绝继续，而**只在已经跑过该版本的环境上报**：新环境从零 migrate 一路绿灯，老环境（通常是生产）起不来。
+
+所以默认纪律是：**已执行的版本只读，要改就发新版本**。给列改类型、补索引、修数据，都写 `V<n+1>__fix_xxx.sql`。
+
+例外只有一类：改动**不影响已执行结果**，纯粹是注释、格式、或产品归属标注（例如把一份 overlay 的注释从「集中式 GaussDB」改成「社区 openGauss」）。这时重发一个新版本毫无意义——它什么也不做。正确做法是接受 checksum 变化，然后让每个已执行过该版本的环境**先 repair 再 migrate**：
+
+```bash
+flyway repair   # 用当前文件内容重写 flyway_schema_history 里的 checksum
+flyway migrate
+```
+
+Spring Boot 侧对应 `spring.flyway.repair-on-migrate`（或部署流程里先跑一次 repair 任务）。**这一步必须写进变更说明**——漏掉它的环境会在下一次滚动发布时才炸，那时已经和这次改动隔了很久。
+
+**不要用关闭校验来绕过：**
+
+```yaml
+# ❌ 把真实的结构漂移一起关掉了
+spring.flyway.validate-on-migrate: false
+```
+
+`validate-on-migrate: false` 不只放过你这次的注释改动，也放过「有人手工改过生产表结构」「某个版本文件被误删」这类真问题——而这些正是 validate 唯一能替你抓到的东西。若项目因历史原因已经关着它，那更要在变更说明里显式写清 repair 步骤：此时没有任何自动检查会提醒执行者。
 
 
 ### locations 构建期注入，未激活的 overlay 也要打进产物
@@ -524,13 +557,16 @@ gauss-base/V25__add_authcode_agreement.sql          -- 建表，唯一约束写�
 Flyway 的 `spring.flyway.locations` 不要在配置文件里写死，用构建期 profile 注入占位符——哪套方言/形态由出包时决定，源码里保持单一写法。
 
 ```xml
-<!-- 父 pom：每个 profile 注入自己的 locations -->
+<!-- 父 pom：一个部署目标一个 profile，各自注入自己的 locations -->
 <profiles>
-  <profile><id>gaussdb</id>      <!-- 分布式集群 -->
+  <profile><id>distributed-gaussdb</id>
     <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-distributed</spring.flyway.locations></properties>
   </profile>
-  <profile><id>opengauss</id>    <!-- 单机 / 集中式 -->
+  <profile><id>centralized-gaussdb</id>
     <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-centralized</spring.flyway.locations></properties>
+  </profile>
+  <profile><id>opengauss</id>
+    <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-opengauss</spring.flyway.locations></properties>
   </profile>
 </profiles>
 ```
@@ -543,6 +579,8 @@ spring:
 ```
 
 **关键一条：注入的是「激活哪些 location」，不是「打包哪些文件」。** 所有 overlay 目录都在 `src/main/resources` 下，无论当次构建激不激活，都会一并进 jar 的 classpath。这不是冗余，而是运行期覆盖的前提：
+
+profile 名字带上部署目标（`distributed-` / `centralized-`），比笼统的 `gaussdb` 更难接错——它和 location 目录名一一对应，肉眼就能核。
 
 **错误（按 profile 裁剪资源目录）：**
 

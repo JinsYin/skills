@@ -9,7 +9,7 @@ metadata:
 
 # Spring Boot Best Practices
 
-Spring Boot 3 后端的规范集，43 条规则分 8 类，按**违反后果**排序。
+Spring Boot 3 后端的规范集，44 条规则分 8 类，按**违反后果**排序。
 
 ## 如何使用本 skill
 
@@ -30,6 +30,7 @@ rules/entity-tableid-assign-id.md
 | 新增/修改 Entity | `entity-*`、`db-table-naming`、`db-column-naming` |
 | 写数据库迁移 | `db-migration-*`、`db-opengauss-dialect`、`db-index-naming` |
 | 加唯一约束 / 索引 | `db-distributed-unique-index`、`db-index-naming` |
+| 改已执行过的迁移 | `db-migration-immutable-after-apply` |
 | 定义 DTO | `dto-*`、`naming-class-suffix` |
 | 加解密 / 签名 | `crypto-*`（全部，只有 6 条且互相关联） |
 | 设计 API 契约 | `envelope-*`、`naming-url` |
@@ -44,7 +45,7 @@ rules/entity-tableid-assign-id.md
 | 1 | 分层纪律 | CRITICAL | `layer-` | 7 |
 | 2 | 密码学 | CRITICAL | `crypto-` | 6 |
 | 3 | 实体与持久化 | CRITICAL | `entity-` | 3 |
-| 4 | 数据库与迁移 | HIGH | `db-` | 8 |
+| 4 | 数据库与迁移 | HIGH | `db-` | 9 |
 | 5 | 响应包装与错误码 | HIGH | `envelope-` | 5 |
 | 6 | DTO 约定 | HIGH | `dto-` | 5 |
 | 7 | 命名约定 | MEDIUM | `naming-` | 6 |
@@ -80,8 +81,9 @@ rules/entity-tableid-assign-id.md
 ### 4. 数据库与迁移 (HIGH)
 
 - `db-migration-parity` — 多方言迁移必须同版本号同步维护，漏一份只在目标环境炸
-- `db-migration-base-overlay` — 同库多形态用 base + overlay 分层，只把无共通写法的那几条分叉
+- `db-migration-base-overlay` — base/overlay 边界看有无共通写法；overlay 粒度按部署目标，一目标一份
 - `db-migration-locations-injection` — locations 构建期 profile 注入，未激活的 overlay 也要打进产物
+- `db-migration-immutable-after-apply` — 已执行的迁移只读，改注释也会改 checksum，须 repair
 - `db-distributed-unique-index` — 分布式库唯一约束须含分布键，追加索引用 GSI，新建表用内联约束
 - `db-opengauss-dialect` — openGauss 三定律：无 `ON CONFLICT` / 无 `gen_random_uuid()` / 无 `jsonb_build_object`
 - `db-table-naming` — 表名 `t_` 前缀 + snake_case + 单数
