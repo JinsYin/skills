@@ -3,6 +3,18 @@
 本文件记录项目的所有重要变更。
 遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 规范与 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号约定。
 
+## [v0.3.0] - 2026-08-13
+
+### 新增 (Added)
+
+- **`to-requirements` 原始需求整理 Skill**：将口述、聊天记录与上下文方案映射为固定四段结构，逐项确认缺失、歧义和冲突后保存项目根目录的 `REQUIREMENTS.md`。
+
+### 变更 (Changed)
+
+- **SDD 链路前移**：`sdd` plugin 现覆盖「原始需求 → 工程规范 → 产品功能规范 → 设计 → 代码」，版本升级至 0.3.0。
+
+---
+
 ## [v0.2.0] - 2026-08-13
 
 ### 新增 (Added)
