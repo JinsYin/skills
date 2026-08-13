@@ -59,5 +59,11 @@ claude --plugin-dir plugins/gsx --plugin-dir plugins/sdd
 - `plugins/` - Claude Code plugin 打包（`gsx`、`sdd`），内含指向 `skills/` 的符号链接
 - `.claude-plugin/marketplace.json` - marketplace 清单
 - `CHANGELOG.md` - 版本变更日志
+- `LICENSE` - MIT 开源协议
+
+## 开源协议
+
+本项目采用 [MIT License](LICENSE) 协议开源。
+
 
 
