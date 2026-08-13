@@ -1,7 +1,7 @@
 # Spring Boot Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-08-04 21:59:39
+> 生成时间：2026-08-12 23:48:56
 
 ## 1. 分层纪律
 
@@ -431,6 +431,41 @@ private Long appId;
 布尔列不要用 `flag`、`type` 这类无语义名——半年后没人知道 `flag=1` 是启用还是禁用。
 
 
+### 分布式库的唯一约束必须含分布键，否则要全局索引
+
+分布式数据库（GaussDB Distributed、TiDB、OceanBase 等）把数据按分布键散到各个分片。**普通唯一索引是分片本地的**——只保证同一分片内不重复。若唯一列不是分布键，两条同值记录落在不同分片时，本地索引各自看不到对方，重复数据照样写得进去。
+
+这类故障最坏的形态是**静默**：不报错、不回滚，直到某天查出两条本该唯一的记录。
+
+两种写法，按「表是不是本次新建」选：
+
+**新建表——写成表内联约束，两种形态共通：**
+
+```sql
+CREATE TABLE t_authcode_agreement (
+    auth_code   VARCHAR(64) NOT NULL,
+    ...
+    CONSTRAINT uk_authcode_agreement_auth_code UNIQUE (auth_code)
+);
+```
+
+分布式下引擎自动建全局索引，单机下就是普通唯一约束——**一份 SQL 通吃**，无需在 overlay 里分叉（见 `db-migration-base-overlay`）。
+
+**对既有表追加——必须显式全局唯一索引：**
+
+```sql
+-- ❌ 分布式下只在分片内唯一，跨分片可写入重复值
+CREATE UNIQUE INDEX uk_org_name ON t_org(org_name);
+
+-- ✅ 分布式：GSI，DISTRIBUTE BY 列与索引列一致
+CREATE GLOBAL UNIQUE INDEX uk_org_name ON t_org(org_name) DISTRIBUTE BY HASH(org_name);
+```
+
+`CREATE GLOBAL UNIQUE INDEX` 语法在单机/集中式下不被认识，所以这一种情形——**且只有这一种**——需要分叉出集中式 overlay，改回普通 `CREATE UNIQUE INDEX`（无数据分布时它本身就是全表唯一）。
+
+同理，`ALTER TABLE ... ADD UNIQUE` 在分布式下同样受「唯一键必须包含分布键」约束，不能当作绕过手段。
+
+
 ### 索引命名 uk_ / idx_
 
 - 唯一索引：`uk_{table}_{field...}`
@@ -446,6 +481,91 @@ CREATE INDEX idx_order_created_at ON t_order(created_at);
 新建表的唯一约束写成 `CREATE TABLE` 内联 `CONSTRAINT uk_x UNIQUE(...)`，而不是建表后再补索引——内联写法在分布式与单机部署下语义一致。
 
 
+### 同库多形态用 base + overlay，不复制整套迁移
+
+同一个数据库产品有多种部署形态（分布式集群 / 集中式主备 / 单机），而某些 DDL 只在其中一种形态下合法时，**不要为每种形态各维护一份完整迁移集**。N 份完整副本里绝大多数文件逐字相同，改一条要同步改 N 处——漏改不会在本地报错，只在另一形态的环境启动时炸。
+
+拆成两层：
+
+| 层 | 放什么 |
+|---|---|
+| `<db>-base` | **共通基线**：建表、种子、ALTER、注释——凡两种形态语法一致的，全部放这里 |
+| `<db>-<形态>` overlay | **只放确实分叉的那几条**，每种形态一份，版本号与名称严格一致 |
+
+激活的 location 是 `base + 某一个 overlay`。因此同一版本号**只能出现在一个激活 location**——base 与 overlay 之间绝不能重复版本号，否则 Flyway 报重复版本直接启动失败。
+
+**何时才分叉**——判据是「有没有两端共通的写法」，不是「这条迁移涉不涉及分布式概念」：
+
+- 有共通写法 → 留在 base。例：新建表的唯一约束写成表内联 `CONSTRAINT uk_x UNIQUE(...)`，分布式下自动建全局索引、单机下是普通约束，一份通吃。
+- 确无共通写法 → 才分叉。例：对**既有**表追加非分布键唯一索引，分布式必须用 `CREATE GLOBAL UNIQUE INDEX ... DISTRIBUTE BY HASH(...)`，而单机不认这个语法。
+
+**错误（同一张新表在两个 overlay 里各写一遍）：**
+
+```
+gauss-distributed/V25__add_authcode_agreement.sql   -- 建表 60 行 + 唯一索引 3 行
+gauss-centralized/V25__add_authcode_agreement.sql   -- 建表 60 行 + 唯一索引 2 行
+```
+
+60 行建表体重复两份。下次给这张表加字段，改一处漏一处。
+
+**正确（能共通的下沉到 base）：**
+
+```
+gauss-base/V25__add_authcode_agreement.sql          -- 建表，唯一约束写表内联 CONSTRAINT
+```
+
+只有真的无法共通时才留在 overlay，且**两份 overlay 除分叉语句外必须逐字一致**（建表体、ALTER、DROP、注释同步维护）。新增 overlay 后用 `diff` 核一遍是最省事的校验方式。
+
+配套见 `db-migration-parity`（多方言同版本同步）、`db-migration-locations-injection`（location 怎么注入）、`db-distributed-unique-index`（分叉的根因）。
+
+
+### locations 构建期注入，未激活的 overlay 也要打进产物
+
+Flyway 的 `spring.flyway.locations` 不要在配置文件里写死，用构建期 profile 注入占位符——哪套方言/形态由出包时决定，源码里保持单一写法。
+
+```xml
+<!-- 父 pom：每个 profile 注入自己的 locations -->
+<profiles>
+  <profile><id>gaussdb</id>      <!-- 分布式集群 -->
+    <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-distributed</spring.flyway.locations></properties>
+  </profile>
+  <profile><id>opengauss</id>    <!-- 单机 / 集中式 -->
+    <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-centralized</spring.flyway.locations></properties>
+  </profile>
+</profiles>
+```
+
+```yaml
+# application.yml
+spring:
+  flyway:
+    locations: "@spring.flyway.locations@"
+```
+
+**关键一条：注入的是「激活哪些 location」，不是「打包哪些文件」。** 所有 overlay 目录都在 `src/main/resources` 下，无论当次构建激不激活，都会一并进 jar 的 classpath。这不是冗余，而是运行期覆盖的前提：
+
+**错误（按 profile 裁剪资源目录）：**
+
+```xml
+<!-- ❌ 只把激活的 overlay 打进包 -->
+<resources><resource>
+  <directory>src/main/resources</directory>
+  <excludes><exclude>db/migration/gauss-centralized/**</exclude></excludes>
+</resource></resources>
+```
+
+这样一来，同一个镜像换个形态的环境就跑不了，只能为该环境单独出一次包——而重新出包意味着上线的不是已经过测的那个产物。
+
+**正确：全部打进去，部署时用环境变量覆盖。**
+
+```bash
+# 该环境形态与构建期 profile 不一致时，运行期改激活的 location 即可
+SPRING_FLYWAY_LOCATIONS=classpath:db/migration/gauss-base,classpath:db/migration/gauss-centralized
+```
+
+典型场景：预发与生产用同一镜像，但预发是集中式主备、生产是分布式集群。构建期只能选一个 profile，差异靠部署清单里的这个 env 补齐。
+
+
 ### 迁移必须多方言同步同版本
 
 项目同时支持多个数据库时，每条 migration 必须为**每个激活的 location 各维护一份**，版本号与名称严格一致。漏一份的后果是：开发环境全绿，目标环境启动时 Flyway 报缺失版本或表结构不一致——而这通常发生在生产。
@@ -456,7 +576,9 @@ CREATE INDEX idx_order_created_at ON t_order(created_at);
 - 各份之间除方言差异外，内容必须逐字一致（建表体、ALTER、注释同步维护）
 - 激活哪些 location 由构建期 profile 注入，不要在代码里硬编码
 
-**改动清单**——加一条迁移时，逐个确认每个方言目录都有对应文件，再确认版本号无冲突。项目具体有几层 location、哪些迁移需要分叉，以该项目 CLAUDE.md 为准。
+**改动清单**——加一条迁移时，逐个确认每个方言目录都有对应文件，再确认版本号无冲突。
+
+同一数据库产品还有多种部署形态（分布式 / 集中式 / 单机）时，不要再按形态复制整套，见 `db-migration-base-overlay`。项目具体有几层 location、各层叫什么，以该项目 CLAUDE.md 为准。
 
 
 ### openGauss 方言三定律
