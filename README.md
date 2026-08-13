@@ -58,4 +58,6 @@ claude --plugin-dir plugins/gsx --plugin-dir plugins/sdd
 - `skills/` - 自定义技能资源库（唯一事实来源）
 - `plugins/` - Claude Code plugin 打包（`gsx`、`sdd`），内含指向 `skills/` 的符号链接
 - `.claude-plugin/marketplace.json` - marketplace 清单
+- `CHANGELOG.md` - 版本变更日志
+
 
