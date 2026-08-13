@@ -1,0 +1,13 @@
+name = "skills"
+schema = 1
+category = "mine"
+
+[paradigm]
+type = "vibe:coding"
+
+[[tools]]
+id = "cli:claude"
+model = "claude-opus-5"
+model_display = "Opus 5"
+thinking = "high"
+
