@@ -1,6 +1,6 @@
 # frontend-ui-best-practices
 
-React + shadcn/ui 后台管理系统的界面与交互规范，16 条规则分 6 类。
+React + shadcn/ui 后台管理系统的界面与交互规范，17 条规则分 6 类。
 
 与 [`spring-boot-best-practices`](../spring-boot-best-practices/) 同构，结构参考
 [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices)：

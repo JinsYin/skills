@@ -1,6 +1,6 @@
 ---
 name: spring-boot-best-practices
-description: Spring Boot 3 + Java 21 + MyBatis Plus 项目的编码规范与架构纪律。涵盖分层依赖、国密 SM2/SM3/SM4、MyBatis Plus 实体与主键策略、多方言数据库迁移、R/RList/RPage 响应包装、DTO 职责边界、命名约定。在编写、审查或重构 Spring Boot 后端代码时使用——尤其是新增 Controller/Service/Mapper、定义 Entity 或 DTO、写数据库迁移、处理加解密与签名、或设计 API 契约时。
+description: Spring Boot 3 + Java 21 + MyBatis Plus 项目的编码规范与架构纪律。涵盖分层依赖、国密 SM2/SM3/SM4、MyBatis Plus 实体与主键策略、多方言数据库迁移、R/RList/RPage 响应包装、DTO 职责边界、命名约定、模块 README 文档要求。在编写、审查或重构 Spring Boot 后端代码时使用——尤其是新增 Controller/Service/Mapper、定义 Entity 或 DTO、写数据库迁移、处理加解密与签名、或设计 API 契约时。
 license: MIT
 metadata:
   author: JinsYin
@@ -9,7 +9,7 @@ metadata:
 
 # Spring Boot Best Practices
 
-Spring Boot 3 后端的规范集，44 条规则分 8 类，按**违反后果**排序。
+Spring Boot 3 后端的规范集，45 条规则分 8 类，按**违反后果**排序。
 
 ## 如何使用本 skill
 
@@ -34,6 +34,7 @@ rules/entity-tableid-assign-id.md
 | 定义 DTO | `dto-*`、`naming-class-suffix` |
 | 加解密 / 签名 | `crypto-*`（全部，只有 6 条且互相关联） |
 | 设计 API 契约 | `envelope-*`、`naming-url` |
+| 新增模块 / 写模块文档 | `stack-module-readme`、`naming-package-layout` |
 | 代码审查 | 按改动涉及的文件类型选对应分类 |
 
 ## 分类与影响级别
@@ -49,7 +50,7 @@ rules/entity-tableid-assign-id.md
 | 5 | 响应包装与错误码 | HIGH | `envelope-` | 5 |
 | 6 | DTO 约定 | HIGH | `dto-` | 5 |
 | 7 | 命名约定 | MEDIUM | `naming-` | 6 |
-| 8 | 技术栈基线 | LOW | `stack-` | 3 |
+| 8 | 技术栈基线 | LOW | `stack-` | 4 |
 
 ## 规则索引
 
@@ -118,6 +119,7 @@ rules/entity-tableid-assign-id.md
 ### 8. 技术栈基线 (LOW)
 
 - `stack-baseline` — 依赖选型基线
+- `stack-module-readme` — 根目录必有 README；多模块工程下每个子模块也各有一份，单模块只需根 README
 - `stack-lambda-simple` — 超过一行的 lambda 要提取；栈轨迹里只显示 `lambda$xxx$0`
 - `stack-lombok` — DTO 用 `@Data`，bean 用 `@RequiredArgsConstructor` + final
 
@@ -129,4 +131,4 @@ rules/entity-tableid-assign-id.md
 
 ## 全量编译版
 
-需要一次性获取全部规则时读 `AGENTS.md`（约 31 KB）。该文件由 `scripts/build.sh` 从 `rules/` 生成，**不要手工编辑**。
+需要一次性获取全部规则时读 `AGENTS.md`（约 44 KB）。该文件由 `scripts/build.sh` 从 `rules/` 生成，**不要手工编辑**。

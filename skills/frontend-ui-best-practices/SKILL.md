@@ -1,6 +1,6 @@
 ---
 name: frontend-ui-best-practices
-description: React + shadcn/ui 后台管理系统的界面与交互规范。涵盖表单校验时机与错误呈现、弹窗抽屉的状态重置与破坏性操作确认、列表分页与表格对齐、日期数字格式、图标与提示的一致性。在编写、审查或重构前端页面时使用——尤其是做表单、列表页、弹窗抽屉、删除等破坏性操作、或调整界面文案与格式时。
+description: React + shadcn/ui 后台管理系统的界面与交互规范。涵盖表单校验时机与错误呈现、弹窗抽屉的状态重置与破坏性操作确认、列表分页与表格对齐、日期数字格式、图标与提示的一致性、模块 README 文档要求。在编写、审查或重构前端页面时使用——尤其是做表单、列表页、弹窗抽屉、删除等破坏性操作、或调整界面文案与格式时。
 license: MIT
 metadata:
   author: JinsYin
@@ -9,7 +9,7 @@ metadata:
 
 # Frontend UI Best Practices
 
-React + shadcn/ui 后台管理系统的界面规范，16 条规则分 6 类，按**违反给用户造成的后果**排序。
+React + shadcn/ui 后台管理系统的界面规范，17 条规则分 6 类，按**违反给用户造成的后果**排序。
 
 ## 如何使用本 skill
 
@@ -30,6 +30,7 @@ rules/overlay-reset-on-close.md
 | 做删除等破坏性操作 | `overlay-confirm-destructive` |
 | 调文案与格式 | `format-*` |
 | 加图标或提示 | `consistency-*` |
+| 新增子包 / 写模块文档 | `stack-module-readme` |
 | 界面走查 / 审查 | 按改动涉及的组件类型选对应分类 |
 
 ## 分类与影响级别
@@ -43,7 +44,7 @@ rules/overlay-reset-on-close.md
 | 3 | 列表与表格 | HIGH | `list-` | 3 |
 | 4 | 格式与文案 | MEDIUM | `format-` | 2 |
 | 5 | 视觉一致性 | LOW | `consistency-` | 3 |
-| 6 | 技术栈基线 | LOW | `stack-` | 1 |
+| 6 | 技术栈基线 | LOW | `stack-` | 2 |
 
 ## 规则索引
 
@@ -80,6 +81,7 @@ rules/overlay-reset-on-close.md
 ### 6. 技术栈基线 (LOW)
 
 - `stack-baseline` — pnpm + Vite + React + TS + shadcn/ui + Tailwind
+- `stack-module-readme` — 根目录必有 README；monorepo 下每个子包也各有一份，单包只需根 README
 
 ## 与项目 CLAUDE.md 的关系
 

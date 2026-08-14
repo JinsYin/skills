@@ -41,4 +41,4 @@
 ## 6. 技术栈基线 (stack)
 
 **Impact:** LOW
-**Description:** 前端依赖选型与项目结构约定。
+**Description:** 前端依赖选型、项目结构与模块文档约定。

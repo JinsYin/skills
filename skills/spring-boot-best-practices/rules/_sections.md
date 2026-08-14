@@ -51,4 +51,4 @@
 ## 8. 技术栈基线 (stack)
 
 **Impact:** LOW
-**Description:** 依赖选型、Lombok 用法与 Java 语言层面的可读性约定。
+**Description:** 依赖选型、Lombok 用法、模块文档约定与 Java 语言层面的可读性约定。
