@@ -1,29 +1,88 @@
 # Spring Boot Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-08-14 01:36:22
+> 生成时间：2026-08-20 06:38:25
 
 ## 1. 分层纪律
 
 
 ### 权限校验用注解，不写在方法体里
 
-鉴权用 Sa-Token 注解声明，不在方法体里手写 if 判断。声明式的好处是**默认拒绝**：类上标了 `@SaCheckLogin`，新加的方法自动继承；手写判断则是默认放行，新方法忘了写就是裸奔，而且这种遗漏在测试里通常发现不了。
+鉴权用框架的声明式配置与注解，不在方法体里手写 if 判断。声明式的好处是**默认拒绝**：兜底规则一旦立起来，新加的方法自动被覆盖；手写判断则是默认放行，新方法忘了写就是裸奔，而且这种遗漏在测试里通常发现不了——测试大多带着有权限的身份跑，缺校验的接口照样返回 200。
 
-| 注解 | 用途 |
-|---|---|
-| `@SaCheckLogin` | 要求已登录，通常标在类上 |
-| `@SaCheckPermission("user:query")` | 要求具体权限点 |
-| `@SaCheckRole("admin")` | 要求角色 |
-| `@SaIgnore` | 显式放行公开接口 |
+框架选型见 `stack-auth-framework`，两套的写法对照：
 
-公开接口必须用 `@SaIgnore` **显式**标注，而不是靠「类上没加校验」隐式放行——显式标注让审查者一眼看出这是有意为之。
+| 需求 | Spring Security | Sa-Token |
+|---|---|---|
+| 要求已登录 | SecurityFilterChain 里 `.anyRequest().authenticated()` 兜底 | 类上标 `@SaCheckLogin` |
+| 要求权限点 | `@PreAuthorize("hasAuthority('user:query')")` | `@SaCheckPermission("user:query")` |
+| 要求角色 | `@PreAuthorize("hasRole('admin')")` | `@SaCheckRole("admin")` |
+| 公开接口 | `.requestMatchers("/auth/login").permitAll()` | `@SaIgnore` |
 
-**正确：**
+两套各有一个静默失效点，都不报错：
+
+- **Spring Security**：`@PreAuthorize` 依赖 `@EnableMethodSecurity`（Spring Security 6 起取代 `@EnableGlobalMethodSecurity`），没开启时注解被完全忽略，方法级校验全部放行。另外 `hasRole('admin')` 实际匹配的权限串是 `ROLE_admin`，权限数据里没这个前缀就永远判 false——一个失效方向是放行，一个是全拒，都不会有异常提示你。
+- **Sa-Token**：默认放行，只有被注解或拦截器覆盖到的方法才校验。所以 `@SaCheckLogin` 要标在类上，让后加的方法自动继承。
+
+公开接口必须**显式**登记（Spring Security 的 `permitAll()`、Sa-Token 的 `@SaIgnore`），而不是靠「这儿没加校验」隐式放行——显式标注让审查者一眼看出这是有意为之，而不是漏了。
+
+**错误（判断散落在方法体里，默认放行）：**
+
+```java
+@GetMapping
+public RPage<UserListItemResponse> page(@Valid UserPageQuery query) {
+    if (!StpUtil.hasPermission("user:query")) {   // 全靠人记得写；下一个方法忘了就是裸奔
+        throw new BizException(ErrorCode.FORBIDDEN);
+    }
+    return RPage.ok(userService.listUsers(query));
+}
+```
+
+**正确（Spring Security）：**
+
+```java
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity   // 缺这行，下面的 @PreAuthorize 全部静默失效
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                // 纯 Bearer 令牌、无 Cookie 会话时 CSRF 保护无意义；若把令牌放进 Cookie，必须保留
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/login").permitAll()   // 公开接口显式登记
+                        .anyRequest().authenticated())                // 兜底默认拒绝
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .build();
+    }
+}
+
+@Tag(name = "用户")
+@RestController
+@RequestMapping("/users")
+@Validated
+@RequiredArgsConstructor
+public class UserController {
+
+    private final UserService userService;
+
+    @Operation(summary = "分页查询用户")
+    @GetMapping
+    @PreAuthorize("hasAuthority('user:query')")
+    public RPage<UserListItemResponse> page(@Valid UserPageQuery query) {
+        return RPage.ok(userService.listUsers(query));
+    }
+}
+```
+
+**正确（Sa-Token）：**
 
 ```java
 @Tag(name = "用户")
-@SaCheckLogin
+@SaCheckLogin   // 标在类上，新增方法自动继承
 @RestController
 @RequestMapping("/users")
 @Validated
@@ -1041,6 +1100,29 @@ com.example.app
 ## 8. 技术栈基线
 
 
+### 鉴权框架按项目规模选型
+
+Spring Security 与 Sa-Token 二选一，**一个项目只用一套**。
+
+| 项目类型 | 选型 | 判断依据 |
+|---|---|---|
+| 基础设施平台、对外认证中心、多服务的中大型系统 | Spring Security | 要接 OAuth2 / OIDC / JWT 资源服务器，要过安全合规审计，生命周期以年计 |
+| 后台业务系统、内部管理端、单体或少量服务的中小项目 | Sa-Token | 自有登录体系 + RBAC 权限点，要的是踢人下线、账号封禁、同端互斥登录这类现成能力 |
+
+拿不准时看两个问题：**认证协议要不要对外标准化**（要 → Spring Security）、**登录态管理的花样是不是比协议更多**（是 → Sa-Token）。
+
+为什么这么分：
+
+- Spring Security 与 Spring Cloud Gateway、Spring Authorization Server、OAuth2 Resource Server 同源，令牌的签发、透传、校验都有官方实现，CSRF、会话固定、安全响应头、密码编码器默认成体系，CVE 响应也由 Spring 团队兜。代价是概念密度高——Filter Chain、AuthenticationManager、AuthorizationManager、SecurityContext 得先理顺，做个登录也要写一坨配置。中大型项目摊得起这份前期成本，而且合规审计和长期维护本来就需要它。
+- Sa-Token 把后台系统的高频需求做成了开箱 API：登录鉴权、踢人下线、账号封禁、同端互斥登录、二级认证、临时令牌，这些用 Spring Security 都得自己实现。代价是标准协议与生态整合弱，一旦要对外当认证中心就得补轮子。中小项目大多走不到那一步，先把业务跑起来更重要。
+
+不要混用。两套都挂在过滤器链上时，放行与拒绝的判定顺序没人说得清，权限出事故时也难复盘——这种「两套都在但都不完整」的状态比任何一套单独用都危险。
+
+已有项目不因这条规则迁移：换鉴权框架要动登录态、令牌格式和全部权限注解，风险远大于收益。这条约束的是新项目和新拆出的服务。
+
+具体注解写法见 `layer-controller-auth-annotations`。
+
+
 ### 技术栈基线
 
 | 层面 | 选型 |
@@ -1050,7 +1132,7 @@ com.example.app
 | ORM | MyBatis Plus + mybatis-plus-join，**不用 XML 映射** |
 | 连接池 | HikariCP |
 | Web 容器 | Undertow |
-| 鉴权 | Sa-Token |
+| 鉴权 | Spring Security 或 Sa-Token，按项目规模选，见 `stack-auth-framework` |
 | API 文档 | Knife4j（集成 SpringDoc OpenAPI 3） |
 | 对象映射 | MapStruct |
 | 样板消除 | Lombok |

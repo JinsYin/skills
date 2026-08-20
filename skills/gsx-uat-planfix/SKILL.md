@@ -123,7 +123,7 @@ This gate is **not optional and has no flag** — a Gap that reached acceptance 
 - **Library / SDK capability** — whether an API exists, what it returns, a default, a documented limit, a method signature.
 - **API limit / quota / contract** — rate limits, payload caps, auth requirements, pagination rules of an upstream or third-party API.
 - **Version differences** — behavior that differs across versions; a deprecation or breaking change.
-- **Framework configuration** — Spring Boot / MyBatis-Plus (incl. mybatis-plus-join) / Sa-Token / Spring Cloud Gateway property, annotation, auto-config, lifecycle.
+- **Framework configuration** — Spring Boot / MyBatis-Plus (incl. mybatis-plus-join) / Spring Security or Sa-Token (whichever this project uses) / Spring Cloud Gateway property, annotation, auto-config, lifecycle.
 - **Database dialect** — a function/syntax in MySQL but not openGauss (or vice-versa). This project ships **both** dialects (Flyway double-path), so dialect-dependent Gaps always get grounded — dialect mismatches are a recurring trap here.
 - **CLI / tool usage** — a command flag or subcommand the fix would rely on.
 

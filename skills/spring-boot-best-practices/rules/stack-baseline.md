@@ -13,7 +13,7 @@ tags: stack, dependencies
 | ORM | MyBatis Plus + mybatis-plus-join，**不用 XML 映射** |
 | 连接池 | HikariCP |
 | Web 容器 | Undertow |
-| 鉴权 | Sa-Token |
+| 鉴权 | Spring Security 或 Sa-Token，按项目规模选，见 `stack-auth-framework` |
 | API 文档 | Knife4j（集成 SpringDoc OpenAPI 3） |
 | 对象映射 | MapStruct |
 | 样板消除 | Lombok |

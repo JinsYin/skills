@@ -74,7 +74,7 @@ Look at the root cause and classify it. **If the cause is about how some externa
 
 - **Library / SDK behavior** — a method does/doesn't do what was assumed, a default changed, an option is misused.
 - **Version differences** — behavior differs across versions; a deprecation/removal; a breaking change.
-- **Framework configuration** — Spring Boot / MyBatis-Plus / Sa-Token / Spring Cloud Gateway property, annotation, auto-config, lifecycle.
+- **Framework configuration** — Spring Boot / MyBatis-Plus / Spring Security or Sa-Token (whichever this project uses) / Spring Cloud Gateway property, annotation, auto-config, lifecycle.
 - **Database dialect** — a function/syntax exists in MySQL but not openGauss (or vice-versa), e.g. `HOUR()` / `DATE_FORMAT()` → openGauss has no such function. (This project runs both — dialect mismatches are a recurring root-cause class.)
 - **CLI / tool usage** — a command flag, subcommand, or config the fix would rely on.
 

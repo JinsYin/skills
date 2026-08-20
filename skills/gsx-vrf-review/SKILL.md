@@ -67,7 +67,7 @@ Core step. For **every frontend change**, ask: is this covering a backend/DB def
 | **Uniqueness/dedup** (frontend scans loaded list) | races; only current page; not a real constraint | DB `UNIQUE uk_xxx` + backend catches conflict → `BizException` |
 | **List filter/sort/paginate** (in-memory frontend) | only current page; breaks at scale; unfiltered data sent | backend query params + SQL `WHERE/ORDER BY/LIMIT` |
 | **Masking/sensitive hide** (frontend redacts) | full plaintext still in response, visible in DevTools | backend strips/masks before return, or Response DTO omits field |
-| **Permission/button visibility** (frontend hides/disables) | API still callable directly | Sa-Token `@SaCheckPermission/@SaCheckRole` |
+| **Permission/button visibility** (frontend hides/disables) | API still callable directly | Spring Security `@PreAuthorize` / Sa-Token `@SaCheckPermission/@SaCheckRole` |
 | **Error messages** (frontend fabricates copy for status code) | copy drifts; other clients see raw code | backend `ErrorCode` Chinese `defaultMessage` |
 | **Computed/derived fields** (frontend computes total/count/status) | each client computes independently, may disagree | backend computes at VO/Response assembly |
 

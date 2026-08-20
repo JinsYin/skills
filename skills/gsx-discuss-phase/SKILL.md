@@ -28,7 +28,7 @@ In Codex, translate this Claude wrapper instead of rewriting it:
 
 A **docs-grounded** wrapper over `/gsd:discuss-phase`. It runs the normal phase-context discussion that ends in `{phase}-CONTEXT.md`, but enforces one extra discipline: any gray area whose answer depends on *how some external technology actually behaves* gets checked against current Context7 docs **before** the question is posed or the decision is written down.
 
-**Why it exists:** `discuss-phase` locks decisions into `CONTEXT.md`, and the researcher + planner downstream treat those as settled — they won't re-ask. So a decision made on a stale assumption ("MyBatis-Plus supports that out of the box", "openGauss has `DATE_FORMAT`", "Sa-Token can do X") doesn't just cost this discussion — it silently poisons research and planning. Your training data lags real API / dialect / CLI behavior, and phase discussion is exactly where a technology choice gets fixed. Grounding the *specific* construct in current docs before locking it is the cheapest place to catch a wrong assumption.
+**Why it exists:** `discuss-phase` locks decisions into `CONTEXT.md`, and the researcher + planner downstream treat those as settled — they won't re-ask. So a decision made on a stale assumption ("MyBatis-Plus supports that out of the box", "openGauss has `DATE_FORMAT`", "Spring Security / Sa-Token can do X") doesn't just cost this discussion — it silently poisons research and planning. Your training data lags real API / dialect / CLI behavior, and phase discussion is exactly where a technology choice gets fixed. Grounding the *specific* construct in current docs before locking it is the cheapest place to catch a wrong assumption.
 
 **Boundary — this skill never changes code.** It runs a discussion and writes `CONTEXT.md` (via `/gsd:discuss-phase`); it does not edit source, run migrations, or commit anything beyond what `discuss-phase` itself does. Reply in Chinese.
 
@@ -50,7 +50,7 @@ You are about to hand control to `/gsd:discuss-phase`, which drives the adaptive
 - **Library / SDK capability** — whether an API exists, what it returns, a default, a documented limit.
 - **API limit / quota / contract** — rate limits, payload caps, auth requirements, pagination rules of an upstream or third-party API.
 - **Version differences** — behavior that differs across versions; a deprecation or breaking change.
-- **Framework configuration** — Spring Boot / MyBatis-Plus / Sa-Token / Spring Cloud Gateway property, annotation, auto-config, lifecycle.
+- **Framework configuration** — Spring Boot / MyBatis-Plus / Spring Security or Sa-Token (whichever this project uses) / Spring Cloud Gateway property, annotation, auto-config, lifecycle.
 - **Database dialect** — a function/syntax in MySQL but not openGauss (or vice-versa). This project ships both dialects (Flyway double-path) — dialect mismatches are a recurring trap, so dialect-dependent decisions always get grounded.
 - **CLI / tool usage** — a command flag or subcommand a decision would rely on.
 
@@ -63,7 +63,7 @@ You are about to hand control to `/gsd:discuss-phase`, which drives the adaptive
 Invoke `discuss-phase` with the phase number, any pass-through flags, **and this verbatim constraint block** appended to the args:
 
 ```
-Skill("gsd:discuss-phase", args: "<phase-number> <any pass-through flags> 【Context7 文档门禁】在本次讨论中，凡是某个灰区的结论取决于外部技术的真实行为——技术/库选型、库或 SDK 能力、API 限制/配额/契约、版本差异、框架配置（Spring Boot / MyBatis-Plus / Sa-Token / Spring Cloud Gateway）、数据库方言（MySQL vs openGauss，本项目双方言）、CLI 用法——必须先用 Context7 查证当前文档（resolve-library-id 选 /org/project，再 query-docs 传完整问题，而非单个关键词；MCP 不可用时调用 context7-mcp skill），把要锁定的那个具体构造（真实方法签名 / 属性名 / 文档化的限制 / 方言函数是否存在）核对清楚，再向我抛出灰区问题、再把决策写进 CONTEXT.md；问题里要给出基于文档的真实选项，CONTEXT.md 中在该决策旁记下文档确认了什么。纯内部决策（业务规则、命名、范围边界、字段取舍、不依赖外部 API 的时序选择）无需查 Context7，按常规讨论即可。")
+Skill("gsd:discuss-phase", args: "<phase-number> <any pass-through flags> 【Context7 文档门禁】在本次讨论中，凡是某个灰区的结论取决于外部技术的真实行为——技术/库选型、库或 SDK 能力、API 限制/配额/契约、版本差异、框架配置（Spring Boot / MyBatis-Plus / Spring Security 或 Sa-Token，以本项目实际所用为准 / Spring Cloud Gateway）、数据库方言（MySQL vs openGauss，本项目双方言）、CLI 用法——必须先用 Context7 查证当前文档（resolve-library-id 选 /org/project，再 query-docs 传完整问题，而非单个关键词；MCP 不可用时调用 context7-mcp skill），把要锁定的那个具体构造（真实方法签名 / 属性名 / 文档化的限制 / 方言函数是否存在）核对清楚，再向我抛出灰区问题、再把决策写进 CONTEXT.md；问题里要给出基于文档的真实选项，CONTEXT.md 中在该决策旁记下文档确认了什么。纯内部决策（业务规则、命名、范围边界、字段取舍、不依赖外部 API 的时序选择）无需查 Context7，按常规讨论即可。")
 ```
 
 Keep the constraint text exactly as written. Let `discuss-phase` own the questioning, gray-area analysis, mode routing, and the `CONTEXT.md` write — don't pre-empt it by guessing the gray areas yourself or drafting `CONTEXT.md` here. Your only addition is the standing gate.
