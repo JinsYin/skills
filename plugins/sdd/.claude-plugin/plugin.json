@@ -15,6 +15,7 @@
     "requirements",
     "rules",
     "product-spec",
-    "design-to-code"
+    "design-to-code",
+    "claude-local"
   ]
 }

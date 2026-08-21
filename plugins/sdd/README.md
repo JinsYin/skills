@@ -16,13 +16,14 @@
 claude --plugin-dir plugins/sdd
 ```
 
-## 包含的 skill（9 个）
+## 包含的 skill（10 个）
 
 | Skill | 作用 | 触发方式 |
 | --- | --- | --- |
 | `to-requirements` | 将口述、聊天记录或上下文方案逐项澄清，按固定四段结构整理并保存为项目根目录的 `REQUIREMENTS.md` | 自动 + `/sdd:to-requirements` |
 | `spec-setup` | 为新项目访谈确定形态与技术栈，只固化已裁决的规范，并显式记录留白与复查触发点 | 自动 + `/sdd:spec-setup` |
 | `spec-triage` | 勘察代码库取证 → 只就推断不了的事访谈 → 把约定按加载成本分诊到 CLAUDE.md / skill / .claude-rules / 项目文档四层，并检测规范与代码的漂移 | 自动 + `/sdd:spec-triage` |
+| `claude-local` | 安装组装式的 Agent 约定规范至项目的 `CLAUDE.local.md` 及 `AGENTS.md` 入口文件 | 仅手动 `/sdd:claude-local` |
 | `frontend-ui-best-practices` | 前端 UI 规则集：表单、列表、弹层、格式化、一致性 | 自动 |
 | `devops-best-practices` | 容器化与部署规则集（26 条 / 6 类）：Dockerfile、K8s、compose、CI、凭据 | 自动 |
 | `doc-writing-best-practices` | 文档规则集：中英混排、标点、结构、示例可复制 | 自动 |
@@ -30,7 +31,7 @@ claude --plugin-dir plugins/sdd
 | `product-spec` | 管理产品功能规范：功能、交互、Flyway 式版本化变更记录。V 链管演进，合成的 `CURRENT.md` 喂 AI 设计工具 | 自动 + `/sdd:product-spec` |
 | `design-to-code` | 把高保真设计 / 原型（HTML + React JSX）还原为 Vite + React + TypeScript + Tailwind + shadcn/ui 生产级代码 | 仅手动 `/sdd:design-to-code` |
 
-> `design-to-code` 的 frontmatter 设了 `disable-model-invocation: true`，因此不会被模型自动触发，只能由用户显式调用。
+> `design-to-code` 与 `claude-local` 的 frontmatter 设了 `disable-model-invocation: true`，因此不会被模型自动触发，只能由用户显式调用。
 
 ## 规则集的用法
 
