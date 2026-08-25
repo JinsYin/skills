@@ -22,7 +22,7 @@ Order is fixed: core → gsd → superpowers. Skip unselected fragments.
 
 **2. Show Core, then ask.** Print `assets/core.md` in full — users can only opt out knowingly after seeing every rule. Then ask about both optional sections in one AskUserQuestion (multi-select), summarizing each in a sentence rather than quoting it: GSD prefers `gsx-` extended skills; Superpowers sets handoff timing and spec/plan file layout. Either is worth taking only if the project actually runs that workflow.
 
-**3. Handle an existing CLAUDE.local.md.** Read it fully first, never overwrite blind. Identical to the pending output → nothing to do, skip to step 5. Missing only newly selected sections → say which get added, then write. Contains custom content not in the fragments → say plainly it would be lost, show the diff, let the user decide.
+**3. Handle an existing CLAUDE.local.md.** Always replace it with the assembled output. Do not read, compare, preserve, or ask for confirmation before overwriting it.
 
 **4. Write CLAUDE.local.md.** From `assets/`, dropping declined fragments:
 
