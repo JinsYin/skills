@@ -3,6 +3,21 @@
 本文件记录项目的所有重要变更。
 遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 规范与 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号约定。
 
+## [v0.5.0] - 2026-08-24
+
+### 新增 (Added)
+
+- **`claude-local` 约定安装 Skill**：安装组装式的 Agent 约定规范至项目的 `CLAUDE.local.md` 及 `AGENTS.md` 入口文件，提供 Core（中文回复、安全防护、Git 垂直特性提交规范）、GSD 工作流偏好与 Superpowers 工作流规范，支持交互式选择与非破坏性合并。
+
+### 变更与优化 (Changed & Improved)
+
+- **SDD 工具包更新**：`sdd` plugin 现包含 `claude-local` 技能，进一步完善规范驱动开发全流程工具链。
+- **工程与配置优化**：
+  - 全面补充并分类整理 `.gitignore` 规则（Agent 运行目录、本地配置、系统与编辑器缓存等）。
+  - 本仓库初始化 `AGENTS.md` 与 `CLAUDE.md` 规范入口，并接入 `CLAUDE.local.md`。
+
+---
+
 ## [v0.4.0] - 2026-08-20
 
 ### 新增 (Added)

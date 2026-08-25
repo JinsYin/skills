@@ -1,6 +1,6 @@
 {
   "name": "sdd",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "规范驱动开发（Spec-Driven Development）工具包：从口述原始需求整理（to-requirements），到项目规范建立与漂移检测、产品功能规范管理、高保真设计还原，并提供四套领域最佳实践规则集",
   "author": {
     "name": "JinsYin",
