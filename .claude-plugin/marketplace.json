@@ -32,7 +32,7 @@
         "email": "jinsyin@gmail.com"
       },
       "license": "MIT",
-      "keywords": ["best-practices", "coding-standards", "spec-driven-development", "requirements", "rules", "product-spec", "design-to-code", "claude-local"],
+      "keywords": ["best-practices", "coding-standards", "spec-driven-development", "requirements", "rules", "product-spec", "design-to-code", "rule-setup"],
       "category": "development"
     }
   ]

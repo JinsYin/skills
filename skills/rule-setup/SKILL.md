@@ -1,9 +1,9 @@
 ---
-name: claude-local
+name: rule-setup
 description: Install the bundled agent conventions into a project's CLAUDE.local.md, plus an AGENTS.md entry point. Explicit invocation only.
 disable-model-invocation: true
 ---
-# claude-local
+# rule-setup
 
 Assemble, never author. Conventions live verbatim in `assets/`; `cat` them together → every project gets byte-identical file. No rewrite, translate, trim, reorder, or reproduce from memory.
 
