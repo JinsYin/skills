@@ -1,6 +1,6 @@
 {
   "name": "gsx",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "GSD 工作流的薄前门 skill 集：包裹 /gsd:* 命令并附加项目专属校验（Context7 文档核对、讨论前置等），覆盖计划、执行、评审、UAT 全流程",
   "author": {
     "name": "JinsYin",

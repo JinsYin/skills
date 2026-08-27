@@ -3,6 +3,15 @@
 本文件记录项目的所有重要变更。
 遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 规范与 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号约定。
 
+## [v0.6.0] - 2026-08-27
+
+### 变更与重构 (Changed & Refactored)
+
+- **`rule-setup` 技能重命名**：将原 `claude-local` 技能重命名为 `rule-setup`，同步更新 `sdd` plugin 的入口、符号链接和文档引用；功能与产物路径保持不变。
+- **版本统一升级**：`gsx`、`sdd` plugin 与 marketplace 版本统一升级至 `0.6.0`。
+
+---
+
 ## [v0.5.0] - 2026-08-24
 
 ### 新增 (Added)
