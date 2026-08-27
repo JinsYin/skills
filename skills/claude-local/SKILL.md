@@ -10,16 +10,17 @@ Assemble, never author. Conventions live verbatim in `assets/`; `cat` them toget
 | Fragment | Section | Required |
 |---|---|---|
 | `assets/core.md` | title + `## Core` — Language / Safety / Git | yes |
+| `assets/karpathy.md` | `## Karpathy` | ask |
 | `assets/gsd.md` | `## GSD` | ask |
 | `assets/superpowers.md` | `## Superpowers` | ask |
 
-Order fixed: core → gsd → superpowers. Skip unselected fragments.
+Order fixed: core → karpathy → gsd → superpowers. Skip unselected fragments.
 
 ## Workflow
 
 **1. Locate project root.** Git root, else working directory; user-given path wins.
 
-**2. Show Core, then ask.** Print `assets/core.md` in full. Ask whether to include GSD and Superpowers in one user-facing question, summarizing each in a sentence; include a section only if the project runs that workflow.
+**2. Show Core, then ask.** Print `assets/core.md` in full. Ask whether to include Karpathy, GSD, and Superpowers in one user-facing question, summarizing each in a sentence; include only opted-in fragments, and include GSD/Superpowers only if the project runs those workflows.
 
 **3. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected fragments in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
