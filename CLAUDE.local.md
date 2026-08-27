@@ -4,21 +4,22 @@
 
 ### Language
 
-- Reply and comment code in Chinese.
+- Reply, comment code in Chinese.
+- Keep AI terms like Token and Agent untranslated.
 
 ### Safety
 
-- Ask before deleting or overwriting active edits.
-- Do not reference external directories unless explicitly instructed.
+- Ask before delete or overwrite active edits.
+- No reference external dirs unless told.
 - Avoid `git reset --hard`.
 
 ### Git
 
-- Commit only session changes, slice vertically by feature.
-- Use scoped Conventional Commits specification with Chinese descriptions.
+- Commit session changes only, slice vertical by feature.
+- Use scoped Conventional Commits spec, Chinese descriptions.
 - Commit after `/setup-matt-pocock-skills`, `/to-prd`, `/to-issues`, `/implement`, `/tdd` or `/code-review`.
 
 ### Development
 
-- Prefer the rules defined in the matching `*-best-practices` skills.
+- Prefer rules from matching `*-best-practices` skills.
 
