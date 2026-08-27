@@ -5,6 +5,7 @@
 ### Language
 
 - Reply, comment code in Chinese.
+- Keep AI terms like Token and Agent untranslated.
 
 ### Safety
 
