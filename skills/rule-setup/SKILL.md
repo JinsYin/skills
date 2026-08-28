@@ -5,14 +5,14 @@ disable-model-invocation: true
 ---
 # rule-setup
 
-Assemble, never author. Conventions live verbatim in `assets/`; `cat` them together → every project gets byte-identical file. No rewrite, translate, trim, reorder, or reproduce from memory.
+Assemble, never author. Conventions live verbatim in `assets/conventions/`; `cat` them together → every project gets byte-identical file. No rewrite, translate, trim, reorder, or reproduce from memory.
 
 | Fragment | Section | Required |
 |---|---|---|
-| `assets/core.md` | title + `## Core` — Language / Safety / Git | yes |
-| `assets/karpathy.md` | `## Karpathy` | ask |
-| `assets/gsd.md` | `## GSD` | ask |
-| `assets/superpowers.md` | `## Superpowers` | ask |
+| `assets/conventions/core.md` | title + `## Core` — Language / Safety / Git | yes |
+| `assets/conventions/karpathy.md` | `## Karpathy` | ask |
+| `assets/conventions/gsd.md` | `## GSD` | ask |
+| `assets/conventions/superpowers.md` | `## Superpowers` | ask |
 
 Order fixed: core → karpathy → gsd → superpowers. Skip unselected fragments.
 
@@ -20,7 +20,7 @@ Order fixed: core → karpathy → gsd → superpowers. Skip unselected fragment
 
 **1. Locate project root.** Git root, else working directory; user-given path wins.
 
-**2. Show Core, then ask.** Print `assets/core.md` in full. Ask whether to include Karpathy, GSD, and Superpowers in one user-facing question, summarizing each in a sentence; include only opted-in fragments, and include GSD/Superpowers only if the project runs those workflows.
+**2. Show Core, then ask.** Print `assets/conventions/core.md` in full. Ask whether to include Karpathy, GSD, and Superpowers in one user-facing question, summarizing each in a sentence; include only opted-in fragments, and include GSD/Superpowers only if the project runs those workflows.
 
 **3. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected fragments in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
