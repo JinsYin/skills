@@ -1,6 +1,6 @@
 # sdd
 
-规范驱动开发（Spec-Driven Development）工具包：把「口述原始需求 → 建立工程规范 → 管理产品功能 → 设计 → 代码」这条链路上的 skill 打包在一起，并提供四套领域最佳实践规则集。
+规范驱动开发（Spec-Driven Development）工具包：把「口述原始需求 → 组装工程约定 → 管理产品功能 → 设计 → 代码」这条链路上的 skill 打包在一起，并提供四套领域最佳实践规则集。
 
 ## 安装
 
@@ -16,13 +16,11 @@
 claude --plugin-dir plugins/sdd
 ```
 
-## 包含的 skill（10 个）
+## 包含的 skill（8 个）
 
 | Skill | 作用 | 触发方式 |
 | --- | --- | --- |
 | `to-requirements` | 将口述、聊天记录或上下文方案逐项澄清，按固定四段结构整理并保存为项目根目录的 `REQUIREMENTS.md` | 自动 + `/sdd:to-requirements` |
-| `spec-setup` | 为新项目访谈确定形态与技术栈，只固化已裁决的规范，并显式记录留白与复查触发点 | 自动 + `/sdd:spec-setup` |
-| `spec-triage` | 勘察代码库取证 → 只就推断不了的事访谈 → 把约定按加载成本分诊到 CLAUDE.md / skill / .claude-rules / 项目文档四层，并检测规范与代码的漂移 | 自动 + `/sdd:spec-triage` |
 | `rule-setup` | 安装组装式的 Agent 约定规范至项目的 `CLAUDE.local.md` 及 `AGENTS.md` 入口文件 | 仅手动 `/sdd:rule-setup` |
 | `frontend-ui-best-practices` | 前端 UI 规则集：表单、列表、弹层、格式化、一致性 | 自动 |
 | `devops-best-practices` | 容器化与部署规则集（26 条 / 6 类）：Dockerfile、K8s、compose、CI、凭据 | 自动 |
@@ -37,19 +35,13 @@ claude --plugin-dir plugins/sdd
 
 四个 `*-best-practices` 是**索引式**的：`SKILL.md` 只含规则索引，Claude 按当前任务定位相关条目后再按需 `Read` 对应的 `rules/*.md`，避免一次性吃掉整套规范。
 
-## 三条典型链路
+## 两条典型链路
 
 **原始需求**：
 
 1. `/sdd:to-requirements` —— 输入口述需求与上下文方案
 2. skill 逐项追问缺失、含糊或冲突的信息
 3. 确认完整后写入项目根目录的 `REQUIREMENTS.md`
-
-**代码规范**：
-
-1. `/sdd:spec-triage` —— 为项目建立或整顿分层规范
-2. 日常开发中，四套 `*-best-practices` 按文件类型自动介入
-3. `/sdd:spec-triage --check` —— 定期检测规范与代码库的漂移
 
 **产品 → 设计 → 代码**：
 

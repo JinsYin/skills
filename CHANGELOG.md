@@ -3,6 +3,12 @@
 本文件记录项目的所有重要变更。
 遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 规范与 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号约定。
 
+## [Unreleased]
+
+### 移除 (Removed)
+
+- **移除 `spec-setup` 与 `spec-triage` skill**：删除两个 skill 及 `sdd` plugin 中的对应入口。
+
 ## [v0.6.0] - 2026-08-27
 
 ### 变更与重构 (Changed & Refactored)
