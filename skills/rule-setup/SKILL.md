@@ -17,13 +17,14 @@ Assemble, never author. Conventions live verbatim in `assets/`; `cat` them toget
 
 Order fixed: core → karpathy → gsd → matt → superpowers. Skip unselected fragments.
 
-When Superpowers is selected, its optional subagent bundles map to project-level directories as follows:
+Optional subagents map to project-level directories as follows:
 
-| Bundle | Source | Project target |
-|---|---|---|
-| Claude Code | `assets/subagents/claude/` | `.claude/agents/` |
-| Codex | `assets/subagents/codex/` | `.codex/agents/` |
-| Cursor | `assets/subagents/cursor/` | `.cursor/agents/` |
+| Agent bundle | Source | Project target | Condition |
+|---|---|---|---|
+| Cursor general-purpose | `assets/subagents/cursor/general-purpose.md` | `.cursor/agents/general-purpose.md` | independently selectable |
+| Superpowers agents | `assets/subagents/<tool>/superpowers-*.md` | `.<tool>/agents/` | only when Superpowers is selected |
+
+Only offer bundles whose source files exist; do not hard-code unavailable tools.
 
 ## Workflow
 
@@ -31,17 +32,19 @@ When Superpowers is selected, its optional subagent bundles map to project-level
 
 **2. Show Core, then ask.** Print `assets/core.md` in full. Ask whether to include Karpathy, GSD, Matt, and Superpowers in one user-facing question, summarizing each in a sentence; include only opted-in fragments, and include GSD/Matt/Superpowers only if the project runs those workflows.
 
-**3. If Superpowers was selected, ask about subagents.** Ask a separate user-facing question with three checkboxes — Claude Code, Codex, and Cursor — and allow any combination, including none. Explain that each selected option installs every file in its corresponding `assets/subagents/<tool>/` bundle to the project target in the table above.
+**3. Ask about Cursor general-purpose.** Independently ask whether to install `assets/subagents/cursor/general-purpose.md` to `.cursor/agents/general-purpose.md`.
 
-**4. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected fragments in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
+**4. If Superpowers was selected, ask about its subagents.** Offer only available tool bundles, allow any combination including none, and explain that each selected bundle installs its `superpowers-*.md` files to `.<tool>/agents/`.
 
-**5. Install selected subagents.** For each checked tool, create its project target directory if needed and copy every file under the matching `assets/subagents/<tool>/` directory to it, preserving each filename and file contents byte-for-byte. Leave identical existing files untouched. Before replacing any existing file with different contents, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files. Skip this step when Superpowers is not selected or no subagent checkbox is checked.
+**5. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected fragments in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
-**6. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Development Guidelines`, and `AGENTS.md` with exactly:
+**6. Install selected subagents.** Create target directories if needed and copy files byte-for-byte. Leave identical files untouched. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
+
+**7. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Development Guidelines`, and `AGENTS.md` with exactly:
 
 ```text
-@CLAUDE.md
 @CLAUDE.local.md
+@CLAUDE.md
 ```
 
-**7. Report** written/untouched files, included/declined sections, selected subagent bundles, and the exact project target directories installed (or any conflicts left unresolved).
+**8. Report** written/untouched files, included/declined sections, selected subagent bundles, exact target directories, and unresolved conflicts.
