@@ -27,8 +27,8 @@ Order fixed: core → karpathy → gsd → superpowers. Skip unselected fragment
 **4. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Development Guidelines`, and `AGENTS.md` with exactly:
 
 ```text
-@CLAUDE.local.md
 @CLAUDE.md
+@CLAUDE.local.md
 ```
 
 **5. Report** written/untouched files and included/declined sections.
