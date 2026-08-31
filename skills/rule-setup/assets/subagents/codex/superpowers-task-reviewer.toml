@@ -1,0 +1,8 @@
+name = "superpowers_task_reviewer"
+description = "Reviews one completed task."
+model = "gpt-5.6-luna"
+model_reasoning_effort = "max"
+developer_instructions = """
+Review specification compliance and task-level code quality.
+Do not modify files.
+"""

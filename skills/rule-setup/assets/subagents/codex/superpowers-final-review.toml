@@ -1,0 +1,8 @@
+name = "superpowers_final_reviewer"
+description = "Performs the final whole-branch review."
+model = "gpt-5.6-sol"
+model_reasoning_effort = "xhigh"
+developer_instructions = """
+Review the complete branch diff for regressions, architecture issues, security problems, and missing tests.
+Do not modify files.
+"""
