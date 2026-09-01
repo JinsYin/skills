@@ -6,11 +6,8 @@ alwaysApply: true
 # Cursor subagent model policy
 
 - Every Cursor subagent must use `model: cursor-grok-4.6-xhigh`.
-- This selector means Grok 4.6 with `effort=xhigh`; do not append bracket
-  syntax or use a separate unsupported effort selector.
+- This selector means Grok 4.6 with `effort=xhigh`; do not append bracket syntax or use a separate unsupported effort selector.
 - Do not use `inherit`, `auto`, a lower-effort model, or silent fallback.
-- If this exact selector is unavailable, stop and report the dispatch as
-  blocked.
+- If this exact selector is unavailable, stop and report the dispatch as blocked.
 
-This rule constrains Cursor subagent model selection only. It does not define
-any workflow or role process.
+This rule constrains Cursor subagent model selection only. It does not define any workflow or role process.
