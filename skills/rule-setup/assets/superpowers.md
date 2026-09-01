@@ -12,7 +12,7 @@
 ### Roadmap
 
 - Sections: target scope, confirmed decisions, plan checklist, global constraints, plus whatever the milestone needs.
-- Checklist entry: phase · plan ID `<phase-num>-<plan-num>` · topic · modules · spec chapters · prerequisite plans · deliverables · completion status.
+- Render the plan checklist as one table across all phases, columns phase · plan ID `<phase-num>-<plan-num>` · topic · modules · spec chapters · prerequisite plans · deliverables · completion status, with any extra notes after it.
 - `completion status` is `pending`, `planned` or `executed` — created as `pending`, advanced one step at a time, never reversed.
 
 ### Plan Flow
@@ -43,8 +43,10 @@
 
 ### Execution
 
-- Run `subagent-driven-development` over one plan or a whole phase, executing a phase's plans on one branch in checklist order with a single whole-branch review at the end.
+- Execute with `subagent-driven-development` or `executing-plans`, over one plan or a whole phase, on one branch in checklist order with a single whole-branch review at the end.
+- Never fall back to `subagent-driven-development` when `executing-plans` was invoked by hand.
+- Always take a worktree via `using-git-worktrees` first, never asking whether to.
 - After that review and the required verification pass, synthesize — never copy — `.superpowers/sdd/<plan-basename>/` into `<plan-basename>.SUMMARY.md`, one per executed plan.
 - Flip those entries `planned` → `executed` in `ROADMAP.md`, then commit the summaries and that edit and nothing else.
-- Then invoke `finishing-a-development-branch` and choose `Merge back to <base-branch> locally` at `Present Options`, or `Keep as-is` on a detached HEAD where that option is absent.
+- Then invoke `finishing-a-development-branch` and choose `Merge back to <base-branch> locally` — `<base-branch>` being the branch the worktree forked from — or `Keep the branch as-is` when the work is not in a worktree.
 - Commit after `brainstorming`, `writing-plans`, `executing-plans` or `subagent-driven-development`.

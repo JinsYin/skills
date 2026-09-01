@@ -21,4 +21,4 @@
 ### Development
 
 - Prefer rules from matching `*-best-practices` skills.
-- Add comments to core classes, functions, and fields.
+- Add comments to core classes, functions, variables, constants, enums and expressions.
