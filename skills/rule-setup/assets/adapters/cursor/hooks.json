@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "subagentStart": [
+      {
+        "command": "bash .cursor/hooks/enforce-subagent-model.sh",
+        "failClosed": true
+      }
+    ]
+  }
+}
