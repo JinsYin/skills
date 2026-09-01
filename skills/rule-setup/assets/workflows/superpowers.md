@@ -48,5 +48,5 @@
 - Always take a worktree via `using-git-worktrees` first, never asking whether to.
 - After that review and the required verification pass, synthesize — never copy — `.superpowers/sdd/<plan-basename>/` into `<plan-basename>.SUMMARY.md`, one per executed plan.
 - Flip those entries `planned` → `executed` in `ROADMAP.md`, then commit the summaries and that edit and nothing else.
-- Then invoke `finishing-a-development-branch` and choose `Merge back to <base-branch> locally` — `<base-branch>` being the branch the worktree forked from — or `Keep the branch as-is` when the work is not in a worktree.
+- After `finishing-a-development-branch` prints “Implementation complete”, when `using-git-worktrees` is active, always choose `Merge back to <base-branch> locally`; do not present other options or wait for a choice.
 - Commit after `brainstorming`, `writing-plans`, `executing-plans` or `subagent-driven-development`.
