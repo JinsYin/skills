@@ -67,13 +67,15 @@ that each selected bundle installs its `superpowers-*.md` files to
 that it installs the model/effort rule and fail-closed hook for every Cursor
 subagent, regardless of workflow.
 
-**6. Resolve Git ignore status before writing.** In a Git repository, run
-`git check-ignore -v --no-index <path>` for every selected output. If any path
-is ignored, show the path, matching rule, and narrowest proposed exception in
-one batched question. Ask whether to keep it ignored, add exceptions without
-committing, or add exceptions and commit this setup. Never broaden an ignore
-exception. If committing is approved, stage only selected outputs and the
-required `.gitignore` changes; never include unrelated changes.
+**6. Resolve Git ignore status before writing.** Build an exact manifest and
+check each singleton output separately: `CLAUDE.local.md`, newly created
+`CLAUDE.md`/`AGENTS.md`, `.cursor/agents/general-purpose.md`,
+`.cursor/rules/subagent-model-policy.mdc`, `.cursor/hooks/enforce-subagent-model.sh`,
+and `.cursor/hooks.json`. Only uniform-prefix bundles such as
+`.<tool>/agents/superpowers-*` may be enumerated by glob; expand them and check
+each match. Never check or unignore a directory. For every ignored path, show
+its rule and ask whether to keep it ignored, add the narrowest exception, or
+add it and commit; never broaden an exception.
 
 **7. Assemble and write `CLAUDE.local.md`.** Always replace it with the
 selected files in fixed order; do not read or preserve the old file. Add the
