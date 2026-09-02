@@ -4,8 +4,7 @@
 
 ### Language
 
-- Reply and comment code in Chinese.
-- Keep AI terms like Token and Agent untranslated.
+- Reply in Chinese while keeping AI terms untranslated.
 
 ### Safety
 
@@ -21,4 +20,4 @@
 ### Development
 
 - Prefer rules from matching `*-best-practices` skills.
-- Add comments to core classes, functions, variables, constants, enums and expressions.
+- Add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
