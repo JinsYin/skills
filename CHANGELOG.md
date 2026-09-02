@@ -3,11 +3,24 @@
 本文件记录项目的所有重要变更。
 遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 规范与 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号约定。
 
-## [Unreleased]
+## [v0.7.0] - 2026-09-02
+
+### 新增 (Added)
+
+- **Superpowers 多平台子代理预设**：新增支持 Claude、Codex、Cursor 三个平台的 Superpowers 专属子代理配置资产（`superpowers-implementer`、`superpowers-task-reviewer`、`superpowers-re-reviewer`、`superpowers-fixer`、`superpowers-final-reviewer`）。
+- **Cursor 通用子代理与模型策略**：新增 Cursor 通用 Agent（`general-purpose`）配置预设，以及 Cursor 子代理模型强制策略与 Hook（`enforce-subagent-model.sh`、`subagent-model-policy.mdc`）。
+- **Matt 约定片段**：新增 Matt Pocock 技能风格的工作流约定片段（`matt.md`）。
+
+### 变更与优化 (Changed & Improved)
+
+- **`rule-setup` 结构重构与约定精炼**：重构工作流片段组织结构（统一归入 `workflows/` 目录），精炼 Core 核心约定，优化 Worktree 分支收尾流程及路径引用规范。
+- **版本统一升级**：`gsx`、`sdd` plugin 与 marketplace 版本统一升级至 `0.7.0`。
 
 ### 移除 (Removed)
 
-- **移除 `spec-setup` 与 `spec-triage` skill**：删除两个 skill 及 `sdd` plugin 中的对应入口。
+- **移除 `spec-setup` 与 `spec-triage` skill**：清理两个废弃 skill 及其在 `sdd` plugin 和文档中的对应入口。
+
+---
 
 ## [v0.6.0] - 2026-08-27
 

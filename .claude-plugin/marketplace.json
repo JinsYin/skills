@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "JinsYin 的自定义 Agent Skills 与 Plugin 集合",
-    "version": "0.6.0"
+    "version": "0.7.0"
   },
   "plugins": [
     {
       "name": "gsx",
       "source": "./plugins/gsx",
       "description": "GSD 工作流的薄前门 skill 集：包裹 /gsd:* 命令并附加项目专属校验（Context7 文档核对、讨论前置等），覆盖计划、执行、评审、UAT 全流程",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "author": {
         "name": "JinsYin",
         "email": "jinsyin@gmail.com"
@@ -26,7 +26,7 @@
       "name": "sdd",
       "source": "./plugins/sdd",
       "description": "规范驱动开发（Spec-Driven Development）工具包：从口述原始需求整理（to-requirements），到 Agent 约定组装、产品功能规范管理、高保真设计还原，并提供前端 UI / DevOps / 文档 / Spring Boot 四套最佳实践规则集",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "author": {
         "name": "JinsYin",
         "email": "jinsyin@gmail.com"
