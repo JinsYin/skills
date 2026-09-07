@@ -9,15 +9,15 @@ Assemble, never author. Conventions live verbatim in `assets/conventions/`; conc
 
 | Category | Source | Target | Condition |
 |---|---|---|---|
-| Core | `assets/conventions/core.md` | `CLAUDE.local.md` | required |
-| Workflows | `assets/conventions/{karpathy,gsd,matt,superpowers}.md` | `CLAUDE.local.md` | independently selectable |
+| Conventions | `assets/conventions/*.md` | `CLAUDE.local.md` | core required; others independently selectable |
 | Subagents | `assets/subagents/<tool>/` | `.<tool>/agents/` | per tool/workflow |
 | Cursor adapter | `assets/adapters/cursor/` | `.cursor/rules/`, `.cursor/hooks/`, `.cursor/hooks.json` | independently selectable |
 
 Convention order is fixed: core → karpathy → gsd → matt → superpowers. Skip unselected files.
 
-Workflow convention files:
+Convention files:
 
+- `assets/conventions/core.md`
 - `assets/conventions/karpathy.md`
 - `assets/conventions/gsd.md`
 - `assets/conventions/matt.md`
@@ -44,7 +44,7 @@ The Cursor adapter constrains Cursor subagent `model` and `effort` only. It is n
 
 **1. Locate project root.** Git root, else working directory; user-given path wins.
 
-**2. Show Core, then ask.** Print `assets/conventions/core.md` in full. Ask whether to include Karpathy, GSD, Matt, and Superpowers in one user-facing question, summarizing each in a sentence; include GSD and Superpowers only if the project runs those workflows.
+**2. Show Core convention, then ask.** Print `assets/conventions/core.md` in full. Ask whether to include optional conventions (Karpathy, GSD, Matt, and Superpowers) in one user-facing question, summarizing each in a sentence; include GSD and Superpowers only if the project runs those workflows.
 
 **3. Ask about Cursor general-purpose.** Independently ask whether to install `assets/subagents/cursor/general-purpose.md` to `.cursor/agents/general-purpose.md`.
 
