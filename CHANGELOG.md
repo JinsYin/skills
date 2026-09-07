@@ -3,6 +3,19 @@
 本文件记录项目的所有重要变更。
 遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 规范与 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号约定。
 
+## [v0.8.0] - 2026-09-07
+
+### 变更与重构 (Changed & Refactored)
+
+- **技能重命名**：将原 `rule-setup` 技能重命名为 `setup-rules`，同步更新技能清单、文档与定义。
+- **规范与流程优化**：强化中文注释要求，规范 Superpowers 执行阶段闭环流程；将约定片段统一收拢至 `conventions/` 目录并精炼 Core 规范。
+
+### 移除 (Removed)
+
+- **移除 Claude Code Plugin 打包**：移除 `plugins/gsx` 与 `plugins/sdd` 打包目录及 `.claude-plugin/marketplace.json` 清单，简化为纯 Skills 资源库。
+
+---
+
 ## [v0.7.0] - 2026-09-02
 
 ### 新增 (Added)
