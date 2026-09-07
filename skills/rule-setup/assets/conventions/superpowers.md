@@ -43,10 +43,11 @@
 
 ### Execution
 
-- Execute with `subagent-driven-development` or `executing-plans`, over one plan or a whole phase, on one branch in checklist order with a single whole-branch review at the end.
+- Execute with `subagent-driven-development` or `executing-plans`, over one plan or a whole phase, on one branch in checklist order, each plan verified and closed before the next starts, with a single whole-branch review at the end.
 - Never fall back to `subagent-driven-development` when `executing-plans` was invoked by hand.
 - Always take a worktree via `using-git-worktrees` first, never asking whether to.
-- After that review and the required verification pass, synthesize — never copy — `.superpowers/sdd/<plan-basename>/` into `<plan-basename>.SUMMARY.md`, one per executed plan.
-- Flip those entries `planned` → `executed` in `ROADMAP.md`, then commit the summaries and that edit and nothing else.
+- Close each plan the moment its verification pass is green: synthesize — never copy — `.superpowers/sdd/<plan-basename>/` into `<plan-basename>.SUMMARY.md`, one per executed plan.
+- Flip that one entry `planned` → `executed` in `ROADMAP.md`, then commit that summary and that edit and nothing else — never batch summaries or roadmap edits to the end of a phase.
+- If the whole-branch review forces changes, amend the affected `<plan-basename>.SUMMARY.md` in the same fix commit.
 - After `finishing-a-development-branch` prints "Implementation complete", when `using-git-worktrees` is active, always choose `Merge back to <base-branch> locally`; do not present other options or wait for a choice.
 - Commit after `brainstorming`, `writing-plans`, `executing-plans` or `subagent-driven-development`.

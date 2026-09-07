@@ -20,4 +20,4 @@
 ### Development
 
 - Prefer rules from matching `*-best-practices` skills.
-- Add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
+- MUST add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
