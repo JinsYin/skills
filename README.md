@@ -4,41 +4,9 @@
 
 ## 安装与使用
 
-### 方式一：作为 skills 库
-
 ```bash
 npx skills@latest add jinsyin/skills
 ```
-
-### 方式二：作为 Claude Code plugin
-
-在 Claude Code 中添加本仓库为 marketplace，再选择安装粒度：
-
-```
-/plugin marketplace add jinsyin/skills
-
-/plugin install gsx@jinsyin
-/plugin install sdd@jinsyin
-```
-
-本地调试：
-
-```bash
-# 全量
-claude --plugin-dir .
-
-# 单个
-claude --plugin-dir plugins/gsx --plugin-dir plugins/sdd
-```
-
-## 包含 Plugin
-
-| Plugin | 内容 | 说明 |
-| --- | --- | --- |
-| [`gsx`](plugins/gsx/) | 20 个 `gsx-*` skill | GSD 工作流薄前门，覆盖计划、执行、评审、UAT 全流程 |
-| [`sdd`](plugins/sdd/) | `rule-setup` + `to-requirements` + 4 套 `*-best-practices` + `product-spec` + `design-to-code` | 规范驱动开发：原始需求 → 规则约定 → 定产品功能 → 出设计 → 产出代码 |
-
-`gsx` / `sdd` 通过符号链接复用 `skills/` 下的原始目录，因此**内容单一来源**：编辑 `skills/<name>/SKILL.md` 即可，两个 plugin 全部自动生效。
 
 ## 包含技能
 
@@ -56,8 +24,6 @@ claude --plugin-dir plugins/gsx --plugin-dir plugins/sdd
 ## 项目目录
 
 - `skills/` - 自定义技能资源库（唯一事实来源）
-- `plugins/` - Claude Code plugin 打包（`gsx`、`sdd`），内含指向 `skills/` 的符号链接
-- `.claude-plugin/marketplace.json` - marketplace 清单
 - `CHANGELOG.md` - 版本变更日志
 - `LICENSE` - MIT 开源协议
 
