@@ -14,7 +14,7 @@ npx skills@latest add jinsyin/skills
 - `devops-best-practices` - DevOps 运维最佳实践
 - `doc-writing-best-practices` - 文档编写最佳实践
 - `spring-boot-best-practices` - Spring Boot 后端开发最佳实践
-- `rule-setup` - 安装组装式的 Agent 约定规范至项目的 `CLAUDE.local.md` 及 `AGENTS.md` 入口文件
+- `setup-rules` - 安装组装式的 Agent 约定规范至项目的 `CLAUDE.local.md` 及 `AGENTS.md` 入口文件
 - `to-requirements` - 将口述原始需求与上下文方案逐项澄清，按固定结构整理并保存为 `REQUIREMENTS.md`
 - `to-md` - 内容转换 Markdown 工具
 - `product-spec` - 管理产品功能规范（功能、交互、Flyway 式版本化变更记录），合成的 `CURRENT.md` 直接喂 Claude Design / v0 / Figma Make / Lovable

@@ -1,9 +1,9 @@
 ---
-name: rule-setup
+name: setup-rules
 description: Install categorized agent workflow conventions and optional Cursor subagent model enforcement into a project. Explicit invocation only.
 disable-model-invocation: true
 ---
-# rule-setup
+# setup-rules
 
 Assemble, never author. Conventions live verbatim in `assets/conventions/`; concatenate selected files so every project gets byte-identical content. Do not rewrite, translate, trim, reorder, or reproduce from memory.
 
