@@ -5,23 +5,23 @@ disable-model-invocation: true
 ---
 # rule-setup
 
-Assemble, never author. Conventions live verbatim in `assets/`; concatenate selected files so every project gets byte-identical content. Do not rewrite, translate, trim, reorder, or reproduce from memory.
+Assemble, never author. Conventions live verbatim in `assets/conventions/`; concatenate selected files so every project gets byte-identical content. Do not rewrite, translate, trim, reorder, or reproduce from memory.
 
 | Category | Source | Target | Condition |
 |---|---|---|---|
-| Core | `assets/core.md` | `CLAUDE.local.md` | required |
-| Workflows | `assets/workflows/*.md` | `CLAUDE.local.md` | independently selectable |
+| Core | `assets/conventions/core.md` | `CLAUDE.local.md` | required |
+| Workflows | `assets/conventions/{karpathy,gsd,matt,superpowers}.md` | `CLAUDE.local.md` | independently selectable |
 | Subagents | `assets/subagents/<tool>/` | `.<tool>/agents/` | per tool/workflow |
 | Cursor adapter | `assets/adapters/cursor/` | `.cursor/rules/`, `.cursor/hooks/`, `.cursor/hooks.json` | independently selectable |
 
-Workflow order is fixed: core → karpathy → gsd → matt → superpowers. Skip unselected files.
+Convention order is fixed: core → karpathy → gsd → matt → superpowers. Skip unselected files.
 
-Workflow files:
+Workflow convention files:
 
-- `assets/workflows/karpathy.md`
-- `assets/workflows/gsd.md`
-- `assets/workflows/matt.md`
-- `assets/workflows/superpowers.md`
+- `assets/conventions/karpathy.md`
+- `assets/conventions/gsd.md`
+- `assets/conventions/matt.md`
+- `assets/conventions/superpowers.md`
 
 Subagent bundles:
 
@@ -44,7 +44,7 @@ The Cursor adapter constrains Cursor subagent `model` and `effort` only. It is n
 
 **1. Locate project root.** Git root, else working directory; user-given path wins.
 
-**2. Show Core, then ask.** Print `assets/core.md` in full. Ask whether to include Karpathy, GSD, Matt, and Superpowers in one user-facing question, summarizing each in a sentence; include GSD and Superpowers only if the project runs those workflows.
+**2. Show Core, then ask.** Print `assets/conventions/core.md` in full. Ask whether to include Karpathy, GSD, Matt, and Superpowers in one user-facing question, summarizing each in a sentence; include GSD and Superpowers only if the project runs those workflows.
 
 **3. Ask about Cursor general-purpose.** Independently ask whether to install `assets/subagents/cursor/general-purpose.md` to `.cursor/agents/general-purpose.md`.
 
