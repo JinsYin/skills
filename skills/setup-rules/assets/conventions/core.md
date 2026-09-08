@@ -19,5 +19,5 @@
 
 ### Development
 
-- Prefer rules from matching `*-best-practices` skills.
+- MUST follow the rules matched by `*-best-practices` skills.
 - MUST add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
