@@ -77,7 +77,7 @@
 
 ### 新增 (Added)
 
-- **`to-requirements` 原始需求整理 Skill**：将口述、聊天记录与上下文方案映射为固定四段结构，逐项确认缺失、歧义和冲突后保存项目根目录的 `REQUIREMENTS.md`。
+- **`to-raw-requirements` 原始需求整理 Skill**：将口述、聊天记录与上下文方案映射为固定四段结构，逐项确认缺失、歧义和冲突后保存到 `docs/requirements/raw.md`。
 
 ### 变更 (Changed)
 

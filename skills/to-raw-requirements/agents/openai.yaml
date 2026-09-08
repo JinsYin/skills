@@ -1,0 +1,4 @@
+interface:
+  display_name: "To Raw Requirements"
+  short_description: "将口述需求整理为结构化原始需求文档并保存到 raw.md"
+  default_prompt: "Use $to-raw-requirements to clarify my raw requirements and context, then save docs/requirements/raw.md."
