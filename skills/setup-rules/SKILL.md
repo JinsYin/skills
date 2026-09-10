@@ -61,7 +61,7 @@ The Cursor adapter constrains Cursor subagent `model` and `effort` only. It is n
 
 **8. Install selected subagents and adapters.** Create target directories if needed and copy files byte-for-byte. Leave identical files untouched. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
 
-**9. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Development Guidelines`, and `AGENTS.md` with exactly:
+**9. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Project Conventions`, and `AGENTS.md` with exactly:
 
 ```text
 @CLAUDE.local.md
