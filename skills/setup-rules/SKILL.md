@@ -14,11 +14,12 @@ Assemble, never author. Conventions live verbatim in `assets/conventions/`; conc
 | Subagents | `assets/subagents/<tool>/` | `.<tool>/agents/` | per tool/workflow |
 | Cursor adapter | `assets/adapters/cursor/` | `.cursor/rules/`, `.cursor/hooks/`, `.cursor/hooks.json` | independently selectable |
 
-Convention order is fixed: core → ponytail → karpathy → gsd → matt → superpowers. Skip unselected files.
+Convention order is fixed: core → vibecoding → ponytail → karpathy → gsd → matt → superpowers. Skip unselected files.
 
 Convention files:
 
 - `assets/conventions/core.md`
+- `assets/conventions/vibecoding.md`
 - `assets/conventions/ponytail.md`
 - `assets/conventions/karpathy.md`
 - `assets/conventions/gsd.md`
@@ -46,7 +47,7 @@ The Cursor adapter constrains Cursor subagent `model` and `effort` only. It is n
 
 **1. Locate project root.** Git root, else working directory; user-given path wins.
 
-**2. Show Core convention, then ask.** Print `assets/conventions/core.md` in full. Ask whether to include optional conventions (Ponytail, Karpathy, GSD, Matt and Superpowers) in one user-facing question, summarizing each in a sentence; include GSD and Superpowers only if the project runs those workflows.
+**2. Show Core convention, then ask.** Print `assets/conventions/core.md` in full. Ask whether to include optional conventions (Vibecoding, Ponytail, Karpathy, GSD, Matt and Superpowers) in one user-facing question, summarizing each in a sentence; include GSD and Superpowers only if the project runs those workflows.
 
 **3. Ask about Cursor general-purpose.** Independently ask whether to install `assets/subagents/cursor/general-purpose.md` to `.cursor/agents/general-purpose.md`.
 
