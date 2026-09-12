@@ -11,8 +11,8 @@ Assemble, never author. Conventions live verbatim in `assets/conventions/`; conc
 | Category | Source | Target | Condition |
 |---|---|---|---|
 | Conventions | `assets/conventions/*.md` | `CLAUDE.local.md` | core required; others independently selectable |
-| Subagents | `assets/subagents/<tool>/` | `.<tool>/agents/` | per tool/workflow |
-| Cursor adapter | `assets/adapters/cursor/` | `.cursor/rules/`, `.cursor/hooks/`, `.cursor/hooks.json` | independently selectable |
+| Subagents | `assets/adapters/<tool>/agents/` | `.<tool>/agents/` | per tool/workflow |
+| Cursor adapter | `assets/adapters/cursor/rules/`, `assets/adapters/cursor/hooks/`, `assets/adapters/cursor/hooks.json` | `.cursor/rules/`, `.cursor/hooks/`, `.cursor/hooks.json` | independently selectable |
 | Antigravity adapter | `assets/adapters/antigravity/rules/` | `.agent/rules/` | all files, independently selectable |
 
 Convention order is fixed: core → vibecoding → ponytail → karpathy → gsd → matt → superpowers. Skip unselected files.
@@ -31,8 +31,8 @@ Subagent bundles:
 
 | Agent bundle | Source | Project target | Condition |
 |---|---|---|---|
-| Cursor general-purpose | `assets/subagents/cursor/general-purpose.md` | `.cursor/agents/general-purpose.md` | independently selectable |
-| Superpowers agents | `assets/subagents/<tool>/superpowers-*.md` | `.<tool>/agents/` | only when Superpowers is selected |
+| Cursor general-purpose | `assets/adapters/cursor/agents/general-purpose.md` | `.cursor/agents/general-purpose.md` | independently selectable |
+| Superpowers agents | `assets/adapters/<tool>/agents/superpowers-*` | `.<tool>/agents/` | only when Superpowers is selected |
 
 Cursor adapter mapping:
 
@@ -42,7 +42,7 @@ Cursor adapter mapping:
 | `assets/adapters/cursor/hooks/enforce-subagent-model.sh` | `.cursor/hooks/enforce-subagent-model.sh` |
 | `assets/adapters/cursor/hooks.json` | merged into `.cursor/hooks.json` |
 
-The Cursor adapter constrains Cursor subagent `model` and `effort` only. It is not Superpowers-specific; SDD is merely one workflow that may create Cursor subagents. Do not create a Superpowers-specific model rule, command, wrapper, or model profile directory. Only offer bundles whose source files exist.
+The Cursor adapter constrains Cursor subagent `model` and `effort` only. It is not Superpowers-specific; SDD is merely one workflow that may create Cursor subagents. Its selection is independent from agent definitions under `assets/adapters/cursor/agents/`. Do not create a Superpowers-specific model rule, command, wrapper, or model profile directory.
 
 The Antigravity adapter copies all files from `assets/adapters/antigravity/rules/` to `.agent/rules/`, preserving relative paths. Rules must be general and composable.
 
@@ -52,9 +52,9 @@ The Antigravity adapter copies all files from `assets/adapters/antigravity/rules
 
 **2. Show Core convention, then ask.** Print `assets/conventions/core.md` in full. Ask whether to include optional conventions (Vibecoding, Ponytail, Karpathy, GSD, Matt and Superpowers) in one user-facing question, summarizing each in a sentence; include GSD and Superpowers only if the project runs those workflows.
 
-**3. Ask about Cursor general-purpose.** Independently ask whether to install `assets/subagents/cursor/general-purpose.md` to `.cursor/agents/general-purpose.md`.
+**3. Ask about Cursor general-purpose.** Independently ask whether to install `assets/adapters/cursor/agents/general-purpose.md` to `.cursor/agents/general-purpose.md`.
 
-**4. If Superpowers was selected, ask about its subagents.** Offer only available tool bundles, allow any combination including none, and explain that each selected bundle installs its `superpowers-*.md` files to `.<tool>/agents/`.
+**4. If Superpowers was selected, ask about its subagents.** A tool bundle is available only when `assets/adapters/<tool>/agents/` contains one or more `superpowers-*` files. Offer only available bundles, allow any combination including none, and explain that every matching file for each selected tool is copied to `.<tool>/agents/`.
 
 **5. If the project uses Cursor subagents, ask about the Cursor adapter.** Explain that it installs the model/effort rule and fail-closed hook for every Cursor subagent, regardless of workflow.
 
@@ -64,7 +64,7 @@ The Antigravity adapter copies all files from `assets/adapters/antigravity/rules
 
 **8. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
-**9. Install selected subagents, adapters, and rules.** Create target directories if needed and copy files byte-for-byte. Leave identical files untouched. For the Antigravity adapter, copy all source rules to `.agent/rules/`, preserving relative paths and leaving other rules untouched. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
+**9. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. Leave identical files untouched. For the Antigravity adapter, copy all source rules to `.agent/rules/`, preserving relative paths and leaving other rules untouched. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
 
 **10. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Project Conventions`, and `AGENTS.md` with exactly:
 
