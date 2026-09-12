@@ -1,12 +1,14 @@
 ---
 name: setup-rules
-description: Install categorized agent workflow conventions and optional agent adapters into a project. Explicit invocation only.
+description: Conduct an interactive interview, then install selected agent conventions and adapters into a project. Explicit invocation only.
 disable-model-invocation: true
 ---
 
 # setup-rules
 
 Assemble, never author. Conventions live verbatim in `assets/conventions/`; concatenate selected files so every project gets byte-identical content. Do not rewrite, translate, trim, reorder, or reproduce from memory.
+
+Interactive interview required: ask, wait, clarify, and confirm the final manifest before writing. Never infer optional selections from project evidence or defaults. Ask at most four focused questions per round; leave ambiguous items pending.
 
 | Category | Source | Target | Condition |
 |---|---|---|---|
@@ -50,17 +52,17 @@ The Antigravity adapter copies all files from `assets/adapters/antigravity/rules
 
 **1. Locate project root.** Git root, else working directory; user-given path wins.
 
-**2. Show Core convention, then ask.** Print `assets/conventions/core.md` in full. Ask whether to include optional conventions (Vibecoding, Ponytail, Karpathy, GSD, Matt and Superpowers) in one user-facing question, summarizing each in a sentence; include GSD and Superpowers only if the project runs those workflows.
+**2. Start the interview with Core.** Print `assets/conventions/core.md` in full. Ask whether to include optional conventions (Vibecoding, Ponytail, Karpathy, GSD, Matt and Superpowers), briefly summarize each, and offer GSD/Superpowers only when used. Wait for the response.
 
 **3. Ask about Cursor general-purpose.** Independently ask whether to install `assets/adapters/cursor/agents/general-purpose.md` to `.cursor/agents/general-purpose.md`.
 
-**4. If Superpowers was selected, ask about its subagents.** A tool bundle is available only when `assets/adapters/<tool>/agents/` contains one or more `superpowers-*` files. Offer only available bundles, allow any combination including none, and explain that every matching file for each selected tool is copied to `.<tool>/agents/`.
+**4. If Superpowers was selected, ask about its subagents.** Offer only bundles with files under `assets/adapters/<tool>/agents/`; allow any combination, and copy each match to `.<tool>/agents/`.
 
-**5. If the project uses Cursor subagents, ask about the Cursor adapter.** Explain that it installs the model/effort rule and fail-closed hook for every Cursor subagent, regardless of workflow.
+**5. If Cursor subagents are in scope from the interview, ask about the Cursor adapter.** Explain that it installs the model/effort rule and fail-closed hook for every Cursor subagent.
 
 **6. Ask about the Antigravity adapter.** Ask whether to install all files in `assets/adapters/antigravity/rules/` to `.agent/rules/`.
 
-**7. Resolve Git ignore status before writing.** Build an exact manifest and check each singleton output separately: `CLAUDE.local.md`, newly created `CLAUDE.md`/`AGENTS.md`, `.cursor/agents/general-purpose.md`, `.cursor/rules/subagent-model-policy.mdc`, `.cursor/hooks/enforce-subagent-model.sh`, and `.cursor/hooks.json`. Map each Antigravity source file to `.agent/rules/<relative-path>` and check each target separately. Only uniform-prefix bundles such as `.<tool>/agents/superpowers-*` may be enumerated by glob; expand them and check each match. Never check or unignore a directory. For every ignored path, show its rule and ask whether to keep it ignored, add the narrowest exception, or add it and commit; never broaden an exception.
+**7. Resolve Git ignore status before writing.** Build an exact manifest and check each singleton output separately: `CLAUDE.local.md`, newly created `CLAUDE.md`/`AGENTS.md`, `.cursor/agents/general-purpose.md`, `.cursor/rules/subagent-model-policy.mdc`, `.cursor/hooks/enforce-subagent-model.sh`, and `.cursor/hooks.json`. Map each Antigravity source file to `.agent/rules/<relative-path>` and check each target separately. Only uniform-prefix bundles such as `.<tool>/agents/superpowers-*` may be enumerated by glob; expand them and check each match. Never check or unignore a directory. For every ignored path, show its rule and ask whether to keep it ignored, add the narrowest exception, or add it and commit; never broaden an exception. Then show and confirm the final manifest before writing.
 
 **8. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
