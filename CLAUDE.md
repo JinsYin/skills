@@ -1,1 +1,1 @@
-# Development Guidelines
+# Project Conventions
