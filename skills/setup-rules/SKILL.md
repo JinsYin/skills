@@ -15,7 +15,7 @@ Interactive interview required: ask, wait, clarify, and confirm the final manife
 | Conventions | `assets/conventions/*.md` | `CLAUDE.local.md` | core required; others independently selectable |
 | Subagents | `assets/adapters/<tool>/agents/` | `.<tool>/agents/` | per tool/workflow |
 | Cursor adapter | `assets/adapters/cursor/rules/`, `assets/adapters/cursor/hooks/`, `assets/adapters/cursor/hooks.json` | `.cursor/rules/`, `.cursor/hooks/`, `.cursor/hooks.json` | independently selectable |
-| Antigravity adapter | `assets/adapters/antigravity/rules/` | `.agent/rules/` | all files, independently selectable |
+| Antigravity adapter | `assets/adapters/antigravity/gemini.md` | `GEMINI.md` | independently selectable |
 | Sensitive-file restrictions | `references/sensitive-file-access.md` | native Agent configuration | default set plus optional extras |
 
 Convention order is fixed: core → vibecoding → ponytail → karpathy → gsd → matt → superpowers. Skip unselected files.
@@ -47,7 +47,7 @@ Cursor adapter mapping:
 
 The Cursor adapter constrains Cursor subagent `model` and `effort` only. It is not Superpowers-specific; SDD is merely one workflow that may create Cursor subagents. Its selection is independent from agent definitions under `assets/adapters/cursor/agents/`. Do not create a Superpowers-specific model rule, command, wrapper, or model profile directory.
 
-The Antigravity adapter copies all files from `assets/adapters/antigravity/rules/` to `.agent/rules/`, preserving relative paths. Rules must be general and composable.
+The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. The file contains general, composable rules.
 
 ## Workflow
 
@@ -61,7 +61,7 @@ The Antigravity adapter copies all files from `assets/adapters/antigravity/rules
 
 **5. If Cursor subagents are in scope from the interview, ask about the Cursor adapter.** Explain that it installs the model/effort rule and fail-closed hook for every Cursor subagent.
 
-**6. Ask about the Antigravity adapter.** Ask whether to install all files in `assets/adapters/antigravity/rules/` to `.agent/rules/`.
+**6. Ask about the Antigravity adapter.** Ask whether to install `assets/adapters/antigravity/gemini.md` as the project-root `GEMINI.md`.
 
 **7. Collect sensitive paths.** Preselect the default set: project-root `.env`, `.env.dev`, `.env.test`, and `.env.prod`. Ask for extra project-relative files or directories. Empty means only this set; remove it only by explicit opt-out. Never infer beyond it or read protected contents. Follow [sensitive-file access controls](references/sensitive-file-access.md).
 
@@ -69,7 +69,7 @@ The Antigravity adapter copies all files from `assets/adapters/antigravity/rules
 
 **9. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
-**10. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. Leave identical files untouched. For the Antigravity adapter, copy all source rules to `.agent/rules/`, preserving relative paths and leaving other rules untouched. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
+**10. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. For the Antigravity adapter, copy `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
 
 **11. Install sensitive-file restrictions.** Merge the confirmed denies per the reference. Preserve unrelated or stricter settings; stop on incompatible policy. Report unenforced Antigravity UI and Cursor terminal/MCP paths.
 
