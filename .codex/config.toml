@@ -1,0 +1,10 @@
+default_permissions = "project-edit"
+
+[permissions.project-edit]
+extends = ":workspace"
+
+[permissions.project-edit.filesystem.":workspace_roots"]
+".env" = "deny"
+".env.dev" = "deny"
+".env.test" = "deny"
+".env.prod" = "deny"
