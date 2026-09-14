@@ -1,12 +1,12 @@
 ---
 name: setup-rules
-description: Conduct an interactive interview, then install selected agent conventions and adapters into a project. Explicit invocation only.
+description: Conduct an interactive interview, then install selected agent conventions, adapters, and sensitive-file read restrictions into a project. Explicit invocation only.
 disable-model-invocation: true
 ---
 
 # setup-rules
 
-Assemble, never author. Conventions live verbatim in `assets/conventions/`; concatenate selected files so every project gets byte-identical content. Do not rewrite, translate, trim, reorder, or reproduce from memory.
+Assemble, never author. Conventions live verbatim in `assets/conventions/`; concatenate selected files byte-for-byte in the fixed order. Merge sensitive-file restrictions into native Agent configuration without replacing unrelated settings.
 
 Interactive interview required: ask, wait, clarify, and confirm the final manifest before writing. Never infer optional selections from project evidence or defaults. Ask at most four focused questions per round; leave ambiguous items pending.
 
@@ -16,6 +16,7 @@ Interactive interview required: ask, wait, clarify, and confirm the final manife
 | Subagents | `assets/adapters/<tool>/agents/` | `.<tool>/agents/` | per tool/workflow |
 | Cursor adapter | `assets/adapters/cursor/rules/`, `assets/adapters/cursor/hooks/`, `assets/adapters/cursor/hooks.json` | `.cursor/rules/`, `.cursor/hooks/`, `.cursor/hooks.json` | independently selectable |
 | Antigravity adapter | `assets/adapters/antigravity/rules/` | `.agent/rules/` | all files, independently selectable |
+| Sensitive-file restrictions | `references/sensitive-file-access.md` | native Agent configuration | default set plus optional extras |
 
 Convention order is fixed: core → vibecoding → ponytail → karpathy → gsd → matt → superpowers. Skip unselected files.
 
@@ -62,17 +63,21 @@ The Antigravity adapter copies all files from `assets/adapters/antigravity/rules
 
 **6. Ask about the Antigravity adapter.** Ask whether to install all files in `assets/adapters/antigravity/rules/` to `.agent/rules/`.
 
-**7. Resolve Git ignore status before writing.** Build an exact manifest and check each singleton output separately: `CLAUDE.local.md`, newly created `CLAUDE.md`/`AGENTS.md`, `.cursor/agents/general-purpose.md`, `.cursor/rules/subagent-model-policy.mdc`, `.cursor/hooks/enforce-subagent-model.sh`, and `.cursor/hooks.json`. Map each Antigravity source file to `.agent/rules/<relative-path>` and check each target separately. Only uniform-prefix bundles such as `.<tool>/agents/superpowers-*` may be enumerated by glob; expand them and check each match. Never check or unignore a directory. For every ignored path, show its rule and ask whether to keep it ignored, add the narrowest exception, or add it and commit; never broaden an exception. Then show and confirm the final manifest before writing.
+**7. Collect sensitive paths.** Preselect the default set: project-root `.env`, `.env.dev`, `.env.test`, and `.env.prod`. Ask for extra project-relative files or directories. Empty means only this set; remove it only by explicit opt-out. Never infer beyond it or read protected contents. Follow [sensitive-file access controls](references/sensitive-file-access.md).
 
-**8. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
+**8. Confirm the manifest.** List every output, sensitive-file target, external Antigravity setting, and Git-ignore decision. Expand bundles to concrete files. For ignored outputs, offer: keep ignored, add the narrowest exception, or add and commit. Confirm before writing.
 
-**9. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. Leave identical files untouched. For the Antigravity adapter, copy all source rules to `.agent/rules/`, preserving relative paths and leaving other rules untouched. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
+**9. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
-**10. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Project Conventions`, and `AGENTS.md` with exactly:
+**10. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. Leave identical files untouched. For the Antigravity adapter, copy all source rules to `.agent/rules/`, preserving relative paths and leaving other rules untouched. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
+
+**11. Install sensitive-file restrictions.** Merge the confirmed denies per the reference. Preserve unrelated or stricter settings; stop on incompatible policy. Report unenforced Antigravity UI and Cursor terminal/MCP paths.
+
+**12. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Project Conventions`, and `AGENTS.md` with exactly:
 
 ```text
 @CLAUDE.local.md
 @CLAUDE.md
 ```
 
-**11. Report** written/untouched files, included/declined categories, selected subagent bundles, Cursor and Antigravity adapter status, Git ignore/commit decision, exact target directories, and unresolved conflicts.
+**13. Validate and report.** Parse changed JSON/TOML, run available offline config-load checks, and test ignore matching without reading secrets. Report selections, changes, protected paths, limitations, Git decisions, and conflicts.
