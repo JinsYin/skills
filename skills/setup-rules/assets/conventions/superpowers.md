@@ -17,8 +17,7 @@
 
 ### Plan Flow
 
-- After `brainstorming`, save the spec, run `writing-plans` for the roadmap in the same session, then recommend a new session for the phase plans.
-- Before finalizing the SPEC in `brainstorming`, ask if I have any clarifying questions.
+- After `brainstorming` completes the SPEC, ask me to confirm it has no issues; upon confirmation, mark it `reviewed`, run `writing-plans` in the current session to produce `ROADMAP.md`, and recommend a new session for the phase plans.
 - The approved spec is truth; the roadmap's scope and phase boundaries are fixed up front.
 - No roadmap yet → write it this run and stop; otherwise plan exactly one phase, and only after the previous phase has executed.
 - Draft against the code that phase landed, never an earlier plan's text.
