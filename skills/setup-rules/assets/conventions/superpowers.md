@@ -3,7 +3,7 @@
 
 ### Paths
 
-- Never auto-invoke `using-superpowers` or `brainstorming`.
+- Do not auto-invoke `using-superpowers`, `brainstorming`, `writing-plans`, `executing-plans`, or `subagent-driven-development`; commit after manual invocation.
 - Spec lives at `docs/superpowers/specs/<milestone>-<topic>.SPEC.md`; everything else under `docs/superpowers/plans/<milestone>/`.
 - Name files `ROADMAP.md`, `<phase-num>-<plan-num>-<feature-name>.PLAN.md`, `<phase-num>-00.PATTERN.md`, `<plan-basename>.SUMMARY.md`.
 - Write `<milestone>` as `m1`; write phase and plan numbers as 2 digits, plan number restarting each phase (`01-01`, `02-01`).
@@ -50,4 +50,3 @@
 - Flip that one entry `planned` → `executed` in `ROADMAP.md`, then commit that summary and that edit and nothing else — never batch summaries or roadmap edits to the end of a phase.
 - If the whole-branch review forces changes, amend the affected `<plan-basename>.SUMMARY.md` in the same fix commit.
 - After `finishing-a-development-branch` prints "Implementation complete", when `using-git-worktrees` is active, always choose `Merge back to <base-branch> locally`; do not present other options or wait for a choice.
-- Commit after `brainstorming`, `writing-plans`, `executing-plans` or `subagent-driven-development`.
