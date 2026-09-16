@@ -1,24 +1,25 @@
 ---
-title: 规则标题
+title: Rule title
 impact: MEDIUM
-impactDescription: 可选，违反的具体后果（如"INSERT 直接失败"）
+impactDescription: Optional — the concrete consequence of a violation
 tags: tag1, tag2
 ---
 
-## 规则标题
+## Rule title
 
-一到三句话说明规则内容和**为什么**。写清违反的后果，不要只写"应该这样"。
+One to three sentences: what the rule is, and **why**. State the consequence of violating it,
+not just "do it this way".
 
-**错误（说明错在哪）：**
+**Wrong:**
 
-```java
-// 反例
+```tsx
+// counter-example
 ```
 
-**正确（说明为什么对）：**
+**Right:**
 
-```java
-// 正例
+```tsx
+// example
 ```
 
-可选：补充说明、例外情形、参考链接。
+Optional: caveats, exceptions, references.

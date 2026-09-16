@@ -1,20 +1,23 @@
 ---
-title: 前端技术栈基线
+title: Frontend stack baseline
 impact: LOW
 tags: stack, dependencies
 ---
 
-## 前端技术栈基线
+## Frontend stack baseline
 
-| 层面 | 选型 |
+| Layer | Choice |
 |---|---|
-| 包管理 | pnpm |
-| 构建 | Vite |
-| 框架 | React + TypeScript |
-| 组件库 | shadcn/ui（基于 Radix UI） |
-| 样式 | Tailwind CSS |
-| 测试 | Vitest |
+| Package manager | pnpm |
+| Build | Vite |
+| Framework | React + TypeScript |
+| Components | shadcn/ui (on Radix UI) |
+| Styling | Tailwind CSS |
+| Testing | Vitest |
 
-shadcn/ui 是**拷贝进项目**而非依赖安装的组件，所以组件代码归项目所有，可直接修改；升级不会自动发生，需要主动同步上游变更。
+shadcn/ui components are **copied into the project** rather than installed as a dependency: the
+component code belongs to the project and can be edited directly, but upgrades never happen on
+their own — upstream changes have to be pulled in deliberately.
 
-具体的目录结构、路由划分、状态管理选型以项目自身的 CLAUDE.md 为准——这部分项目间差异大。
+Directory layout, routing and state management are left to the project's own `CLAUDE.md`; they
+differ too much between projects to be fixed here.

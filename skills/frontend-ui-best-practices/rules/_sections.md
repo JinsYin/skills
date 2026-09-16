@@ -1,19 +1,20 @@
 # Sections
 
-定义所有分类、排序、影响级别与描述。括号内的 section ID 即规则文件名前缀。
+Defines every category, its order, impact level and scope. The ID in parentheses is the
+filename prefix of that category's rules.
 
-影响级别按**违反给用户造成的后果**划分：
+Impact is graded by **what a violation costs the user**:
 
-| 级别 | 含义 |
+| Level | Meaning |
 |---|---|
-| CRITICAL | 造成数据丢失或不可恢复的误操作 |
-| HIGH | 用户无法完成任务，或被明确误导 |
-| MEDIUM | 能完成任务但体验受损、需要额外认知负担 |
-| LOW | 观感不一致 |
+| CRITICAL | Data loss, or an irreversible wrong action |
+| HIGH | The user cannot finish the task, or is actively misled |
+| MEDIUM | The task is doable, but at extra cognitive cost |
+| LOW | Inconsistent look and feel |
 
 ---
 
-## 1. 技术栈与结构 (stack)
+## 1. Stack & Structure (stack)
 
 **Impact:** LOW
-**Description:** 前端依赖选型、项目结构与模块文档约定。不影响单个界面能否用，但决定新人和 agent 能否判断某个包该放什么、某个依赖为什么在这里。
+**Description:** Dependency choices, project structure and module documentation. Breaks no single screen, but decides whether a newcomer or an agent can tell what belongs in a package and why a dependency is there.

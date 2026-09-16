@@ -1,22 +1,25 @@
 # frontend-ui-best-practices
 
-React + shadcn/ui 前端工程的技术栈基线与模块文档规范，2 条规则。
+Stack baseline and module documentation rules for React + shadcn/ui frontend projects, 2 rules.
 
-`SKILL.md` 只做索引，规则一条一文件按需读取，`scripts/build.sh` 编译出全量版 `AGENTS.md`。
+`SKILL.md` is only an index: each rule lives in its own file and is read on demand, and
+`scripts/build.sh` compiles them into the full `AGENTS.md`.
 
-## 范围
+## Scope
 
-只覆盖**工程层**：依赖选型、项目结构、模块 README。界面与交互层（表单、弹层、列表、格式、
-图标）属于 `ui-ux-best-practices`，两者不重叠，避免同一条规则存在两份必然漂移的副本。
+The engineering layer only: dependency choices, project structure, module READMEs. The
+interface layer — forms, overlays, lists, formats, icons — belongs to `ui-ux-best-practices`,
+so that no rule exists as two copies that inevitably drift apart.
 
-## 新增一条规则
+## Adding a rule
 
-1. 复制 `rules/_template.md` 为 `rules/<前缀>-<名称>.md`
-2. 在 `SKILL.md` 的规则索引里加一行
-3. 新增分类时同步改 `rules/_sections.md`
-4. 重新编译：`bash scripts/build.sh`
+1. Copy `rules/_template.md` to `rules/<prefix>-<name>.md`.
+2. Add one line to the rule index in `SKILL.md`.
+3. Add the category to `rules/_sections.md` if it is new.
+4. Rebuild: `bash scripts/build.sh`.
 
-改完务必校验索引与文件一一对应，这是本结构唯一的沉默故障：
+Always verify that index and rule files still match — this is the only silent failure of this
+layout:
 
 ```bash
 index_file="$(mktemp)"
@@ -27,13 +30,13 @@ ls rules/[a-z]*.md | xargs -n1 basename | sed 's/\.md$//' | sort > "$rules_file"
 diff "$index_file" "$rules_file" && echo OK
 ```
 
-## 启用
+## Enabling
 
 ```bash
-# 在仓库根目录执行
+# from the repository root
 mkdir -p "$HOME/.claude/skills"
 ln -s "$(pwd)/skills/frontend-ui-best-practices" \
       "$HOME/.claude/skills/frontend-ui-best-practices"
 ```
 
-用符号链接而非拷贝，本仓才是唯一事实来源。
+Symlink rather than copy — this repository stays the single source of truth.
