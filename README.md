@@ -16,7 +16,7 @@ npx skills@latest add jinsyin/skills
 - `doc-writing-best-practices` - 文档编写最佳实践
 - `spring-boot-best-practices` - Spring Boot 后端开发最佳实践
 - `setup-rules` - 交互式安装 Agent 约定、适配器及敏感文件禁读配置
-- `to-raw-requirements` - 将口述原始需求与上下文方案逐项澄清，按固定结构整理并保存为 `docs/requirements/raw.md`
+- `ideate` - 将产品想法与上下文方案逐项澄清，按固定结构整理并保存为 `docs/ideas/idea.md`
 - `to-md` - 内容转换 Markdown 工具
 - `product-spec` - 管理产品功能规范（功能、交互、Flyway 式版本化变更记录），合成的 `CURRENT.md` 直接喂 Claude Design / v0 / Figma Make / Lovable
 - `design-to-code` - 将高保真设计/原型（HTML + React JSX）还原为 Vite + React + TypeScript + Tailwind + shadcn/ui 生产级代码

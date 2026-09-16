@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ideate"
+  short_description: "将产品想法整理为结构化产品构想并保存到 idea.md"
+  default_prompt: "Use $ideate to clarify my product idea and context, then save docs/ideas/idea.md."

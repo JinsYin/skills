@@ -3,6 +3,12 @@
 本文件记录项目的所有重要变更。
 遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 规范与 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号约定。
 
+## [Unreleased]
+
+### 变更与重构 (Changed & Refactored)
+
+- **`ideate` 技能重命名与产物迁移**：将 `to-raw-requirements` 重命名为 `ideate`，产品构想文档统一保存到 `docs/ideas/idea.md`，并支持迁移已有的 `docs/requirements/raw.md` 与根目录 `REQUIREMENTS.md`。
+
 ## [v0.8.0] - 2026-09-07
 
 ### 变更与重构 (Changed & Refactored)
