@@ -160,5 +160,5 @@ In Codex, translate this wrapper instead of rewriting it:
 ## 与其他 skill 的关系
 
 - 写出来的 Markdown 走 `doc-writing-best-practices`（中西文混排、标题层级、表格取舍）
-- 页面交互约定要与 `frontend-ui-best-practices` 一致——表单校验时机、弹层状态重置、破坏性操作确认、分页与格式。**冲突时以那个 skill 为准**，规范不该自造一套交互通则
+- 页面交互约定要与 `ui-ux-best-practices` 一致——表单校验时机、弹层状态重置、破坏性操作确认、分页与格式。**冲突时以那个 skill 为准**，规范不该自造一套交互通则
 - 视觉层（色值、字体、间距、组件圆角）不归本 skill，归项目的 `design.md` / `tokens.css`

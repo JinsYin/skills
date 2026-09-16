@@ -10,7 +10,7 @@ npx skills@latest add jinsyin/skills
 
 ## 包含技能
 
-- `frontend-ui-best-practices` - 前端 UI 开发最佳实践
+- `ui-ux-best-practices` - 后台管理界面 UI/UX 最佳实践
 - `devops-best-practices` - DevOps 运维最佳实践
 - `doc-writing-best-practices` - 文档编写最佳实践
 - `spring-boot-best-practices` - Spring Boot 后端开发最佳实践
