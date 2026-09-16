@@ -28,7 +28,7 @@ paths:
 - Form autocomplete: disable autocomplete and prevent the browser from autofilling form data.
 - When a form field is not editable, gray out the text inside the input, not the input itself, and show a not-allowed cursor on hover.
 - Toast notifications must show both an icon and text, and the icon color must vary by severity level.
-- [ ] Password inputs must have an eye icon that toggles the value between plaintext and masked on click.
+- Password inputs must have an eye icon that toggles the value between plaintext and masked on click.
 
 ## Console / Admin
 
@@ -43,7 +43,7 @@ paths:
 - Keep each table action cell consistent: icons or text, not a mixed style.
 - Header: logo, Chinese platform name, then a new-line `Console` label.
 - Top right must show the user avatar and provide logout.
-- [ ] The backdrop color/opacity outside a drawer must match the backdrop color/opacity outside a modal.
-- [ ] Create, edit, and view modals/drawers must share the same width and height.
-- [ ] After closing a create/edit modal/drawer, reopening it must reset the form state (clear input values and error messages).
-- [ ] Buttons or actions with the same function must use a consistent icon (style specifically, and size too unless otherwise noted) — including create, edit, delete, copy, refresh, close drawer/modal, search, disable, publish/unpublish, password reveal, etc.
+- The backdrop color/opacity outside a drawer must match the backdrop color/opacity outside a modal.
+- Create, edit, and view modals/drawers must share the same width and height.
+- After closing a create/edit modal/drawer, reopening it must reset the form state (clear input values and error messages).
+- Buttons or actions with the same function must use a consistent icon (style specifically, and size too unless otherwise noted) — including create, edit, delete, copy, refresh, close drawer/modal, search, disable, publish/unpublish, password reveal, etc.
