@@ -21,3 +21,7 @@
 
 - MUST follow the rules matched by `*-best-practices` skills.
 - MUST add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
+
+### Design
+
+- Product design MUST follow the rules in the `ui-ux-best-practices` skill.
