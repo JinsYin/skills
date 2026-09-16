@@ -1,10 +1,10 @@
 ---
 name: ui-ux-best-practices
-description: UI and interaction rules for Chinese-language admin consoles written in React or Vue. Covers validation timing and error display, modal/drawer reset and destructive confirmation, windowed pagination and table alignment, date and number formats, icon and toast consistency, and console header layout. Use when writing, reviewing or refactoring frontend pages — especially forms, list pages, modals and drawers, delete and other destructive actions, or UI copy and formats.
+description: UI and interaction rules for Chinese-language admin consoles built with React or Vue. Covers validation timing and error display, modal/drawer reset and destructive confirmation, windowed pagination and table alignment, date and number formats, icon and toast consistency, and console header layout. Use when writing, reviewing or refactoring frontend pages — forms, list pages, modals and drawers, destructive actions, UI copy and formats — and equally when designing the product before any code exists: product specs, PRDs, page and interaction specs, UI design contracts (UI-SPEC), prototypes and design reviews are bound by the same rules.
 license: MIT
 metadata:
   author: JinsYin
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # UI/UX Best Practices
@@ -12,7 +12,12 @@ metadata:
 Interface rules for Chinese-language admin consoles (React or Vue): 18 rules in 6 categories,
 ordered by **what a violation costs the user**.
 
-Scope: `**/*.vue`, `**/*.jsx`, `**/*.tsx`, `**/*.css`.
+The rules bind design artifacts as much as code. A product spec, UI design contract or
+prototype that contradicts them gets built wrong, and correcting an interaction after
+implementation costs far more than writing the spec correctly.
+
+Scope: `**/*.vue`, `**/*.jsx`, `**/*.tsx`, `**/*.css`, plus product and design documents —
+specs, PRDs, UI design contracts, prototypes.
 
 ## How to use this skill
 
@@ -26,6 +31,7 @@ rules/overlay-reset-on-close.md
 
 | What you are doing | Read first |
 |---|---|
+| Specifying product design (spec, PRD, UI-SPEC, prototype) | the whole index; `overlay-*` and `form-*` first |
 | Building a form (create / edit) | `form-*`, `overlay-reset-on-close` |
 | Building a list page | `list-*`, `format-date-number` |
 | Building a modal / drawer | `overlay-*` |
