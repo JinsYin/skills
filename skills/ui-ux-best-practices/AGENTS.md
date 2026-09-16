@@ -1,7 +1,7 @@
 # UI/UX Best Practices
 
-> 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-09-16 01:44:30
+> Generated from `rules/` by `scripts/build.sh`. Do not edit by hand.
+> Generated at: 2026-09-16 02:25:07
 
 ## 1. Overlays & Destructive Actions
 
