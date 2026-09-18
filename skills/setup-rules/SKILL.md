@@ -65,19 +65,23 @@ The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the pr
 
 **7. Collect sensitive paths.** Preselect the default set: project-root `.env`, `.env.dev`, `.env.test`, and `.env.prod`. Ask for extra project-relative files or directories. Empty means only this set; remove it only by explicit opt-out. Never infer beyond it or read protected contents. Follow [sensitive-file access controls](references/sensitive-file-access.md).
 
-**8. Confirm the manifest.** List every output, sensitive-file target, external Antigravity setting, and Git-ignore decision. Expand bundles to concrete files. For ignored outputs, offer: keep ignored, add the narrowest exception, or add and commit. Confirm before writing.
+**8. Ask about Git tracking.** For each applicable `.<tool>/` and `.agents/`, ask whether to commit its selected files; never infer. If declined, record the narrowest root-relative `.gitignore` entry and any tracked files to untrack while keeping local files.
 
-**9. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
+**9. Confirm the manifest.** List outputs, sensitive targets, external settings, per-directory Git choices, exact ignore entries, and tracked removals. Confirm before writing.
 
-**10. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. For the Antigravity adapter, copy `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
+**10. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
-**11. Install sensitive-file restrictions.** Merge the confirmed denies per the reference. Preserve unrelated or stricter settings; stop on incompatible policy. Report unenforced Antigravity UI and Cursor terminal/MCP paths.
+**11. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. For the Antigravity adapter, copy `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
 
-**12. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Project Conventions`, and `AGENTS.md` with exactly:
+**12. Apply Git decisions.** Add confirmed ignore entries and run `git rm -r --cached` on declined tracked files, preserving local files and unrelated rules. Stop for unmanaged active files; never rewrite history, delete worktree files, or commit/push without authorization.
+
+**13. Install sensitive-file restrictions.** Merge the confirmed denies per the reference. Preserve unrelated or stricter settings; stop on incompatible policy. Report unenforced Antigravity UI and Cursor terminal/MCP paths.
+
+**14. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Project Conventions`, and `AGENTS.md` with exactly:
 
 ```text
 @CLAUDE.local.md
 @CLAUDE.md
 ```
 
-**13. Validate and report.** Parse changed JSON/TOML, run available offline config-load checks, and test ignore matching without reading secrets. Report selections, changes, protected paths, limitations, Git decisions, and conflicts.
+**15. Validate and report.** Parse changed JSON/TOML, run available offline config-load checks, and test ignore matching without reading secrets. Report selections, changes, protected paths, limitations, Git decisions, and conflicts.
