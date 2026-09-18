@@ -8,6 +8,7 @@
 ### 变更与重构 (Changed & Refactored)
 
 - **`ideate` 技能重命名与产物迁移**：将 `to-raw-requirements` 重命名为 `ideate`，产品构想文档统一保存到 `docs/ideas/idea.md`，并支持迁移已有的 `docs/requirements/raw.md` 与根目录 `REQUIREMENTS.md`。
+- **`product-spec-generate` 技能重命名**：将 `product-spec` 重命名为 `product-spec-generate`，同步更新技能目录、命令示例与仓库文档引用。
 
 ## [v0.8.0] - 2026-09-07
 
