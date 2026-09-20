@@ -24,7 +24,7 @@
 
 ### Design
 
-- Product design MUST obey `ui-ux-best-practices` skill rules.
-- MUST create each new prototype in a new, isolated worktree per session. Do not inspect, reference, or modify other worktrees.
-- Final prototypes go `products/prototype/`, final UI designs go `products/design/`. No read `products/prototype/` unless changing prototype.
-- After me approve prototype change, do next approved changes. No ask again.
+- If the main workspace already has a prototype, modify it there without repeated confirmation; otherwise, create the draft in a new isolated worktree for the session. Final prototypes belong in the main workspace.
+- Keep workspaces independent: never inspect, reference, or modify a different workspace.
+- When creating a draft prototype worktree, copy the `setup-rules` template `assets/templates/prototype/AGENTS.md` to `products/prototype/AGENTS.md` in that worktree only.
+- Store prototypes in `products/prototype/` and UI designs in `products/design/`; read `products/prototype/` only when changing a prototype.
