@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# to-md: 用 markitdown 把文档转成 Markdown，再用 markdownlint-cli2 --fix 清理排版，
+# doc-to-md: 用 markitdown 把文档转成 Markdown，再用 markdownlint-cli2 --fix 清理排版，
 #        最后写到与源文件同目录、同主名、扩展名为 .md 的文件。
 #
 # 用法:

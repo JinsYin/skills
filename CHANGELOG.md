@@ -9,6 +9,7 @@
 
 - **`ideate` 技能重命名与产物迁移**：将 `to-raw-requirements` 重命名为 `ideate`，产品构想文档统一保存到 `docs/ideas/idea.md`，并支持迁移已有的 `docs/requirements/raw.md` 与根目录 `REQUIREMENTS.md`。
 - **`product-spec-generate` 技能重命名**：将 `product-spec` 重命名为 `product-spec-generate`，同步更新技能目录、命令示例与仓库文档引用。
+- **`doc-to-md` 技能重命名**：将 `to-md` 重命名为 `doc-to-md`，同步更新技能目录、定义、评测元数据与仓库文档引用。
 
 ## [v0.8.0] - 2026-09-07
 
@@ -117,4 +118,4 @@
   - `product-spec` 产品功能规范管理
   - `design-to-code` 高保真原型/设计稿一键还原生产级代码
 - **GSX Thin Front-Door (20 个 skills)**：包含 `gsx-*` 全套技能，包裹 GSD 命令并接入 Context7 文档核对校验门禁。
-- **通用工具**：`to-md` Markdown 内容转换技能。
+- **通用工具**：`doc-to-md` Markdown 内容转换技能。

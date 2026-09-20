@@ -1,5 +1,5 @@
 ---
-name: to-md
+name: doc-to-md
 description: >-
   Convert documents to Markdown using Microsoft's markitdown, auto-clean the
   result with markdownlint, then LLM-refine it against the source to fix
@@ -17,7 +17,7 @@ description: >-
   single file or a batch (multiple files / a directory).
 ---
 
-# to-md
+# doc-to-md
 
 把各种文档转成干净、**忠于原文且结构正确**的 Markdown，存到**与源文件相同的目录、相同的主文件名、仅扩展名换成 `.md`**。
 
