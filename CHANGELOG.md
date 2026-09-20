@@ -5,11 +5,27 @@
 
 ## [Unreleased]
 
+## [v0.9.0] - 2026-09-19
+
+### 新增 (Added)
+
+- **后台管理 UI/UX 规范**：新增 `ui-ux-best-practices` 技能，覆盖控制台布局密度、表格、筛选、分页、表单、弹层和敏感配置展示等规则。
+- **Agent 适配与敏感文件保护**：`setup-rules` 补充多平台 Agent 资源适配、交互式安装流程和敏感文件访问限制。
+
 ### 变更与重构 (Changed & Refactored)
 
-- **`ideate` 技能重命名与产物迁移**：将 `to-raw-requirements` 重命名为 `ideate`，产品构想文档统一保存到 `docs/ideas/idea.md`，并支持迁移已有的 `docs/requirements/raw.md` 与根目录 `REQUIREMENTS.md`。
-- **`product-spec-generate` 技能重命名**：将 `product-spec` 重命名为 `product-spec-generate`，同步更新技能目录、命令示例与仓库文档引用。
-- **`doc-to-md` 技能重命名**：将 `to-md` 重命名为 `doc-to-md`，同步更新技能目录、定义、评测元数据与仓库文档引用。
+- **技能重命名**：将 `to-raw-requirements` 重命名为 `ideate`，将 `product-spec` 重命名为 `product-spec-generate`，并同步更新产物路径、目录和仓库文档引用。
+- **文档转换技能重命名**：将 `to-md` 重命名为 `doc-to-md`，同步更新技能定义、评测元数据和脚本标识。
+- **规则库整理**：整合前端与后台 UI/UX 规则，移除重复内容，精炼技能描述和规则编译脚本。
+- **setup-rules Git 跟踪提示**：补充 Antigravity `.agent` 目录的提交选择说明。
+
+### 修复 (Fixed)
+
+- **规则资源一致性**：修正重命名后的路径、入口和规则引用，避免技能清单与实际目录不一致。
+
+### 破坏性变更 (Breaking Changes)
+
+- 使用旧技能名 `to-raw-requirements`、`product-spec` 或 `to-md` 的调用方需要分别迁移到 `ideate`、`product-spec-generate` 和 `doc-to-md`。
 
 ## [v0.8.0] - 2026-09-07
 
