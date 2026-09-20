@@ -1,4 +1,4 @@
 
 ## GSD
 
-- Prefer `gsx-` GSD-extended skills.
+- Prefer the `gsx` skill (`gsx --<mode>`) over calling `/gsd:*` directly.
