@@ -17,7 +17,7 @@ paths:
 - Never expose internal project codenames; show the Chinese platform name.
 - Date format: `2026-04-23`; datetime format: `2026-04-23 09:00:00`.
 - List pages must paginate and show the total count at top right.
-- When a list table has no data, display “暂无数据” and center-align the message.
+- When a list table has no data, display `暂无数据` in Chinese UI or `No data` in English UI, and center-align the message.
 - Every page must include a favicon.
 
 - Validation: validate on `blur`; once invalid, revalidate on `change`; validate all fields on `submit`. Live hints, such as password strength, use `change`.
@@ -30,7 +30,7 @@ paths:
 - Toast notifications must show both an icon and text, and the icon color must vary by severity level.
 - Controls should use a compact height and small corner radius by default.
 - Unless specifically stated otherwise, use a light theme by default.
-- Path values should have a copy icon immediately after the value by default.
+- Path values should have a copy icon immediately after the value by default, using the product-wide copy icon.
 - Statistic cards should place the unit at the bottom right of the displayed value.
 - Password inputs must have an eye icon that toggles the value between plaintext and masked on click.
 
@@ -39,7 +39,6 @@ paths:
 - Build the console as one HTML page; use anchors for menu sections.
 - Interactive prototypes must use local mock data.
 - Sensitive configuration values must be displayed only in masked or redacted form.
-- Unless explicitly required, do not add a global search or notification center by default.
 - List toolbar order: search first, filters next, reset search and filters next, icon-only refresh last; omit reset and refresh when horizontal space is insufficient.
 - Left-align all table headers and cells; avoid extra left padding in cell content.
 - Show `-` for empty table cells and missing detail values.

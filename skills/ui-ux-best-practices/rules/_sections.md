@@ -27,7 +27,7 @@ Impact is graded by **what a violation costs the user**:
 ## 3. Lists & Tables (list)
 
 **Impact:** HIGH
-**Description:** Pagination, alignment, empty values, empty states, toolbar order and filter menus. Missing pagination or total count makes large result sets harder to navigate.
+**Description:** Pagination, table content and empty states, toolbar order and filter menus. Missing pagination or total count makes large result sets harder to navigate.
 
 ## 4. Formats & Wording (format)
 
@@ -42,4 +42,4 @@ Impact is graded by **what a violation costs the user**:
 ## 6. Console Layout (console)
 
 **Impact:** LOW
-**Description:** Structure, header composition, prototype data and sensitive configuration display of the admin console.
+**Description:** Structure, header composition, minimal global chrome, prototype data and sensitive configuration display of the admin console.

@@ -22,3 +22,6 @@ export const ActionIcon = {
   copy: Copy, refresh: RotateCw, search: Search,
 } as const;
 ```
+
+Path values should display a **copy icon immediately after the value** by default. Use the
+product-wide copy icon defined by this rule.

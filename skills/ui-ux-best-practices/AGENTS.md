@@ -1,7 +1,7 @@
 # UI/UX Best Practices
 
 > Generated from `rules/` by `scripts/build.sh`. Do not edit by hand.
-> Generated at: 2026-09-19 19:25:28
+> Generated at: 2026-09-19 19:34:26
 
 ## 1. Overlays & Destructive Actions
 
@@ -162,14 +162,6 @@ useForm({ mode: "onBlur", reValidateMode: "onChange" });
 ## 3. Lists & Tables
 
 
-### Show a centered empty state in tables
-
-When a list table has no data, display `暂无数据` and center-align the message across the table.
-
-The explicit empty state distinguishes “no records” from loading, failed rendering or a broken
-request.
-
-
 ### Use custom menus for filter dropdowns
 
 Filter dropdowns must use a **custom menu** to display their options. Do not use the default
@@ -178,20 +170,31 @@ HTML `<select>` element directly.
 The custom menu keeps option presentation, interaction and styling consistent across list pages.
 
 
-### Left-align table content, show a dash for empty values
+### Paginate list pages and show total count
+
+Every list page paginates and shows the **total count at the top right** — the user needs the
+size of the result set to decide between paging through it and filtering it down.
+
+
+### Align table content and empty states
 
 - Left-align **both** headers and cells, and add no extra left padding inside cells.
 - Render `-` for empty cells and for missing values on detail pages.
+- When a list table has no data, display `暂无数据` in Chinese UI or `No data` in English UI,
+  centered across the table. This empty-state message is the exception to the default
+  left-alignment rule.
 
 A blank cell cannot be told apart from three different situations: there is no data, the load
-failed, or the rendering is broken. `-` states plainly that there is no value.
+failed, or the rendering is broken. `-` states plainly that there is no value. The explicit
+empty state distinguishes “no records” from loading, failed rendering or a broken request.
 
-A header aligned differently from its content (centered header over left-aligned cells) blurs
-the column boundary and makes the eye jump rows while scanning.
+A header aligned differently from its content blurs the column boundary and makes the eye jump
+rows while scanning.
 
 ```jsx
 <th className="text-left">机构名称</th>
 <td className="text-left">{org.name || "-"}</td>
+<tr><td colSpan={columns.length} className="text-center">暂无数据</td></tr>
 ```
 
 If a numeric column is right-aligned so digits line up, right-align its header too.
@@ -208,12 +211,6 @@ occupy the visual lead.
 
 Keep each row's action cell in **one style** — all icons or all text, never mixed. Mixing makes
 row height and visual weight uneven down the column.
-
-
-### Paginate list pages and show total count
-
-Every list page paginates and shows the **total count at the top right** — the user needs the
-size of the result set to decide between paging through it and filtering it down.
 
 ## 4. Formats & Wording
 
@@ -275,6 +272,9 @@ export const ActionIcon = {
 } as const;
 ```
 
+Path values should display a **copy icon immediately after the value** by default. Use the
+product-wide copy icon defined by this rule.
+
 
 ### Use a light theme by default
 
@@ -292,12 +292,6 @@ A missing favicon has a concrete cost: with a dozen tabs open the user navigates
 tab without one can only be found by opening it.
 
 One logo size everywhere keeps the header from shifting as the user moves between pages.
-
-
-### Add a copy icon after path values
-
-Path values should display a **copy icon immediately after the value** by default. Use the
-product-wide copy icon defined by `consistency-icons`.
 
 
 ### Place units at the bottom right of statistic values
@@ -325,14 +319,17 @@ Error toasts state the **specific reason**, not just `操作失败`.
 ## 6. Console Layout
 
 
-### Console header and account area
+### Console header and global chrome
 
 - Header, in order: the logo, then the Chinese platform name, then a `Console` label **on a new
   line** below it.
 - Top right: the user avatar, with logout reachable from it.
+- Unless a product requirement explicitly calls for them, do not include a **global search** or
+  **notification center** by default. Add either only when a defined user task requires it.
 
 `Console` sits on its own line so the platform name stays the primary title instead of growing
-into one long string.
+into one long string. Keeping optional global features out of the shell preserves focus and
+avoids adding navigation that no defined task requires.
 
 Logout must be reachable from every page — an admin session left open on a shared machine is
 the failure this prevents.
@@ -342,13 +339,6 @@ the failure this prevents.
 
 Sensitive configuration values must be displayed only in **masked or redacted form**. Never
 render full secrets, tokens, passwords or private keys in the UI.
-
-
-### Do not add global search or notifications by default
-
-Unless a product requirement explicitly calls for them, the console must not include a
-**global search** or **notification center** by default. Add either only when a defined user
-task requires it.
 
 
 ### Use local mock data in interactive prototypes
