@@ -5,7 +5,7 @@
 ## 目录与命名
 
 ```
-.product/spec/
+products/specs/
 ├── README.md
 ├── <产品线>/
 │   ├── CURRENT.md            # generated，只由 sync 写
@@ -137,7 +137,7 @@ includes_draft: false            # 若纳入了 draft 版本则为 true
 
 ## 「明确不做」为什么必须写
 
-借鉴 [design.md](https://designproject.io/blog/design-md-file/) 的经验：约束比描述更能定形。AI 设计工具的失败模式不是「画不出来」，而是「自作主张多画了」——给列表加个它以为你想要的批量导出，给表单加个记住我，给详情页加个 AI 摘要卡片。
+借鉴 [DESIGN.md](https://designproject.io/blog/design-md-file/) 的经验：约束比描述更能定形。AI 设计工具的失败模式不是「画不出来」，而是「自作主张多画了」——给列表加个它以为你想要的批量导出，给表单加个记住我，给详情页加个 AI 摘要卡片。
 
 这章就写这些：
 

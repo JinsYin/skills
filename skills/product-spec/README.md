@@ -12,7 +12,7 @@
 纯 Flyway 增量链只满足前者。当前态得靠脑内重放 V1→Vn，人能做，设计工具做不了：把 V1 和 V2 一起丢给 v0，它会照着 V1 里那个已被 V2 改名的字段画。反过来每版存全量，则 diff 全是噪音，追溯等于没有。
 
 ```
-.product/spec/console/
+products/specs/console/
 ├── CURRENT.md          ← 合成的当前全量态，generated，喂设计工具
 ├── V1__baseline.md     ← 全量基线
 └── V2__data_space.md   ← 只写增量
@@ -26,7 +26,7 @@
 |---|---|
 | 为什么做、验收标准 | PRD / [ProductSpec](https://github.com/gokulrajaram/ProductSpec) |
 | **有什么功能、怎么交互** | **本 skill** |
-| 长什么样（色值、字体、间距） | `design.md` / `tokens.css` |
+| 长什么样（色值、字体、间距） | `DESIGN.md` / `tokens.css` |
 | 怎么实现 | 代码与工程 skill |
 
 规范正文里出现十六进制色值或 `px` 一律是越界，`check` 会报。
@@ -46,7 +46,7 @@
 1. `CURRENT.md` 只能由 `sync` 写——手改会被下次 sync 静默覆盖
 2. `status: active` 的 V 文件不回改，改需求就发下一个 V
 3. 定位符解析不到就报错停下，**绝不猜**——猜错会留下没人发现的幽灵页面
-4. 不写像素、色值、字号，那层归 `.product/design/`
+4. 不写像素、色值、字号，那层归 `products/design/`
 5. 对外文案以项目 CLAUDE.md 为准，内部代号不得进正文
 6. 写完必须 sync
 
@@ -63,7 +63,7 @@
 
 **「前置条件」列**——`spec-format.md` 的页面规格模板里最容易被略过的一列，也是设计工具画不对的主因。按钮什么时候是灰的、什么时候根本不显示，不写它就只能靠猜。
 
-**「明确不做」章**——借鉴 [design.md](https://designproject.io/blog/design-md-file/)：约束比描述更能定形。AI 设计工具的失败模式不是画不出来，而是自作主张多画了。「不要过度设计」是废话，「列表页不要用卡片布局，一律用表格」才有用。
+**「明确不做」章**——借鉴 [DESIGN.md](https://designproject.io/blog/design-md-file/)：约束比描述更能定形。AI 设计工具的失败模式不是画不出来，而是自作主张多画了。「不要过度设计」是废话，「列表页不要用卡片布局，一律用表格」才有用。
 
 ## 启用
 

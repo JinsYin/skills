@@ -7,7 +7,7 @@
 ### 主流程
 
 ```
-1. 收集       glob .product/spec/<产品线>/V*.md
+1. 收集       glob products/specs/<产品线>/V*.md
 2. 排序       按 frontmatter.version 升序（不要按文件名字典序，V10 会排到 V2 前面）
 3. 过滤       跳过 status: superseded
 4. 校验       版本连续、无重号、文件名 V{n}__ 与 frontmatter.version 一致
@@ -87,7 +87,7 @@
 
 | 项 | 判据 | 级别 |
 |---|---|---|
-| 目录存在 | `.product/spec/` 有 V 文件 | 无则 ⚠️「尚未 init」，**不是错误** |
+| 目录存在 | `products/specs/` 有 V 文件 | 无则 ⚠️「尚未 init」，**不是错误** |
 | 版本连续 | 无重号、无跳号 | ❌ |
 | 文件名一致 | `V{n}__<slug>.md` 对上 frontmatter 的 `version` 与 `slug` | ❌ |
 | product 一致 | frontmatter `product` == 所在目录名 | ❌ |

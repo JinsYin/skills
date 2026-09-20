@@ -39,7 +39,7 @@
 
 - 上下文块保留，产品定位那两句要写好——Figma Make 靠它定调性
 - 页面规格**只保留**「目标」「布局骨架」「数据与字段」三节，操作与状态压成一段要点
-- 产出末尾提示用户：**同时附上 `.product/design/` 里对应页面的截图**，效果比纯文字好一个数量级。若 `.product/design/screenshots/` 有对应文件，把路径列出来
+- 产出末尾提示用户：**同时附上 `products/design/` 里对应页面的截图**，效果比纯文字好一个数量级。若 `products/design/screenshots/` 有对应文件，把路径列出来
 - 「明确不做」保留，但改写成祈使句（`列表用表格，不要卡片`）
 
 ## Claude Design / Claude Artifacts
@@ -49,7 +49,7 @@
 裁剪：
 
 - **整份 `CURRENT.md` 直接给**，只删溯源行
-- 若项目有 `tokens.css` / `design.md`，一并附上，并说明视觉值一律取自它
+- 若项目有 `tokens.css` / `DESIGN.md`，一并附上，并说明视觉值一律取自它
 - 可以一次要多个页面，但明确要求「先出信息架构与一个页面，确认后再铺开」
 
 ## Lovable
@@ -66,6 +66,6 @@
 
 ## 产出位置
 
-写到 `.product/spec/<产品线>/.export/<tool>-<页面id|all>.md`。
+写到 `products/specs/<产品线>/.export/<tool>-<页面id|all>.md`。
 
 `.export/` 是临时产物，建议加进 `.gitignore`——它随时能从 `CURRENT.md` 重新生成，入库只会制造第三份会漂移的副本。
