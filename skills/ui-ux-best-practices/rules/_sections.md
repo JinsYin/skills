@@ -27,7 +27,7 @@ Impact is graded by **what a violation costs the user**:
 ## 3. Lists & Tables (list)
 
 **Impact:** HIGH
-**Description:** Pagination, alignment, empty values, toolbar order. Rendering every page number freezes the page once the dataset grows.
+**Description:** Pagination, alignment, empty values, empty states, toolbar order and filter menus. Missing pagination or total count makes large result sets harder to navigate.
 
 ## 4. Formats & Wording (format)
 
@@ -37,9 +37,9 @@ Impact is graded by **what a violation costs the user**:
 ## 5. Visual Consistency (consistency)
 
 **Impact:** LOW
-**Description:** Icons, toasts and page chrome. No functional impact, but a constant recognition tax.
+**Description:** Icons, toasts, page chrome, control density, theme, path-copy affordances and statistic-card layout. No functional impact, but a constant recognition tax.
 
 ## 6. Console Layout (console)
 
 **Impact:** LOW
-**Description:** Structure and header composition of the admin console.
+**Description:** Structure, header composition, prototype data and sensitive configuration display of the admin console.

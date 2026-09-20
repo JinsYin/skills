@@ -6,7 +6,7 @@ tags: consistency, icon, ux
 
 ## One icon per function, everywhere
 
-The same function uses the **same icon** across the whole product — same style, and same size
+The same function uses the **same icon** across the whole product — same style, size, and color
 unless stated otherwise: create, edit, delete, copy, refresh, close drawer/modal, search,
 disable, publish/unpublish, password reveal.
 

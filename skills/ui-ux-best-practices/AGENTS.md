@@ -1,7 +1,7 @@
 # UI/UX Best Practices
 
 > Generated from `rules/` by `scripts/build.sh`. Do not edit by hand.
-> Generated at: 2026-09-16 02:25:07
+> Generated at: 2026-09-19 19:25:28
 
 ## 1. Overlays & Destructive Actions
 
@@ -162,6 +162,22 @@ useForm({ mode: "onBlur", reValidateMode: "onChange" });
 ## 3. Lists & Tables
 
 
+### Show a centered empty state in tables
+
+When a list table has no data, display `暂无数据` and center-align the message across the table.
+
+The explicit empty state distinguishes “no records” from loading, failed rendering or a broken
+request.
+
+
+### Use custom menus for filter dropdowns
+
+Filter dropdowns must use a **custom menu** to display their options. Do not use the default
+HTML `<select>` element directly.
+
+The custom menu keeps option presentation, interaction and styling consistent across list pages.
+
+
 ### Left-align table content, show a dash for empty values
 
 - Left-align **both** headers and cells, and add no extra left padding inside cells.
@@ -181,9 +197,11 @@ the column boundary and makes the eye jump rows while scanning.
 If a numeric column is right-aligned so digits line up, right-align its header too.
 
 
-### Toolbar order: search → filters → refresh
+### Toolbar order: search → filters → reset → refresh
 
-Fixed order: the search box first, filters in the middle, an **icon-only** refresh button last.
+Fixed order: the search box first, filters next, **reset search and filters** next, and an
+**icon-only** refresh button last. If horizontal space is insufficient, omit the reset and
+refresh buttons.
 With the order fixed, users moving between list pages never have to hunt for a control again.
 Refresh goes last and stays icon-only because it is the least frequent action and should not
 occupy the visual lead.
@@ -192,24 +210,10 @@ Keep each row's action cell in **one style** — all icons or all text, never mi
 row height and visual weight uneven down the column.
 
 
-### Paginate with windowed page numbers
+### Paginate list pages and show total count
 
 Every list page paginates and shows the **total count at the top right** — the user needs the
 size of the result set to decide between paging through it and filtering it down.
-
-Page numbers must be windowed: **always show the first and the last page**, the current page
-with one page on each side, and a **non-clickable** ellipsis at every gap.
-
-```text
-< 1 … 49 50 51 … 103 >
-```
-
-Rendering all pages is not merely ugly: 103 pages is 103 DOM nodes with listeners, and one
-order of magnitude more data freezes the page — which the few dozen rows of a dev database will
-never reveal.
-
-The ellipsis must not be clickable. Making it jump somewhere turns it into a page number whose
-destination the user cannot predict.
 
 ## 4. Formats & Wording
 
@@ -220,12 +224,12 @@ destination the user cannot predict.
 |---|---|---|
 | Date | `YYYY-MM-DD` | `2026-04-23` |
 | Datetime | `YYYY-MM-DD HH:mm:ss` | `2026-04-23 09:00:00` |
-| Number | **no thousands separators** | `1234567` |
+| Number | **no comma separators** | `1234567`, not `1,234,567` |
 
 ISO order, not `04/23/2026` — the latter reads as April 23 in one region and as month 23
 (invalid) in another, the most common misreading in cross-region work.
 
-Numbers carry no comma separators because these values get copied into Excel or an API client,
+Numbers must not use comma separators because these values get copied into Excel or an API client,
 where the separator breaks parsing. If one screen genuinely needs thousands separators for
 readability, make it an explicit local exception rather than the global default.
 
@@ -245,9 +249,16 @@ names and email templates. Check each of them when editing copy.
 ## 5. Visual Consistency
 
 
+### Keep controls compact by default
+
+Controls should use a **compact height** and **small corner radius** by default across the
+product. Do not introduce tall controls or large rounded corners without an explicit design
+requirement.
+
+
 ### One icon per function, everywhere
 
-The same function uses the **same icon** across the whole product — same style, and same size
+The same function uses the **same icon** across the whole product — same style, size, and color
 unless stated otherwise: create, edit, delete, copy, refresh, close drawer/modal, search,
 disable, publish/unpublish, password reveal.
 
@@ -265,6 +276,13 @@ export const ActionIcon = {
 ```
 
 
+### Use a light theme by default
+
+Unless a task or product requirement explicitly says otherwise, use a **light theme** by
+default. Do not introduce a dark theme or dark-mode-specific styling without explicit
+instruction.
+
+
 ### Every page carries a favicon and the logo
 
 - Every page includes a **favicon**.
@@ -274,6 +292,18 @@ A missing favicon has a concrete cost: with a dozen tabs open the user navigates
 tab without one can only be found by opening it.
 
 One logo size everywhere keeps the header from shifting as the user moves between pages.
+
+
+### Add a copy icon after path values
+
+Path values should display a **copy icon immediately after the value** by default. Use the
+product-wide copy icon defined by `consistency-icons`.
+
+
+### Place units at the bottom right of statistic values
+
+Statistic cards must place the unit at the **bottom right of the displayed value**. Keep the
+unit visually associated with its number without competing with the primary value.
 
 
 ### Toasts need an icon and text, colored by severity
@@ -306,6 +336,25 @@ into one long string.
 
 Logout must be reachable from every page — an admin session left open on a shared machine is
 the failure this prevents.
+
+
+### Mask sensitive configuration values
+
+Sensitive configuration values must be displayed only in **masked or redacted form**. Never
+render full secrets, tokens, passwords or private keys in the UI.
+
+
+### Do not add global search or notifications by default
+
+Unless a product requirement explicitly calls for them, the console must not include a
+**global search** or **notification center** by default. Add either only when a defined user
+task requires it.
+
+
+### Use local mock data in interactive prototypes
+
+Interactive prototypes must use **local mock data**. Do not connect them to production or live
+external data sources by default.
 
 
 ### Build the console as a single HTML page

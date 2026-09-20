@@ -1,6 +1,6 @@
 # ui-ux-best-practices
 
-UI and interaction rules for Chinese-language admin consoles (React or Vue), 18 rules in 6
+UI and interaction rules for Chinese-language admin consoles (React or Vue), 27 rules in 6
 categories.
 
 `SKILL.md` is only an index: each rule lives in its own file and is read on demand, and

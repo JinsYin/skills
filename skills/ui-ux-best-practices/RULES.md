@@ -17,7 +17,7 @@ paths:
 - Never expose internal project codenames; show the Chinese platform name.
 - Date format: `2026-04-23`; datetime format: `2026-04-23 09:00:00`.
 - List pages must paginate and show the total count at top right.
-- Pagination must use windowed page numbers — never render all pages. Always show the first and last page, the current page with 1 page on each side, and a non-clickable `…` ellipsis at any gap (e.g. `< 1 … 49 50 51 … 103 >`).
+- When a list table has no data, display “暂无数据” and center-align the message.
 - Every page must include a favicon.
 
 - Validation: validate on `blur`; once invalid, revalidate on `change`; validate all fields on `submit`. Live hints, such as password strength, use `change`.
@@ -28,22 +28,29 @@ paths:
 - Form autocomplete: disable autocomplete and prevent the browser from autofilling form data.
 - When a form field is not editable, gray out the text inside the input, not the input itself, and show a not-allowed cursor on hover.
 - Toast notifications must show both an icon and text, and the icon color must vary by severity level.
+- Controls should use a compact height and small corner radius by default.
+- Unless specifically stated otherwise, use a light theme by default.
+- Path values should have a copy icon immediately after the value by default.
+- Statistic cards should place the unit at the bottom right of the displayed value.
 - Password inputs must have an eye icon that toggles the value between plaintext and masked on click.
 
 ## Console / Admin
 
 - Build the console as one HTML page; use anchors for menu sections.
-- List toolbar order: search first, filters next, icon-only refresh last.
+- Interactive prototypes must use local mock data.
+- Sensitive configuration values must be displayed only in masked or redacted form.
+- Unless explicitly required, do not add a global search or notification center by default.
+- List toolbar order: search first, filters next, reset search and filters next, icon-only refresh last; omit reset and refresh when horizontal space is insufficient.
 - Left-align all table headers and cells; avoid extra left padding in cell content.
 - Show `-` for empty table cells and missing detail values.
 - Use a custom confirmation modal for destructive actions; never use `alert`.
 - Mark required fields in create/edit forms.
 - Explain special fields, such as code or password, in placeholders.
-- Dropdowns must use custom searchable menus and default to all options.
+- Filter dropdowns must use custom searchable menus to display all options; never use the default HTML `<select>`.
 - Keep each table action cell consistent: icons or text, not a mixed style.
 - Header: logo, Chinese platform name, then a new-line `Console` label.
 - Top right must show the user avatar and provide logout.
 - The backdrop color/opacity outside a drawer must match the backdrop color/opacity outside a modal.
 - Create, edit, and view modals/drawers must share the same width and height.
 - After closing a create/edit modal/drawer, reopening it must reset the form state (clear input values and error messages).
-- Buttons or actions with the same function must use a consistent icon (style specifically, and size too unless otherwise noted) — including create, edit, delete, copy, refresh, close drawer/modal, search, disable, publish/unpublish, password reveal, etc.
+- Buttons or actions with the same function must use a consistent icon, style, size, and color — including create, edit, delete, copy, refresh, close drawer/modal, search, disable, publish/unpublish, password reveal, etc.

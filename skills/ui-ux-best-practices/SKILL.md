@@ -1,6 +1,6 @@
 ---
 name: ui-ux-best-practices
-description: UI and interaction rules for Chinese-language admin consoles built with React or Vue. Covers validation timing and error display, modal/drawer reset and destructive confirmation, windowed pagination and table alignment, date and number formats, icon and toast consistency, and console header layout. Use when writing, reviewing or refactoring frontend pages — forms, list pages, modals and drawers, destructive actions, UI copy and formats — and equally when designing the product before any code exists: product specs, PRDs, page and interaction specs, UI design contracts (UI-SPEC), prototypes and design reviews are bound by the same rules.
+description: UI and interaction rules for Chinese-language admin consoles built with React or Vue. Covers validation timing and error display, modal/drawer reset and destructive confirmation, pagination and table alignment, date and number formats, icon, toast, control-density, theme, path-copy and statistic-card consistency, console layout, prototype data and sensitive configuration display. Use when writing, reviewing or refactoring frontend pages — forms, list pages, modals and drawers, destructive actions, UI copy and formats — and equally when designing the product before any code exists: product specs, PRDs, page and interaction specs, UI design contracts (UI-SPEC), prototypes and design reviews are bound by the same rules.
 license: MIT
 metadata:
   author: JinsYin
@@ -9,7 +9,7 @@ metadata:
 
 # UI/UX Best Practices
 
-Interface rules for Chinese-language admin consoles (React or Vue): 18 rules in 6 categories,
+Interface rules for Chinese-language admin consoles (React or Vue): 27 rules in 6 categories,
 ordered by **what a violation costs the user**.
 
 The rules bind design artifacts as much as code. A product spec, UI design contract or
@@ -50,10 +50,10 @@ is actively misled; MEDIUM = doable, at extra cognitive cost; LOW = inconsistent
 |---|---|---|---|---|
 | 1 | Overlays & destructive actions | CRITICAL | `overlay-` | 3 |
 | 2 | Forms | HIGH | `form-` | 5 |
-| 3 | Lists & tables | HIGH | `list-` | 3 |
+| 3 | Lists & tables | HIGH | `list-` | 5 |
 | 4 | Formats & wording | MEDIUM | `format-` | 2 |
-| 5 | Visual consistency | LOW | `consistency-` | 3 |
-| 6 | Console layout | LOW | `console-` | 2 |
+| 5 | Visual consistency | LOW | `consistency-` | 7 |
+| 6 | Console layout | LOW | `console-` | 5 |
 
 ## Rule index
 
@@ -73,24 +73,33 @@ is actively misled; MEDIUM = doable, at extra cognitive cost; LOW = inconsistent
 
 ### 3. Lists & tables (HIGH)
 
-- `list-windowed-pagination` — paginate, total count top right, windowed page numbers, dead ellipsis
+- `list-filter-dropdown` — filter dropdowns use a custom menu, never the default HTML `<select>`
+- `list-empty-state` — show `暂无数据` centered when a table has no data
+- `list-windowed-pagination` — paginate and show the total count at top right
 - `list-table-alignment` — headers and cells left-aligned, `-` for empty values
-- `list-toolbar-order` — search → filters → icon-only refresh; one style per action cell
+- `list-toolbar-order` — search → filters → reset search and filters → icon-only refresh; omit reset and refresh when space is insufficient
 
 ### 4. Formats & wording (MEDIUM)
 
-- `format-date-number` — `2026-04-23` / `2026-04-23 09:00:00`, no thousands separators
+- `format-date-number` — `2026-04-23` / `2026-04-23 09:00:00`, no comma separators
 - `format-language-naming` — Chinese UI, public platform name only, `@shdatagroup.com` email domain
 
 ### 5. Visual consistency (LOW)
 
+- `consistency-control-density` — controls default to compact height and small corner radius
+- `consistency-light-theme` — use a light theme unless explicitly specified otherwise
+- `consistency-path-copy` — path values have a copy icon immediately after the value by default
+- `consistency-stat-card-unit` — statistic card units sit at the bottom right of the value
 - `consistency-toast` — icon + text, icon color by severity, specific error reasons
-- `consistency-icons` — one icon per function product-wide, exported from one module
+- `consistency-icons` — one icon, style, size, and color per function product-wide, exported from one module
 - `consistency-page-chrome` — favicon on every page, 32x32 logo
 
 ### 6. Console layout (LOW)
 
+- `console-mask-sensitive-config` — sensitive configuration values are displayed only in masked form
 - `console-single-page` — one HTML page, menu sections reached by anchor
+- `console-no-global-search-notifications` — no global search or notification center unless explicitly required
+- `console-prototype-local-mock` — interactive prototypes use local mock data
 - `console-header` — logo + Chinese platform name + `Console` on a new line; avatar and logout top right
 
 ## Relationship to the project's CLAUDE.md
