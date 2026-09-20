@@ -65,7 +65,7 @@ The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the pr
 
 **7. Collect sensitive paths.** Preselect the default set: project-root `.env`, `.env.dev`, `.env.test`, and `.env.prod`. Ask for extra project-relative files or directories. Empty means only this set; remove it only by explicit opt-out. Never infer beyond it or read protected contents. Follow [sensitive-file access controls](references/sensitive-file-access.md).
 
-**8. Ask about Git tracking.** For each applicable `.<tool>/` and `.agents/`, ask whether to commit its selected files; never infer. If declined, record the narrowest root-relative `.gitignore` entry and any tracked files to untrack while keeping local files.
+**8. Ask about Git tracking.** For each applicable `.<tool>/`, `.agent` (Antigravity) and `.agents/`, ask whether to commit its selected files; never infer. If declined, record the narrowest root-relative `.gitignore` entry and any tracked files to untrack while keeping local files.
 
 **9. Confirm the manifest.** List outputs, sensitive targets, external settings, per-directory Git choices, exact ignore entries, and tracked removals. Confirm before writing.
 
