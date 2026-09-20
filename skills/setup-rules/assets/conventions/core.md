@@ -24,4 +24,7 @@
 
 ### Design
 
-- Product design MUST follow the rules in the `ui-ux-best-practices` skill.
+- Product design MUST obey `ui-ux-best-practices` skill rules.
+- MUST create each new prototype in a new, isolated worktree per session. Do not inspect, reference, or modify other worktrees.
+- Final prototypes go `products/prototype/`, final UI designs go `products/design/`. No read `products/prototype/` unless changing prototype.
+- After me approve prototype change, do next approved changes. No ask again.
