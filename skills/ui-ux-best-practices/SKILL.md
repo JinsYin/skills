@@ -1,27 +1,26 @@
 ---
 name: ui-ux-best-practices
-description: UI and interaction rules for Chinese-language admin consoles built with React or Vue. Covers validation timing and error display, modal/drawer reset and destructive confirmation, pagination and table alignment, date and number formats, icon, toast, control-density, theme, path-copy and statistic-card consistency, console layout, prototype data and sensitive configuration display. Use when writing, reviewing or refactoring frontend pages — forms, list pages, modals and drawers, destructive actions, UI copy and formats — and equally when designing the product before any code exists: product specs, PRDs, page and interaction specs, UI design contracts (UI-SPEC), prototypes and design reviews are bound by the same rules.
+description: UI/UX rules for Chinese-language React/Vue admin consoles and their product/design specs. Use when designing, building, reviewing, or refactoring forms, lists, modals/drawers, destructive actions, copy, formats, or console layout.
 license: MIT
 metadata:
   author: JinsYin
   version: "1.1.0"
 ---
-
 # UI/UX Best Practices
 
-Interface rules for Chinese-language admin consoles (React or Vue): 24 rules in 6 categories,
-ordered by **what a violation costs the user**.
+Interface rules for Chinese admin consoles (React/Vue): 24 rules, 6 categories,
+ordered by **what violation cost user**.
 
-The rules bind design artifacts as much as code. A product spec, UI design contract or
-prototype that contradicts them gets built wrong, and correcting an interaction after
-implementation costs far more than writing the spec correctly.
+Rules bind design artifacts same as code. Spec, UI design contract, or
+prototype that break them get built wrong. Fix interaction after
+build cost way more than write spec right.
 
 Scope: `**/*.vue`, `**/*.jsx`, `**/*.tsx`, `**/*.css`, plus product and design documents —
 specs, PRDs, UI design contracts, prototypes.
 
 ## How to use this skill
 
-**Do not read every rule.** Locate the entries relevant to the task in the index below, then
+**No read every rule.** Find entries for task in index below, then
 `Read` those files on demand:
 
 ```
@@ -43,8 +42,8 @@ rules/overlay-reset-on-close.md
 
 ## Categories and impact
 
-CRITICAL = data loss or an irreversible wrong action; HIGH = the user cannot finish the task or
-is actively misled; MEDIUM = doable, at extra cognitive cost; LOW = inconsistent look and feel.
+CRITICAL = data lost or wrong action no take back; HIGH = user no finish task or
+get misled; MEDIUM = can do, but brain hurt; LOW = look-feel not match.
 
 | Priority | Category | Impact | Prefix | Rules |
 |---|---|---|---|---|
@@ -59,24 +58,24 @@ is actively misled; MEDIUM = doable, at extra cognitive cost; LOW = inconsistent
 
 ### 1. Overlays & destructive actions (CRITICAL)
 
-- `overlay-confirm-destructive` — custom confirmation modal for irreversible actions, never native `confirm`
-- `overlay-reset-on-close` — clear values and errors on close, or the next open submits stale data
-- `overlay-consistent-size` — create/edit/view share one size; drawer backdrop matches modal backdrop
+- `overlay-confirm-destructive` — custom confirm modal for no-take-back action, never native `confirm`
+- `overlay-reset-on-close` — wipe values and errors on close, else next open send stale data
+- `overlay-consistent-size` — create/edit/view share one size; drawer backdrop match modal backdrop
 
 ### 2. Forms (HIGH)
 
-- `form-validation-timing` — blur first, change after an error, submit as fallback
-- `form-error-display` — error border + message under the field + cleared as the user types
+- `form-validation-timing` — blur first, change after error, submit as fallback
+- `form-error-display` — error border + message under field + wipe as user type
 - `form-disable-autofill` — `autocomplete="off"`, and `new-password` on password fields
 - `form-readonly-styling` — gray the text, not the input; `not-allowed` cursor
 - `form-input-affordances` — required marks, placeholder rules, searchable dropdowns, password eye toggle
 
 ### 3. Lists & tables (HIGH)
 
-- `list-filter-dropdown` — filter dropdowns use a custom menu, never the default HTML `<select>`
-- `list-pagination` — paginate and show the total count at top right
-- `list-table-content` — align table content; show `-` for empty values and a centered localized empty state
-- `list-toolbar-order` — search → filters → reset search and filters → icon-only refresh; omit reset and refresh when space is insufficient
+- `list-filter-dropdown` — filter dropdown use custom menu, never default HTML `<select>`
+- `list-pagination` — paginate and show total count top right
+- `list-table-content` — align table content; show `-` for empty value and centered localized empty state
+- `list-toolbar-order` — search → filters → reset search and filters → icon-only refresh; drop reset and refresh when no space
 
 ### 4. Formats & wording (MEDIUM)
 
@@ -86,28 +85,28 @@ is actively misled; MEDIUM = doable, at extra cognitive cost; LOW = inconsistent
 ### 5. Visual consistency (LOW)
 
 - `consistency-control-density` — controls default to compact height and small corner radius
-- `consistency-light-theme` — use a light theme unless explicitly specified otherwise
-- `consistency-stat-card-unit` — statistic card units sit at the bottom right of the value
+- `consistency-light-theme` — use light theme unless said otherwise
+- `consistency-stat-card-unit` — stat card unit sit bottom right of value
 - `consistency-toast` — icon + text, icon color by severity, specific error reasons
-- `consistency-icons` — one icon, style, size, and color per function product-wide, exported from one module
+- `consistency-icons` — one icon, style, size, color per function product-wide, exported from one module
 - `consistency-page-chrome` — favicon on every page, 32x32 logo
 
 ### 6. Console layout (LOW)
 
-- `console-mask-sensitive-config` — sensitive configuration values are displayed only in masked form
+- `console-mask-sensitive-config` — sensitive config value show masked only
 - `console-single-page` — one HTML page, menu sections reached by anchor
 - `console-prototype-local-mock` — interactive prototypes use local mock data
 - `console-header` — logo + Chinese platform name + `Console`; avatar, logout and minimal global chrome
 
 ## Relationship to the project's CLAUDE.md
 
-These rules carry organization-specific facts — email domain, platform naming, logo size,
-header composition. Where a project's own `CLAUDE.md` states otherwise, `CLAUDE.md` wins.
+These rules hold org-specific facts — email domain, platform naming, logo size,
+header parts. Where project `CLAUDE.md` say otherwise, `CLAUDE.md` win.
 
-Do not copy this content into a project `CLAUDE.md`: that file is resident in every session, so
-the cost of duplicated content accumulates per session, and the two copies inevitably drift.
+No copy this content into project `CLAUDE.md`: that file sit in every session, so
+duplicate cost pile up per session, and two copies drift apart for sure.
 
 ## Full compiled version
 
-To take in every rule at once, read `AGENTS.md`. It is generated from `rules/` by
-`scripts/build.sh` — **do not edit it by hand**.
+To eat every rule at once, read `AGENTS.md`. It born from `rules/` by
+`scripts/build.sh` — **no edit by hand**.
