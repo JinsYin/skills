@@ -1,4 +1,4 @@
-# product-spec-generate
+# product-spec
 
 管理产品功能规范：功能清单、交互逻辑、以及 Flyway 式版本化的变更记录。**产出物的第一读者是 AI 设计工具**（Claude Design、v0、Figma Make、Lovable），第二读者才是人。
 
@@ -70,7 +70,7 @@
 ```bash
 # 在仓库根目录执行
 mkdir -p "$HOME/.claude/skills"
-ln -s "$(pwd)/skills/product-spec-generate" "$HOME/.claude/skills/product-spec-generate"
+ln -s "$(pwd)/skills/product-spec" "$HOME/.claude/skills/product-spec"
 ```
 
 用符号链接而非拷贝，源仓才是唯一事实来源。

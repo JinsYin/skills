@@ -18,7 +18,7 @@ npx skills@latest add jinsyin/skills
 - `setup-rules` - 交互式安装 Agent 约定、适配器及敏感文件禁读配置
 - `ideate` - 将产品想法与上下文方案逐项澄清，按固定结构整理并保存为 `docs/ideas/idea.md`
 - `doc-to-md` - 内容转换 Markdown 工具
-- `product-spec-generate` - 管理产品功能规范（功能、交互、Flyway 式版本化变更记录），合成的 `CURRENT.md` 直接喂 Claude Design / v0 / Figma Make / Lovable
+- `product-spec` - 管理产品功能规范（功能、交互、Flyway 式版本化变更记录），合成的 `CURRENT.md` 直接喂 Claude Design / v0 / Figma Make / Lovable
 - `design-to-code` - 将高保真设计/原型（HTML + React JSX）还原为 Vite + React + TypeScript + Tailwind + shadcn/ui 生产级代码
 - `gsx` - GSD 工作流的统一前门，按 `--flag` 分派 20 种模式（`--fast` `--quick` `--debug` `--plan-phase` `--uat-autorun` `--vrf-approved` 等），包裹 `/gsd:*` 命令并附加项目专属校验（Context7 文档核对、原型保真约束、验收回写）
 

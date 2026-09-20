@@ -5,6 +5,10 @@
 
 ## [Unreleased]
 
+### 变更与重构 (Changed & Refactored)
+
+- **技能重命名**：将 `product-spec-generate` 重命名为 `product-spec`，并同步更新技能目录、元数据、安装示例与规范模板引用。
+
 ## [v0.9.0] - 2026-09-19
 
 ### 新增 (Added)

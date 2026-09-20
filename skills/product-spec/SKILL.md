@@ -1,6 +1,6 @@
 ---
-name: product-spec-generate
-description: 管理产品功能规范——功能清单、交互逻辑、以及 Flyway 式版本化的新增与变更记录，产出可直接喂给 Claude Design、v0、Figma Make、Lovable 等 AI 设计工具的规范文件。规范落 .product/spec/<产品线>/，V 链（V1__baseline、V2__xxx）记录演进，合成的 CURRENT.md 是喂设计工具的唯一入口。在用户说「建产品功能规范」「写功能规格」「记录这次产品变更」「生成给设计工具的规范」「同步 CURRENT.md」「product-spec-generate」时使用，也用于新产品线初始化规范、或规范与实现漂移需要核对时。
+name: product-spec
+description: 管理产品功能规范——功能清单、交互逻辑、以及 Flyway 式版本化的新增与变更记录，产出可直接喂给 Claude Design、v0、Figma Make、Lovable 等 AI 设计工具的规范文件。规范落 .product/spec/<产品线>/，V 链（V1__baseline、V2__xxx）记录演进，合成的 CURRENT.md 是喂设计工具的唯一入口。在用户说「建产品功能规范」「写功能规格」「记录这次产品变更」「生成给设计工具的规范」「同步 CURRENT.md」「product-spec」时使用，也用于新产品线初始化规范、或规范与实现漂移需要核对时。
 argument-hint: "[init | add <title> | sync | check | export --tool <v0|figma-make|claude-design|lovable>]"
 allowed-tools:
   - Read
@@ -12,7 +12,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# product-spec-generate
+# product-spec
 
 管理一份**产品功能规范**：产品有哪些功能、每个页面怎么交互、以及每次演进改了什么。产出物的第一读者是 AI 设计工具（Claude Design / v0 / Figma Make / Lovable），第二读者才是人。Reply in Chinese.
 
