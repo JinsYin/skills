@@ -32,7 +32,7 @@ Stop before changing legacy, `danger-full-access`, or managed permission posture
 
 ### Claude Code
 
-In `.claude/settings.json`, merge `permissions.deny += "Read(<file>)"` and sandbox `filesystem.denyRead += "<file>"`; keep `sandbox.enabled=true` and `allowUnsandboxedCommands=false`.
+In `.claude/settings.json`, merge `permissions.deny += "Read(<file>)"`.
 
 ### Cursor
 
