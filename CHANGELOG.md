@@ -8,6 +8,7 @@
 ### 变更与重构 (Changed & Refactored)
 
 - **技能重命名**：将 `product-spec-generate` 重命名为 `product-spec`，并同步更新技能目录、元数据、安装示例与规范模板引用。
+- **前端基线扩容**：`frontend-ui-best-practices` 新增 `stack-scaffold`（脚手架命令与四项必须一开始就配对的设置）与 `stack-style-files`（`src/styles/` 下样式与 token 文件拆分）两条规则，`stack-baseline` 补充 lucide-react 图标选型，规则数由 2 增至 4。
 
 ## [v0.9.0] - 2026-09-19
 

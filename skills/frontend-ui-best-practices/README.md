@@ -1,13 +1,15 @@
 # frontend-ui-best-practices
 
-Stack baseline and module documentation rules for React + shadcn/ui frontend projects, 2 rules.
+Stack baseline, scaffolding and module documentation rules for React + shadcn/ui frontend
+projects, 4 rules.
 
 `SKILL.md` is only an index: each rule lives in its own file and is read on demand, and
 `scripts/build.sh` compiles them into the full `AGENTS.md`.
 
 ## Scope
 
-The engineering layer only: dependency choices, project structure, module READMEs. The
+The engineering layer only: dependency choices, project scaffolding, style and token file
+layout, module READMEs. The
 interface layer — forms, overlays, lists, formats, icons — belongs to `ui-ux-best-practices`,
 so that no rule exists as two copies that inevitably drift apart.
 

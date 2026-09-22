@@ -10,7 +10,7 @@ npx skills@latest add jinsyin/skills
 
 ## 包含技能
 
-- `frontend-ui-best-practices` - 前端技术栈基线与模块文档规范
+- `frontend-ui-best-practices` - 前端技术栈基线、项目脚手架、样式与 token 文件组织、模块文档规范
 - `ui-ux-best-practices` - 后台管理界面 UI/UX 最佳实践
 - `devops-best-practices` - DevOps 运维最佳实践
 - `doc-writing-best-practices` - 文档编写最佳实践
