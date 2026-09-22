@@ -1,19 +1,16 @@
 # Mapping DESIGN.md onto library tokens
 
-`products/design/DESIGN.md` (produced by `stitch::extract-design-md`) carries a **hex palette
-named by role**; the component library uses **CSS variables named by slot, holding HSL
-triplets**. Half the names collide while meaning different things — `secondary` is a saturated
-fill in DESIGN.md but the pale background of a secondary button in the library. Mapping by name
-turns that button into a solid slab.
+`products/design/DESIGN.md` (produced by `stitch::extract-design-md`) has a **hex palette named
+by role**; the component library has **slot-named CSS variables holding HSL triplets**. Names
+collide: DESIGN.md `secondary` is saturated, while the library's is a pale secondary-button
+background. Name-only mapping turns that button into a solid slab.
 
-The key names follow Material Design 3's colour roles, but every project extends them with keys
-M3 never had (`success`, `warning`, `focus-ring`, `error-action`, `accent-*`, `chart-*`).
-**Do not assume standard M3**, and do not drop a key just because it is missing from the table
-below — see section 3.
+Keys follow Material Design 3 colour roles, but projects add keys M3 never had (`success`,
+`warning`, `focus-ring`, `error-action`, `accent-*`, `chart-*`). **Do not assume standard M3**
+or drop keys absent from this table; see section 3.
 
-Reading order: the frontmatter gives values, the prose gives intent, and **both are required**.
-Check every row below against the prose: matching names do not mean matching roles (section 2
-has three real counter-examples).
+Read frontmatter for values and prose for intent; **both are required**. Check every row against
+the prose: matching names do not guarantee matching roles (section 2 has three counter-examples).
 
 ---
 
@@ -44,23 +41,21 @@ has three real counter-examples).
 
 ## 2. Why every row needs a prose check
 
-A first choice is the likeliest candidate, not the answer. Three counter-examples from a real
-project:
+A first choice is the likeliest candidate, not the answer. Three real counter-examples:
 
-- **`--accent`** — its `tertiary-container` is a violet `#f0edff` used only for icon tiles,
-  while dropdown items actually hover to `#f1f7ff` and select to `#eaf3ff`, both from the
-  primary family. Map to `tertiary-container` and every menu hover turns violet.
-- **`--destructive`** — in the same file `error` `#e04a4a` serves status dots, trend figures and
-  required-field asterisks, while `error-action` `#c95353` is the fill of the "disable" and
-  "reset key" buttons. Only the prose separates them.
-- **`--input`** — `outline` `#d8e3ef` is the control border and `outline-variant` `#e1eaf4` is
-  the separator. One step of lightness apart: swap them and nothing errors, every field just
-  looks washed out.
+- **`--accent`** — `tertiary-container` is violet `#f0edff` for icon tiles; dropdown hover
+  `#f1f7ff` and select `#eaf3ff` are primary-family colours. Mapping to `tertiary-container`
+  makes every menu hover violet.
+- **`--destructive`** — `error` `#e04a4a` serves status dots, trend figures and required-field
+  asterisks; `error-action` `#c95353` fills "disable" and "reset key" buttons. Prose separates
+  them.
+- **`--input`** — `outline` `#d8e3ef` is the control border; `outline-variant` `#e1eaf4` is the
+  separator. One lightness step apart; swapping them looks washed out without errors.
 
 ## 3. Keys the table does not cover
 
-Drop none of them. Where the library has no matching slot, add a variable following the same
-naming, and register it explicitly under `colors` in the theme config:
+Drop none. If the library lacks a slot, add a same-named variable and register it under `colors`
+in the theme config:
 
 | Kind | Examples | Handling |
 |---|---|---|
@@ -74,7 +69,7 @@ naming, and register it explicitly under `colors` in the theme config:
 
 A variable holds a bare triplet — **no `hsl()` wrapper, no commas** — and the theme config
 composes it as `hsl(var(--primary))`. One decimal place is enough: `#1477ed` →
-`211.7 85.8% 50.4%`. To convert in bulk:
+`211.7 85.8% 50.4%`. Convert in bulk:
 
 ```js
 // scripts/hex-to-hsl.mjs
@@ -94,14 +89,14 @@ console.log(toHsl(process.argv[2]))
 
 ## 5. Dark mode
 
-The frontmatter carries **one** palette. Where the prose describes a dark scheme, build that;
-otherwise derive `.dark` starting from `inverse-surface` / `inverse-on-surface` /
-`inverse-primary` and **have the user confirm the result**. Where the user says dark mode is not
-needed, `tokens.css` holds only `:root` — but keep `darkMode: 'class'` in the theme config.
+Frontmatter carries **one** palette. If prose describes dark, build it; otherwise derive `.dark`
+from `inverse-surface` / `inverse-on-surface` / `inverse-primary` and **have the user confirm the
+result**. If dark mode is not needed, `tokens.css` holds only `:root`; keep `darkMode: 'class'` in
+theme config.
 
 ## 6. Type: `typography` → `fontSize`
 
-Each named style carries its own `fontFamily`, `fontSize`, `fontWeight`, `lineHeight` and
+Each named style carries `fontFamily`, `fontSize`, `fontWeight`, `lineHeight` and
 `letterSpacing`, so one utility can carry all of it:
 
 ```ts
@@ -112,15 +107,15 @@ fontSize: {
 }
 ```
 
-`lineHeight` may be a length or a unitless ratio. Both are valid — **copy it verbatim**, never
+`lineHeight` may be a length or unitless ratio. Both are valid — **copy it verbatim**, never
 convert.
 
-Call it as `className="text-page-title"`, not
-`text-[27px] font-bold leading-[1.15] tracking-tight`: spelling it out invites a typo at every
-call site and throws away what the style name meant.
+Use `className="text-page-title"`, not
+`text-[27px] font-bold leading-[1.15] tracking-tight`; spelling it out invites typos and loses
+the style name's intent.
 
-`fontFamily` arrives as a comma-separated string (`Inter, Noto Sans SC`). Split it into an array,
-append system fallbacks, register by role, and load the fonts in `index.html`:
+`fontFamily` arrives as a comma-separated string (`Inter, Noto Sans SC`). Split into an array,
+append system fallbacks, register by role, and load fonts in `index.html`:
 
 ```ts
 fontFamily: {
@@ -129,34 +124,32 @@ fontFamily: {
 }
 ```
 
-Where no CJK face is listed but the product ships a Chinese interface, raise it — small CJK text
-falling through to a face without the glyphs is immediately visible.
+If no CJK face is listed for a Chinese interface, raise it; small CJK text without glyphs is
+immediately visible.
 
 ## 7. Radii: `rounded` → `borderRadius`
 
-DESIGN.md states an explicit scale, and it wins. Put `rounded.DEFAULT` into `--radius` for the
-library's internal references, then override the whole scale with the explicit values:
+DESIGN.md's explicit scale wins. Put `rounded.DEFAULT` into `--radius` for library references,
+then override the full scale with explicit values:
 
 ```ts
 borderRadius: { xs: '3px', sm: '4px', DEFAULT: '6px', md: '7px', lg: '10px', full: '999px' }
 ```
 
-Keep the `sm` / `md` / `lg` keys whatever else changes: library components hardcode
-`rounded-md` and `rounded-lg`, and a missing key silently drops them to square corners.
+Keep `sm` / `md` / `lg` keys: components hardcode `rounded-md` and `rounded-lg`; missing keys
+silently make corners square.
 
 ## 8. Spacing: `spacing` → `theme.extend.spacing`
 
-`spacing.unit` is the nominal base. At `4px` it shares an origin with the default scale, so keep
-the numeric steps and only extend the named keys. At anything else, say so at Step 1 and confirm
-whether to replace the scale or run both.
+`spacing.unit` is nominal base. At `4px` it shares the default scale's origin: keep numeric steps
+and extend named keys. Otherwise state it at Step 1 and confirm whether to replace the scale or
+run both.
 
-**Register named values exactly as given; never round them to the default scale.** Values like
-`7px`, `14px` and `22px` are usually the result of round after round of optical tuning, and
-rounding them to `8px` / `16px` / `24px` visibly loosens the whole page.
+**Register named values exactly; never round to the default scale.** `7px`, `14px` and `22px`
+often reflect optical tuning; rounding to `8px` / `16px` / `24px` visibly loosens the page.
 
-**A multi-value string is not a spacing token.** `drawer-padding: 24px 27px 38px` is a CSS
-shorthand, while a spacing value has to be a single length. Split it by direction and recombine
-at the component:
+**A multi-value string is not a spacing token.** `drawer-padding: 24px 27px 38px` is CSS
+shorthand; a spacing value must be one length. Split by direction and recombine at the component:
 
 ```ts
 spacing: { 'drawer-t': '24px', 'drawer-x': '27px', 'drawer-b': '38px' }
@@ -165,7 +158,7 @@ spacing: { 'drawer-t': '24px', 'drawer-x': '27px', 'drawer-b': '38px' }
 
 ## 9. What the prose sections are for
 
-Everything the frontmatter cannot hold lives in the prose, and each section lands somewhere:
+Frontmatter cannot hold everything; prose sections land as follows:
 
 | DESIGN.md section | Lands in |
 |---|---|
@@ -178,12 +171,12 @@ Everything the frontmatter cannot hold lives in the prose, and each section land
 | Component Stylings | per-component specs, the direct basis for implementation |
 | A closing "inconsistencies" appendix, if present | gaps found during extraction. **Do not implement them** — relay them for the user to decide |
 
-Where the prose and the frontmatter disagree, **the frontmatter wins** (it was machine
-extracted), and the conflict goes to the user.
+Where prose and frontmatter disagree, **frontmatter wins** (machine extracted); send the conflict
+to the user.
 
 ## 10. The Step 1 table
 
-Hand over a table the user can scan, rather than a config file:
+Hand over a scan-friendly table, not a config file:
 
 ```
 | DESIGN.md              | token                  | HSL               |
@@ -196,5 +189,5 @@ Hand over a table the user can scan, rather than a config file:
 | (not covered)          | the whole .dark scheme | needs a decision  |
 ```
 
-List the last two kinds separately: **tokens added beyond the library's slots**, and **anything
-DESIGN.md does not cover that the user has to decide**. Neither belongs buried in a config file.
+List the last two kinds separately: **tokens added beyond library slots** and **anything DESIGN.md
+does not cover that needs a user decision**. Neither belongs buried in config.

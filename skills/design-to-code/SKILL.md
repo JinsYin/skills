@@ -10,18 +10,17 @@ Rebuild a high-fidelity design or prototype as production React code.
 
 ## Your role
 
-A senior frontend engineer who reproduces a design 1:1 in shippable code:
+Senior frontend engineer; reproduce design 1:1 in shippable code:
 
-- Visually identical to the design system — pixel level, "close enough" is not enough
-- Production engineering quality: type-safe, accessible, maintainable
-- Reuse the component library before writing anything new
-- Utility classes and design tokens only, never one-off inline styles
-- Strip the prototype's debug UI (Claude Design's Tweaks panel and the like) — it never ships
+- Pixel-identical design system; "close enough" fails
+- Type-safe, accessible, maintainable production code
+- Reuse component library before new code
+- Utility classes + design tokens; no one-off inline styles
+- Strip prototype debug UI (Claude Design's Tweaks panel); never ship it
 
 ## Authority
 
-This skill owns neither the stack nor the design system. Each has its own source of truth; the
-skill only wires them together.
+This skill owns neither stack nor design system; it wires their sources of truth together.
 
 | Concern | Source of truth |
 |---|---|
@@ -33,76 +32,65 @@ skill only wires them together.
 
 Two boundaries that are easy to blur:
 
-- **Where the prototype and DESIGN.md disagree, the visual layer follows DESIGN.md and the
-  structural layer follows the prototype.** Colours, radii and shadows in a prototype are often
-  whatever the design tool handed out; DESIGN.md is the converged system. But which blocks a
-  page has, in what order, and where a click leads — only the prototype knows.
-- **Only derive tokens from the prototype when there is no DESIGN.md** (Step 1, branch B).
-  Sampling colours off the prototype while a DESIGN.md exists scatters a system that was
-  already converged.
+- **Prototype vs DESIGN.md:** visual layer follows DESIGN.md; structural layer follows the
+  prototype. DESIGN.md wins colours, radii and shadows; prototype wins page blocks, order and
+  click destinations.
+- **Derive tokens from the prototype only without DESIGN.md** (Step 1, branch B). Sampling an
+  existing DESIGN.md's prototype scatters an already-converged system.
 
-Commands, directory names and component-library names below are written for the baseline's
-current choices; where the baseline moves, the baseline wins.
+Commands, directory names and component-library names follow baseline choices; baseline wins
+when it changes.
 
 ## First principle: tokens before components
 
-**Get the design tokens into the config layer before writing a single component.** They are the
-foundation — colours, sizes and spacing scattered across components drift a little in every one
-of them, and reworking that later is expensive.
+**Put design tokens in the config layer before components.** Otherwise colours, sizes and spacing
+drift across components, making later rework expensive.
 
-With a DESIGN.md the tokens are not *extracted* but *translated*: the semantic consolidation has
-already been done for you.
+With a DESIGN.md, tokens are *translated*, not *extracted*; semantic consolidation is done.
 
 ## Workflow
 
-Step 0 → 4, stopping after each for the user to confirm. Never dump everything at once.
+Step 0 → 4; pause after each for user confirmation. Never dump everything at once.
 
 ### Step 0 — Scaffold
 
 Initialise per `frontend-ui-best-practices`: scaffold commands, path alias, stylesheet and token
-file split, test config, root README. Not repeated here.
+split, test config and root README. Not repeated here.
 
-If the project already exists, skip — but verify those settings are in place first, and fill any
-gaps before moving on.
+If project exists, skip only after verifying settings; fill gaps before continuing.
 
 ### Step 1 — Establish design tokens
 
-Which branch to take depends on whether `products/design/DESIGN.md` exists.
+Branch depends on whether `products/design/DESIGN.md` exists.
 
 #### Branch A — DESIGN.md exists (preferred)
 
-DESIGN.md is the single source of truth for the design system, so this step is translation, not
-authorship. Read `references/design-md-mapping.md` first: half the key names collide across the
-two schemes while meaning different things, and mapping by name turns the secondary button into
-a solid slab of colour.
+DESIGN.md is the design-system source of truth: translate, do not author. Read
+`references/design-md-mapping.md` first; colliding key names mean name-only mapping can turn the
+secondary button into a solid colour slab.
 
-1. Map `colors` / `typography` / `rounded` / `spacing` from the frontmatter onto library tokens.
-   Convert every hex to an HSL triplet with **no `hsl()` wrapper and no commas**
-2. Read the prose sections. They carry elevation strategy, shape language, minimum hit area and
-   per-component specs — none of it in the frontmatter, all of it deciding how the cva variants
-   get cut in Step 3
+1. Map `colors` / `typography` / `rounded` / `spacing` from frontmatter to library tokens;
+   convert every hex to an HSL triplet with **no `hsl()` wrapper and no commas**
+2. Read prose for elevation, shape, minimum hit area and component specs; these decide Step 3
+   cva variants
 3. Hand the user a three-column table: DESIGN.md key → token → HSL value
-4. **Call out two groups separately**: tokens added because the library has no matching slot
-   (`success`, `warning`, semantic accents), and anything DESIGN.md does not cover that the user
-   has to decide (the dark palette). Never fill in either silently
-5. Diff against the prototype. Report every colour or size that appears there but not in
-   DESIGN.md — it is either a throwaway value (drop it) or a gap in the extraction (add it).
-   Do not quietly fold them into the tokens
+4. **Separate two groups:** tokens with no library slot (`success`, `warning`, semantic accents)
+   and uncovered decisions (dark palette). Never fill either silently
+5. Diff prototype; report every colour and size absent from DESIGN.md. Drop throwaway values or add
+   extraction gaps; never fold them into tokens quietly
 
 #### Branch B — no DESIGN.md (fallback)
 
-Derive from the prototype and table the result for confirmation: colours grouped by role and
-converted to HSL; the type scale, noting what has to be custom; spacing off the default rhythm;
-radii, shadows and border widths; font families (watch for CJK); transition timing and duration.
+Derive from prototype; table role-grouped HSL colours, type scale and custom values, default-rhythm
+spacing, radii, shadows, border widths, CJK-aware fonts, transition timing and duration.
 
-Also suggest running `stitch::extract-design-md` to produce a DESIGN.md and returning to branch
-A. Reverse-derived tokens have not been through semantic consolidation, so every new page tends
-to introduce fresh colours.
+Suggest running `stitch::extract-design-md` to produce DESIGN.md, then return to branch A.
+Reverse-derived tokens lack semantic consolidation, so new pages tend to add fresh colours.
 
 #### Both branches produce the same thing
 
-A token variable file (`:root` plus `.dark`) and a theme config mapping `colors`, `fontSize`,
-`fontFamily`, `borderRadius` and `spacing`. File locations and the split follow the baseline.
+A token variable file (`:root` plus `.dark`) and theme config mappings for `colors`, `fontSize`,
+`fontFamily`, `borderRadius` and `spacing`. File locations and split follow baseline.
 
 ### Step 2 — Component inventory
 
@@ -114,24 +102,23 @@ Sort every UI element in the prototype into three buckets and table them:
 | In the library, needs a wrapper | add, then wrap in `src/components/` with domain props | icon buttons, a house Dialog template |
 | Not in the library, write it | `src/components/<feature>/` | domain cards, bespoke layouts, prototype-only visuals |
 
-Where the prototype needs animation, form validation, routing or data fetching, take the pick
-from the project's `CLAUDE.md`. If it is silent, list the candidates and let the user decide —
-do not choose for them.
+For prototype animation, form validation, routing or data fetching, use project's `CLAUDE.md`.
+If silent, list candidates; let the user decide.
 
 ### Step 3 — Build
 
-Bottom up: primitives → domain components → pages. Report each file path as you go, so the user
-can check it against the prototype. Follow the code rules below.
+Build bottom-up: primitives → domain components → pages. Report each file path for prototype
+comparison. Follow code rules below.
 
 ### Step 4 — Wrap up
 
-1. Full dependency list and install command
-2. Extra setup needed before the first run — font links in `index.html`, for example
-3. The directory structure as actually created
-4. Dev and test commands, plus the default port
-5. Complete the root README per the baseline; capabilities and structure are only accurate now
-6. **A DESIGN.md coverage summary**: which tokens came straight from DESIGN.md, which were
-   added, and on what grounds. This is the diff baseline for the next DESIGN.md update
+1. Full dependency list + install command
+2. Extra first-run setup, e.g. font links in `index.html`
+3. Actual directory structure
+4. Dev and test commands + default port
+5. Complete root README per baseline; capabilities and structure are now accurate
+6. **DESIGN.md coverage summary:** direct tokens, additions and grounds; baseline for the next
+   DESIGN.md update
 
 ## Code rules
 
@@ -143,18 +130,17 @@ can check it against the prototype. Follow the code rules below.
 
 ### Styling
 
-- **Utility classes only.** No `style={{ ... }}` unless the value is computed, such as a
-  transform derived from props
-- **Colour, spacing and radius always through tokens** (`bg-primary`, `rounded-md`). A
-  hardcoded `bg-[#xxxxxx]` never ships
-- **Prefer DESIGN.md's named type styles** (`text-page-title`) over
-  `text-[27px] font-bold leading-[1.15] tracking-tight` — spelling it out invites a typo at
-  every call site and throws away what the style name meant
-- **Never invent a visual value DESIGN.md lacks.** Go back to Step 1, add the token, tell the
-  user, then reference it
-- **Merge class names with `cn()`** — no string or template concatenation
-- **Variants through `cva`** — no chains of ternaries in `className`. Two or more visual
-  variants means cva
+- **Utility classes only.** No `style={{ ... }}` unless computed, e.g. a transform from props
+- **Colour, spacing and radius through tokens** (`bg-primary`, `rounded-md`). Hardcoded
+  `bg-[#xxxxxx]` never ships
+- **Prefer DESIGN.md named type styles** (`text-page-title`) over
+  `text-[27px] font-bold leading-[1.15] tracking-tight`; style names prevent typos and preserve
+  intent
+- **Never invent a visual value DESIGN.md lacks.** Return to Step 1, add token, tell user,
+  reference it
+- **Merge class names with `cn()`**; no string or template concatenation
+- **Variants through `cva`**; no ternary chains in `className`. Two or more visual variants mean
+  cva
 
 ```tsx
 // ❌
@@ -176,19 +162,18 @@ const buttonVariants = cva('px-4 py-2', {
 ### Components
 
 - Function components and hooks; no class components
-- Split any file past 200 lines
-- Layered: `ui/` primitives → `components/<feature>/` → `pages/`
-- Magic numbers and strings go to a const at the top of the file, or `@/utils/constants.ts`
-- Import through the `@/` alias; no `../../../`
-- A list `key` is a stable id, never the index — unless the list is static and never reorders
+- Split files past 200 lines
+- Layer: `ui/` primitives → `components/<feature>/` → `pages/`
+- Put magic numbers and strings in a top-level const or `@/utils/constants.ts`
+- Import through `@/` alias; no `../../../`
+- List `key` is a stable id, never index unless static and never reordered
 
 ### Accessibility
 
-- Everything interactive is keyboard reachable; library primitives handle this, custom ones
-  are on you
+- All interactive elements are keyboard reachable; primitives handle this, custom ones must
 - Icon buttons need `aria-label`; decorative icons need `aria-hidden="true"`
-- Every `<img>` needs `alt`; decorative images take `alt=""`
-- Every `<label>` is tied to its input, by `htmlFor` or by wrapping it
+- Every `<img>` needs `alt`; decorative images use `alt=""`
+- Tie every `<label>` to its input with `htmlFor` or wrapping
 
 ## Where things live
 
@@ -212,57 +197,54 @@ Config files and the stylesheet directory follow the baseline. This skill adds o
         └── types/
 ```
 
-`products/` is **input** — never write to it during a port. A wrong value in DESIGN.md is a
-design-system problem: regenerate with `stitch::extract-design-md`, or change it only once the
-user says so.
+`products/` is **input** — never write to it during a port. A wrong DESIGN.md value is a
+design-system problem: regenerate with `stitch::extract-design-md`, or change only after user
+approval.
 
 ## Fidelity checklist
 
 Check each finished component against the design:
 
-- [ ] shadow direction, blur and colour — do not reach for `shadow-md` by default
-- [ ] the exact radius (`rounded-md` ≠ `rounded-lg`)
-- [ ] hover / focus / active / disabled all have visible feedback
+- [ ] shadow direction, blur and colour; do not default to `shadow-md`
+- [ ] exact radius (`rounded-md` ≠ `rounded-lg`)
+- [ ] visible hover, focus, active and disabled feedback
 - [ ] weight (`font-medium` ≠ `font-semibold` ≠ `font-bold`)
-- [ ] letter spacing — rare for CJK, common as `tracking-tight` on Latin headings
+- [ ] letter spacing; rare for CJK, common as `tracking-tight` on Latin headings
 - [ ] opacity and overlays (`bg-black/50` scrims)
-- [ ] gradients: direction, stops, opacity
-- [ ] transitions survive the port, duration and easing intact
+- [ ] gradient direction, stops and opacity
+- [ ] transition duration and easing survive the port
 - [ ] responsive behaviour across breakpoints
 
 With a DESIGN.md, three more:
 
-- [ ] every colour, size, radius and spacing traces back to a mapped token — no prototype
-      leftovers
-- [ ] depth matches the Elevation section; both "hairline borders, almost no shadow" and
-      glassmorphism are betrayed by a stock `shadow-md`
-- [ ] hit areas meet the Layout section's minimum, which is not the same as the visual size
+- [ ] every colour, size, radius and spacing traces to a mapped token; no prototype leftovers
+- [ ] depth matches Elevation; "hairline borders, almost no shadow" and glassmorphism rule out
+      stock `shadow-md`
+- [ ] hit areas meet Layout's minimum, not just visual size
 
 ## Traps
 
 ### 1. The prototype uses a component the library lacks
 
-Combobox, DataTable, DatePicker, Calendar. shadcn documents these as examples rather than
-registry components — copy the structure, then restyle to the design.
+Combobox, DataTable, DatePicker, Calendar. shadcn documents these as examples, not registry
+components; copy structure, then restyle to the design.
 
 ### 2. Heavy custom animation
 
-Reach for `motion` (framer-motion) when built-in transitions run out. Simple hover and focus
-transitions stay on `transition-*`; do not add an animation library for those.
+Use `motion` (framer-motion) when built-in transitions run out. Keep simple hover and focus on
+`transition-*`; do not add an animation library for them.
 
 ### 3. Hardcoded prototype colours reaching production
 
-`bg-[#3b82f6]` does not survive the port. With a DESIGN.md, look the value up in the mapping;
-without one, identify the role first — primary or accent? — and extract a token. Near-duplicates
-in a prototype are usually incidental: DESIGN.md has already merged `#333` and `#2C2C2C`, and
-resampling from the prototype undoes that.
+`bg-[#3b82f6]` does not survive the port. With DESIGN.md, look it up in the mapping; otherwise
+identify its role, then extract a token. Prototype near-duplicates are usually incidental:
+DESIGN.md already merged `#333` and `#2C2C2C`; resampling undoes that.
 
 ### 4. Dark mode left undecided at Step 1
 
-Prototypes usually ship light only, and the extracted frontmatter carries a single palette.
-Neither means the project does not need dark mode, only that nothing covered it. Ask at Step 1;
-if it is needed, derive `.dark` starting from the `inverse-*` keys and have the user confirm.
-Retrofitting once the components exist costs several times as much.
+Prototypes are usually light-only and frontmatter carries one palette; neither proves dark mode
+unnecessary. Ask at Step 1. If needed, derive `.dark` from `inverse-*` and confirm. Retrofitting
+after components exist costs more.
 
 ### 5. Sprawling prototype class names
 
@@ -271,35 +253,33 @@ split the component; the same combination appearing three times is a component.
 
 ### 6. Mapping tokens by name
 
-Half the names collide while meaning different things: DESIGN.md's `secondary` is a saturated
-fill, the library's `--secondary` is the pale background of a secondary button — that is
-`secondary-container`. Map by name and the button becomes a solid slab.
+Names collide: DESIGN.md's `secondary` is saturated; library `--secondary` is the pale secondary
+button background, so use `secondary-container`. Name-only mapping makes a solid slab.
 
-The first choice is also only the likeliest one, not the answer. `--accent` usually maps to
-`primary-container`, but some systems really do route interactive emphasis through tertiary;
-`--destructive` has to separate the status colour `error` from the button colour `error-action`;
-`--input` and `--border` sit one step apart in lightness, so swapping them raises no error and
-merely leaves every field looking washed out. **Check each row against the prose**, using
+First choice is likeliest, not final. `--accent` usually maps to `primary-container`, but some
+systems route interactive emphasis through tertiary; `--destructive` separates status `error`
+from button `error-action`; `--input` and `--border` differ one lightness step. Swapping them
+looks washed out without errors. **Check each row against prose** via
 `references/design-md-mapping.md`.
 
 ### 7. Hex dropped straight into a CSS variable
 
-The theme config reads `hsl(var(--primary))`, so the variable must hold a bare triplet
-(`0 75.1% 41.6%`). A raw `#ba1a1a` composes into `hsl(#ba1a1a)`, which fails silently — the page
-just turns black or transparent. The mapping file has a conversion script.
+Theme config reads `hsl(var(--primary))`, so variables hold bare triplets
+(`0 75.1% 41.6%`). Raw `#ba1a1a` becomes `hsl(#ba1a1a)` and silently fails; the page turns
+black or transparent. The mapping file includes a conversion script.
 
 ## Output protocol
 
-Deliver incrementally, pausing for confirmation.
+Deliver incrementally; pause for confirmation.
 
-- Open by reporting whether `products/design/DESIGN.md` was found, and which branch Step 1 takes
+- Report whether `products/design/DESIGN.md` was found and which Step 1 branch applies
 - After Step 0: "Scaffold ready. Confirm the config and I'll establish the design tokens."
-- After Step 1: show the three-column table — "Tokens are in. Check the mapping; the last rows
-  aren't covered by DESIGN.md and need your call." Branch B instead: "check the colours and
-  sizes against the prototype."
+- After Step 1: show three-column table — "Tokens are in. Check the mapping; the last rows
+  aren't covered by DESIGN.md and need your call." Branch B: "check the colours and sizes
+  against the prototype."
 - After Step 2: "Inventory above. If the split looks right I'll start with the primitives."
-- During Step 3: report every 3–5 components, so the user has a window to check
-- Step 4 is the handoff
+- During Step 3: report every 3–5 components for user review
+- Step 4 is handoff
 
 Each file goes in its own code block, with **the full path on the first line**:
 
@@ -310,13 +290,11 @@ import * as React from "react"
 
 ## Non-standard input
 
-- **Screenshots only**: harder, same workflow. At Step 1, have the user verify the sampled
-  colours with an eyedropper.
-- **Prototype is not React**: from HTML watch `class` → `className`, self-closing tags, `for` →
+- **Screenshots only**: same workflow; verify sampled colours with an eyedropper at Step 1.
+- **Prototype is not React**: from HTML map `class` → `className`, self-closing tags, `for` →
   `htmlFor`, `tabindex` → `tabIndex`, inline handlers → React events. From Vue, `v-if` →
   conditional rendering, `v-for` → map, `v-model` → controlled component, scoped slots → render
-  props or children. From Figma or screenshots, confirm the meaning and interaction of each
-  region before building anything.
+  props or children. From Figma or screenshots, confirm each region's meaning and interaction first.
 
 ## References
 
