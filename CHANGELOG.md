@@ -5,6 +5,10 @@
 
 ## [Unreleased]
 
+### 新增 (Added)
+
+- **design-to-code 可接线产出**：新增 Data seam 规则——页面只经 `src/api/` 取数，后端就绪前转发同签名的 `src/mocks/` 替身，`grep -rn '@/mocks' src/api` 即 mock 台账；原型未画的状态与前置条件以 product-spec 的 `CURRENT.md` 为准；新增原型变更后的回入规则，只重写视觉层，保留已接线的 `src/api/` 与 `src/hooks/`；Step 4 交付视觉冻结检查 `scripts/visual-freeze.sh`，供后续 plan 证明未改 token、class、布局与文案。
+
 ### 变更与重构 (Changed & Refactored)
 
 - **技能重命名**：将 `product-spec-generate` 重命名为 `product-spec`，并同步更新技能目录、元数据、安装示例与规范模板引用。

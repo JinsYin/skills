@@ -27,6 +27,7 @@ This skill owns neither stack nor design system; it wires their sources of truth
 | Stack, dependencies, scaffold, project structure, module docs | `frontend-ui-best-practices` |
 | Design system: palette, type, radii, spacing, elevation, shape language, component specs | `products/design/DESIGN.md` |
 | Page structure, layout, copy, interaction flow, state transitions | `products/prototype/` |
+| States and preconditions the prototype leaves undrawn: loading, empty, error, no-permission, disabled | `products/specs/<product>/CURRENT.md`: `状态与流转` and the `前置条件` column |
 | Interface detail: validation timing, overlay state, destructive confirmation, pagination, date and number formats | `ui-ux-best-practices` |
 | Anything above that conflicts with the project | the project's `CLAUDE.md` — it wins |
 
@@ -107,8 +108,8 @@ If silent, list candidates; let the user decide.
 
 ### Step 3 — Build
 
-Build bottom-up: primitives → domain components → pages. Report each file path for prototype
-comparison. Follow code rules below.
+Build bottom-up: primitives → domain components → data seam → pages. Report each file path for
+prototype comparison. Follow code rules below.
 
 ### Step 4 — Wrap up
 
@@ -119,6 +120,19 @@ comparison. Follow code rules below.
 5. Complete root README per baseline; capabilities and structure are now accurate
 6. **DESIGN.md coverage summary:** direct tokens, additions and grounds; baseline for the next
    DESIGN.md update
+7. **Plan handoff:** copy this skill's `scripts/visual-freeze.sh` to `<app>/scripts/`, and report
+   `grep -rn '@/mocks' src/api` as the starting mock list
+
+### Re-entry on a wired app
+
+When the prototype changes after plans have wired the code:
+
+- Port only the changes the user names, defaulting to the newest `products/prototype/CHANGELOG.md`
+  entries minus any that backport landed code. Skip Step 0, and Step 1 unless DESIGN.md changed
+- Rewrite only the visual layer: JSX structure, classes, variants, copy. Existing `src/api/` and
+  `src/hooks/` files stay untouched; a new page gets new mock twins
+- Report every binding the new prototype orphans, such as a removed field; never delete one
+  silently
 
 ## Code rules
 
@@ -167,6 +181,25 @@ const buttonVariants = cva('px-4 py-2', {
 - Put magic numbers and strings in a top-level const or `@/utils/constants.ts`
 - Import through `@/` alias; no `../../../`
 - List `key` is a stable id, never index unless static and never reordered
+- Keep the prototype's page ids in routes and page names; specs and plans address pages by them
+
+### Data seam
+
+Plans later swap data, wire APIs and add guards without touching markup; leave them a seam:
+
+- Pages hold no data literals and never call HTTP. Anything the backend will own, enum labels
+  included, goes through `src/api/<feature>.ts`, read via hooks
+- Each `src/api/` function is async, typed by `src/types/`, and maps any backend shape itself;
+  until its backend is ready it forwards to a same-signature twin in `src/mocks/<feature>.ts`,
+  and going live replaces only that right-hand side. `grep -rn '@/mocks' src/api` lists what is
+  still mock
+- Every state and precondition the prototype or spec defines renders from a flag, so wiring flips
+  state and never adds UI. A state neither defines is a gap: list it, never invent it
+
+```ts
+// src/api/orders.ts
+export const listOrders: (q: OrderQuery) => Promise<Page<Order>> = mock.listOrders
+```
 
 ### Accessibility
 
@@ -194,6 +227,8 @@ Config files and the stylesheet directory follow the baseline. This skill adds o
         ├── layouts/
         ├── pages/
         ├── hooks/
+        ├── api/            # data seam, one file per feature
+        ├── mocks/          # same-signature twins, deleted as each goes live
         └── types/
 ```
 
@@ -301,3 +336,4 @@ import * as React from "react"
 | File | When |
 |---|---|
 | `references/design-md-mapping.md` | Required before Step 1 branch A: key-by-key mapping from DESIGN.md's role palette to library tokens, hex→HSL conversion, and how type, radii and spacing land in the theme config |
+| `scripts/visual-freeze.sh` | Step 4 copies it into the app; plans run it to prove they left tokens, classes, layout and copy alone |
