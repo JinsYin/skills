@@ -14,11 +14,13 @@
 - Sections: target scope, confirmed decisions, plan checklist, global constraints, plus whatever the milestone needs.
 - Render the plan checklist as one table across all phases, columns phase · plan ID `<phase-num>-<plan-num>` · topic · modules · spec chapters · prerequisite plans · deliverables · completion status, with any extra notes after it.
 - `completion status` is `pending`, `planned` or `executed` — created as `pending`, advanced one step at a time, never reversed.
+- In `deliverables`, tag each page a plan touches `mock` or `live`; `mock` is a finished state, not a gap.
 
 ### Plan Flow
 
 - After `brainstorming` completes the SPEC, ask me to confirm it has no issues; upon confirmation, mark it `reviewed`, run `writing-plans` in the current session to produce `ROADMAP.md`, and recommend a new session for the phase plans.
 - The approved spec is truth; the roadmap's scope and phase boundaries are fixed up front.
+- On a `design-to-code` frontend, write into the global constraints of the spec, the roadmap and every plan that tasks only swap data, wire APIs and add guards, gated by `scripts/visual-freeze.sh`; `brainstorming` never designs UI, and any visual need leaves the milestone for the prototype chain.
 - No roadmap yet → write it this run and stop; otherwise plan exactly one phase, and only after the previous phase has executed.
 - Draft against the code that phase landed, never an earlier plan's text.
 - 2–5 tasks per plan, each a vertical slice, splitting any task that touches >5 files, spans two subsystems, or mixes discovery with implementation.
@@ -32,6 +34,7 @@
 - Order each task's headers `**Files:**`, `**Read first:**`, `**Interfaces:**`, `**Done:**`, then the steps.
 - `**Read first:**` = files the task modifies, plus the spec chapters and upstream `Interfaces · Produces` that are truth.
 - Keep `**Interfaces:**` exact, and put only verifiable assertions in `**Done:**` — source greps, observable behavior, test commands, CLI output — never subjective wording.
+- Any task touching frontend `src/` puts `scripts/visual-freeze.sh` exiting 0 in `**Done:**`; one taking a feature live adds `grep -rn '@/mocks/<feature>' src` printing nothing.
 - Write every step as a `- [ ]` checkbox on the TDD cycle: run steps give the exact command and exact expected failure, implementation steps give signatures and the few non-obvious decisions but never a method body.
 - Name concrete files, types, methods and constants throughout.
 - Paste only what the executor cannot derive: test method bodies, frozen fixtures, one worked example per repeating pattern, the exact lines an existing build or config file gains.

@@ -8,6 +8,7 @@
 ### 新增 (Added)
 
 - **design-to-code 可接线产出**：新增 Data seam 规则——页面只经 `src/api/` 取数，后端就绪前转发同签名的 `src/mocks/` 替身，`grep -rn '@/mocks' src/api` 即 mock 台账；原型未画的状态与前置条件以 product-spec 的 `CURRENT.md` 为准；新增原型变更后的回入规则，只重写视觉层，保留已接线的 `src/api/` 与 `src/hooks/`；Step 4 交付视觉冻结检查 `scripts/visual-freeze.sh`，供后续 plan 证明未改 token、class、布局与文案。
+- **前端分流与 plan 视觉边界约定**：`setup-rules` 的 Design 约定新增 design-to-code 之后的分流——新功能先 `product-spec add`；新页面或 DESIGN.md 缺失的样式走原型 → DESIGN.md → design-to-code，其余直接改代码，走全链路前一次性按已落地前端回写原型；plan 只换数据实现、接线、加守卫，须通过视觉冻结检查；mock 可作为交付态。Superpowers 约定把该边界写进 SPEC、ROADMAP 与 plan 的 Global Constraints，ROADMAP `deliverables` 标注 `mock`/`live`，前端 task 的 Done 必跑冻结检查。
 
 ### 变更与重构 (Changed & Refactored)
 

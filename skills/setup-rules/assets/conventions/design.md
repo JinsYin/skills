@@ -8,3 +8,8 @@
 - The `stitch-extract-design-md` skill MUST extract `DESIGN.md` from `products/prototype/` into `products/design/`.
 - MUST record or consolidate every addition or change to the product prototype in `products/prototype/CHANGELOG.md`.
 - Commit after `stitch-extract-design-md`.
+- Once `design-to-code` has built the app, record every new feature with `product-spec add` first.
+- A new page, or a look `DESIGN.md` lacks, goes prototype → `DESIGN.md` → `design-to-code`; any other UI change goes straight into the code, leaving the prototype untouched.
+- Before that chain starts, backport into `products/prototype/`, in one pass, everything the landed frontend shows and the prototype lacks, logged as a backport in its `CHANGELOG.md`.
+- Plans only swap data implementations, wire APIs and add guards (hiding or disabling existing elements) and never touch classes, variants, tokens, layout or copy; `scripts/visual-freeze.sh` MUST pass on every plan branch, and a visual need found mid-plan stops the task and routes as above.
+- A page may ship on mock until its backend is ready; taking it live replaces its `src/api/` forwarder and deletes the mock twin in the same task.
