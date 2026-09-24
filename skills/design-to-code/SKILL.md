@@ -1,7 +1,7 @@
 ---
 name: design-to-code
-description: Rebuild a high-fidelity design or prototype (HTML, React JSX, Figma export, screenshots) as production React code. Stack and engineering rules follow frontend-ui-best-practices, the design system follows products/design/DESIGN.md, and structure and interaction follow the prototype in products/prototype/.
-argument-hint: "[full | lite]"
+description: Rebuild a high-fidelity design or prototype (HTML, React JSX, Figma export, screenshots) as production React code. Stack and engineering rules follow frontend-ui-best-practices, the design system follows products/design/DESIGN.md (or, in restyle mode, one authored from a style brief), and structure and interaction follow the prototype in products/prototype/.
+argument-hint: "[full | lite | restyle [style brief]]"
 disable-model-invocation: true
 ---
 
@@ -11,7 +11,7 @@ Rebuild a high-fidelity design or prototype as production React code.
 
 ## Your role
 
-Senior frontend engineer; reproduce design 1:1 in shippable code:
+Senior frontend engineer; ship the design as production code:
 
 - Token-exact design system: every value traces to DESIGN.md; the prototype sets structure, not
   pixels
@@ -40,22 +40,28 @@ Two boundaries that are easy to blur:
   click destinations.
 - **Derive tokens from the prototype only without DESIGN.md** (Step 1, branch B). Sampling an
   existing DESIGN.md's prototype scatters an already-converged system.
+- **`restyle` replaces the design-system row:** Step 1 branch C authors a new DESIGN.md, which
+  then rules like any other; the prototype keeps only the structural rows.
 
 Commands, directory names and component-library names follow baseline choices; baseline wins
 when it changes.
 
-## Verification mode
+## Mode
 
-First word of `$ARGUMENTS`: `full` (default) or `lite`; anything else runs `full` and says so.
+The first word of `$ARGUMENTS` picks one mode; anything else runs `full` and says so. Text after
+`restyle` is its style brief. `.design-to-code/progress.md` records the mode; re-entry keeps it.
 
-| | lite | full |
-|---|---|---|
-| Each Step 3 slice | typecheck, lint, test, build; hardcoded-value grep; checklist read from code | same |
-| Step 4, once | `visual-check.mjs smoke` | `smoke`, then `visual-check.mjs diff` with triage |
+| | full (default) | lite | restyle |
+|---|---|---|---|
+| Visual source | DESIGN.md | DESIGN.md | DESIGN.md authored in Step 1, branch C |
+| Prototype supplies | structure and visuals | structure and visuals | structure only: blocks, relative layout, flows, overlay types, copy, states, responsive collapse |
+| Each Step 3 slice | typecheck, lint, test, build; hardcoded-value grep; checklist read from code | same | same |
+| Step 4, once | `smoke`, then `diff` with triage | `smoke` | `smoke`, then `diff --structure` |
 
-Neither mode renders, screenshots or measures the prototype before Step 4. A difference
-DESIGN.md explains (type scale, line height, icon style, token colour) is sanctioned: record it,
-never measure it. `high` effort suffices; `max` mostly buys extra measuring.
+No mode renders, screenshots or measures the prototype before Step 4. A difference DESIGN.md
+explains (type scale, line height, icon style, token colour) is sanctioned: record it, never
+measure it. `restyle` reads prototype JSX and CSS layout properties only, never colours or sizes.
+`high` effort suffices; `max` mostly buys extra measuring.
 
 ## First principle: tokens before components
 
@@ -79,7 +85,8 @@ If project exists, skip only after verifying settings; fill gaps before continui
 
 ### Step 1 — Establish design tokens
 
-Branch depends on whether `products/design/DESIGN.md` exists.
+`restyle` takes branch C; otherwise the branch depends on whether `products/design/DESIGN.md`
+exists.
 
 #### Branch A — DESIGN.md exists (preferred)
 
@@ -107,7 +114,17 @@ spacing, radii, shadows, border widths, CJK-aware fonts, transition timing and d
 Suggest running `stitch::extract-design-md` to produce DESIGN.md, then return to branch A.
 Reverse-derived tokens lack semantic consolidation, so new pages tend to add fresh colours.
 
-#### Both branches produce the same thing
+#### Branch C — `restyle`
+
+1. Take the direction from the style brief; without one, pick it from the product positioning and
+   users in `CURRENT.md`. State it in one line and continue
+2. Author a DESIGN.md in the existing format: frontmatter `colors` / `typography` / `rounded` /
+   `spacing`; prose for elevation, shape, minimum hit area, component specs and every state. One
+   pass; components keep shadcn structure and differ through tokens unless the brief demands more
+3. Replace `products/design/DESIGN.md` after one confirmation (git keeps the old one), commit it,
+   then run branch A steps 1–4 on it
+
+#### All branches produce the same thing
 
 A token variable file (`:root` plus `.dark`) and theme config mappings for `colors`, `fontSize`,
 `fontFamily`, `borderRadius` and `spacing`. File locations and split follow baseline.
@@ -129,7 +146,7 @@ requirements; report alternatives when useful and continue without waiting for u
 Mark every component two or more pages share; Step 3 settles them before any page. Then write:
 
 - `.design-to-code/index.md`: per page id, its prototype source line ranges, CSS selectors,
-  states and shared components
+  states and shared components; `restyle` records structure only
 - `.design-to-code/progress.md`: slices done with commits, decisions, gaps and sanctioned
   deviations; updated per slice. After a context compaction, read these two, not the prototype
 - `scripts/visual-targets.mjs` (format in the `visual-check.mjs` header): every page, the first
@@ -147,15 +164,18 @@ component reruns its pages' tests, not a visual pass. Follow code rules below.
 ### Step 4 — Verify
 
 Copy this skill's `scripts/visual-check.mjs` to `<app>/scripts/` and gitignore `.visual-check/`.
-Serve the built app; for `full`, also serve the prototype built into `.visual-check/`, never
-under `products/`.
+Serve the built app; for `full` or `restyle`, also serve the prototype built into
+`.visual-check/`, never under `products/`.
 
 1. `node scripts/visual-check.mjs smoke <appUrl>`: every class generates CSS, no console error,
    no horizontal overflow at 1280 and 1440. Fix or justify each finding. `lite` stops here
 2. `full`: `node scripts/visual-check.mjs diff <protoUrl> <appUrl>`, then view diffs largest
    first and sort each difference: sanctioned → `progress.md`; defect → fix, measuring computed
    styles on that element only
-3. Rerun `diff --only <names>` on fixed targets. Two rounds at most; leftover defects go to the
+3. `restyle`: `node scripts/visual-check.mjs diff --structure <protoUrl> <appUrl>`; every
+   prototype text appears in order, and the side-by-side shots show the same blocks and overlay
+   types. Fix omissions only; visual differences are the point
+4. Rerun `diff --only <names>` on fixed targets. Two rounds at most; leftover defects go to the
    handoff
 
 ### Step 5 — Wrap up
@@ -167,8 +187,8 @@ under `products/`.
 5. Complete root README per baseline; capabilities and structure are now accurate
 6. **DESIGN.md coverage summary:** direct tokens, additions, grounds and Step 1 gaps; baseline
    for the next DESIGN.md update
-7. **Verification:** mode, smoke result; for `full`, `.visual-check/report.md`, sanctioned
-   deviations and leftover defects
+7. **Verification:** mode, smoke result; for `full` or `restyle`, `.visual-check/report.md`,
+   sanctioned deviations and leftover defects
 8. **Plan handoff:** copy this skill's `scripts/visual-freeze.sh` to `<app>/scripts/`, and report
    `grep -rn '@/mocks' src/api` as the starting mock list
 
@@ -287,7 +307,8 @@ Config files and the stylesheet directory follow the baseline. This skill adds o
         └── types/
 ```
 
-`products/` is **input** — never write to it during a port. A wrong DESIGN.md value is a
+`products/` is **input** — never write to it during a port, except `restyle`'s confirmed
+DESIGN.md replacement. A wrong DESIGN.md value is a
 design-system problem: regenerate with `stitch::extract-design-md`, or change only after user
 approval.
 
@@ -364,7 +385,7 @@ black or transparent. The mapping file includes a conversion script.
 
 Deliver incrementally while continuing; do not wait for confirmation between steps.
 
-- Report the verification mode, whether `products/design/DESIGN.md` was found and which Step 1
+- Report the mode (`restyle`: plus its direction), whether `products/design/DESIGN.md` was found and which Step 1
   branch applies
 - After Step 0: "Scaffold ready. Continuing to establish the design tokens."
 - After Step 1: show the three-column table — "Tokens are in. I used the recommended mapping;
@@ -373,7 +394,7 @@ Deliver incrementally while continuing; do not wait for confirmation between ste
 - After Step 2: "Inventory above. I used the recommended split and am starting with the
   primitives."
 - During Step 3: report every 3–5 components for traceability, then continue
-- After Step 4: smoke result; for `full`, the diff table with each row's verdict
+- After Step 4: smoke result; for `full` or `restyle`, the diff table with each row's verdict
 - Step 5 is handoff
 
 Each file goes in its own code block, with **the full path on the first line**:
@@ -398,5 +419,5 @@ import * as React from "react"
 | File | When |
 |---|---|
 | `references/design-md-mapping.md` | Required before Step 1 branch A: key-by-key mapping from DESIGN.md's role palette to library tokens, hex→HSL conversion, and how type, radii and spacing land in the theme config |
-| `scripts/visual-check.mjs` | Step 4 copies it into the app: `smoke` checks the app alone, `diff` pairs it with the prototype; targets format in its header |
+| `scripts/visual-check.mjs` | Step 4 copies it into the app: `smoke` checks the app alone, `diff` pairs it with the prototype, `--structure` for `restyle`; targets format in its header |
 | `scripts/visual-freeze.sh` | Step 5 copies it into the app; plans run it to prove they left tokens, classes, layout and copy alone |

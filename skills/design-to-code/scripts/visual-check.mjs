@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// 视觉校验。smoke 只查实现：类名是否真的生成样式、渲染报错、横向溢出；diff 与原型成对截全页图并出差异图。
+// 视觉校验。smoke 只查实现：类名是否真的生成样式、渲染报错、横向溢出；diff 与原型成对截全页图并出差异图；
+// diff --structure（restyle）不比像素，只出并排拼图与按序文案比对。
 // 用法：node scripts/visual-check.mjs smoke <appUrl> [--only a,b]
-//       node scripts/visual-check.mjs diff <protoUrl> <appUrl> [--only a,b]
+//       node scripts/visual-check.mjs diff <protoUrl> <appUrl> [--structure] [--only a,b]
 // smoke 前先构建（查 dist/ 的 CSS）。依赖与产物都在 .visual-check/（需 gitignore），不进 app 的 package.json。
 // 目标清单 scripts/visual-targets.mjs：
 //   export const widths = [1280, 1440]           // 可选
@@ -20,6 +21,8 @@ const OUT = '.visual-check'
 const [mode, ...args] = process.argv.slice(2)
 const at = args.indexOf('--only')
 const only = at >= 0 ? args.splice(at, 2)[1].split(',') : null
+const structure = args.includes('--structure')
+if (structure) args.splice(args.indexOf('--structure'), 1)
 if (!['smoke', 'diff'].includes(mode) || args.length !== (mode === 'diff' ? 2 : 1)) {
   console.error('用法见文件头'); process.exit(2)
 }
@@ -114,11 +117,25 @@ for (const t of targets) for (const w of widths) {
     const proto = await open(args[0], t.proto, w, 'proto')
     const shot = (p) => p.screenshot({ fullPage: true, animations: 'disabled' })
     const [A, B] = [PNG.sync.read(await shot(proto.page)), PNG.sync.read(await shot(app.page))]
+    const f = join(OUT, `${t.name}@${w}`)
+    if (structure) {
+      // 左原型右实现拼成一张；文案去重后比缺漏、多出与相对顺序
+      const side = new PNG({ width: A.width + B.width, height: Math.max(A.height, B.height) }); side.data.fill(255)
+      PNG.bitblt(A, side, 0, 0, A.width, A.height, 0, 0); PNG.bitblt(B, side, 0, 0, B.width, B.height, A.width, 0)
+      writeFileSync(`${f}.side.png`, PNG.sync.write(side))
+      const text = async (p) => [...new Set(await p.evaluate(() =>
+        document.body.innerText.split('\n').map((s) => s.trim()).filter(Boolean)))]
+      const [ta, tb] = [await text(proto.page), await text(app.page)]
+      const miss = ta.filter((s) => !tb.includes(s)), extra = tb.filter((s) => !ta.includes(s))
+      const order = ta.filter((s) => tb.includes(s)).join('\n') === tb.filter((s) => ta.includes(s)).join('\n')
+      const cut = (xs) => (xs.slice(0, 8).join(' · ') + (xs.length > 8 ? ` …+${xs.length - 8}` : '')).replaceAll('|', '\\|')
+      rows.push([miss.length, `| ${t.name} | ${w} | ${cut(miss)} | ${cut(extra)} | ${order ? '一致' : '不同'} | \`${f}.side.png\` |`])
+      await proto.page.context().close(); await app.page.context().close(); continue
+    }
     const width = Math.max(A.width, B.width), height = Math.max(A.height, B.height)
     const pad = (p) => { const o = new PNG({ width, height }); o.data.fill(255); PNG.bitblt(p, o, 0, 0, p.width, p.height, 0, 0); return o }
     const diff = new PNG({ width, height })
     const n = pixelmatch(pad(A).data, pad(B).data, diff.data, width, height, { threshold: 0.1 })
-    const f = join(OUT, `${t.name}@${w}`)
     writeFileSync(`${f}.proto.png`, PNG.sync.write(A)); writeFileSync(`${f}.app.png`, PNG.sync.write(B))
     writeFileSync(`${f}.diff.png`, PNG.sync.write(diff))
     rows.push([n / (width * height), `| ${t.name} | ${w} | ${A.width}×${A.height} / ${B.width}×${B.height} | ${(n * 100 / (width * height)).toFixed(2)}% | \`${f}.{proto,app,diff}.png\` |`])
@@ -129,7 +146,9 @@ for (const t of targets) for (const w of widths) {
 await browser.close()
 
 if (mode === 'diff') {
-  const md = ['| 目标 | 宽度 | 尺寸 原型 / 实现 | 差异 | 截图 |', '|---|---|---|---|---|',
+  const head = structure ? '| 目标 | 宽度 | 原型有、实现缺 | 实现多出 | 顺序 | 并排图 |\n|---|---|---|---|---|---|'
+    : '| 目标 | 宽度 | 尺寸 原型 / 实现 | 差异 | 截图 |\n|---|---|---|---|---|'
+  const md = [head,
     ...rows.sort((a, b) => b[0] - a[0]).map((r) => r[1])].join('\n')
   writeFileSync(join(OUT, 'report.md'), md + '\n'); console.log(md)
 } else {
