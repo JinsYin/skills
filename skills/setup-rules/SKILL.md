@@ -1,12 +1,14 @@
 ---
 name: setup-rules
-description: Conduct an interactive interview, then install selected agent conventions, adapters, and sensitive-file read restrictions into a project. Explicit invocation only.
+description: Conduct an interactive interview, then install selected agent conventions, adapters, and sensitive-file read restrictions into a project; `update` refreshes installed items. Explicit invocation only.
 disable-model-invocation: true
 ---
 
 # setup-rules
 
 Assemble, never author. Conventions live verbatim in `assets/conventions/`; concatenate selected files byte-for-byte in the fixed order. Merge sensitive-file restrictions into native Agent configuration without replacing unrelated settings.
+
+Modes: `setup-rules` → Workflow; `setup-rules update` → Update.
 
 Interactive interview required: ask, wait, clarify, and confirm the final manifest before writing. Never infer optional selections from project evidence or defaults. Ask at most four focused questions per round; leave ambiguous items pending.
 
@@ -86,3 +88,19 @@ The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the pr
 ```
 
 **15. Validate and report.** Parse changed JSON/TOML, run available offline config-load checks, and test ignore matching without reading secrets. Report selections, changes, protected paths, limitations, Git decisions, and conflicts.
+
+## Update
+
+Refresh installed items from current assets; skip Workflow steps 2–8, 12, 14.
+
+**1. Root.** As Workflow 1; stop if `CLAUDE.local.md` is missing.
+
+**2. Detect.** Match `CLAUDE.local.md` H2s to convention first H2s; existing targets mark installed subagents/adapters; existing denies mark sensitive targets. Ask per unmatched H2 section: keep (append last) or drop.
+
+**3. Add.** Offer uninstalled optional conventions; new Superpowers runs Workflow 4–5. Never remove.
+
+**4. Confirm.** Diff targets against assets, skip identical, list overwrites, additions and section choices; confirm.
+
+**5. Write.** Rebuild `CLAUDE.local.md` in fixed order plus kept sections; copy agents/adapters byte-for-byte; replace only this skill's hook in `.cursor/hooks.json`; re-merge existing sensitive targets.
+
+**6. Report.** As Workflow 15.
