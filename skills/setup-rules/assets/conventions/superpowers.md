@@ -12,6 +12,7 @@
 ### Roadmap
 
 - Sections: target scope, confirmed decisions, plan checklist, global constraints, plus whatever the milestone needs.
+- Slice phases and plans vertically by feature: one atomic feature's frontend and backend stay in the same plan, including the mock → live switch, and features of the same kind share a phase where possible.
 - Render the plan checklist as one table across all phases, columns phase · plan ID `<phase-num>-<plan-num>` · topic · modules · spec chapters · prerequisite plans · deliverables · completion status, with any extra notes after it.
 - `completion status` is `pending`, `planned` or `executed` — created as `pending`, advanced one step at a time, never reversed.
 - In `deliverables`, tag each page a plan touches `mock` or `live`; `mock` is a finished state, not a gap.
