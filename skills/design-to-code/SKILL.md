@@ -51,7 +51,9 @@ With a DESIGN.md, tokens are *translated*, not *extracted*; semantic consolidati
 
 ## Workflow
 
-Step 0 → 4; pause after each for user confirmation. Never dump everything at once.
+Step 0 → 4; implement continuously. At each optional choice, use the recommended best-fit
+option from the sources of truth, report the choice, and continue without waiting for user
+confirmation. Pause only when missing information makes the work impossible or unsafe.
 
 ### Step 0 — Scaffold
 
@@ -74,9 +76,10 @@ secondary button into a solid colour slab.
    convert every hex to an HSL triplet with **no `hsl()` wrapper and no commas**
 2. Read prose for elevation, shape, minimum hit area and component specs; these decide Step 3
    cva variants
-3. Hand the user a three-column table: DESIGN.md key → token → HSL value
+3. Show a three-column table: DESIGN.md key → token → HSL value
 4. **Separate two groups:** tokens with no library slot (`success`, `warning`, semantic accents)
-   and uncovered decisions (dark palette). Never fill either silently
+   and uncovered decisions (dark palette). Choose the recommended best-fit option for uncovered
+   decisions, state the assumption, and continue; never fill either silently
 5. Diff prototype; report every colour and size absent from DESIGN.md. Drop throwaway values or add
    extraction gaps; never fold them into tokens quietly
 
@@ -104,7 +107,8 @@ Sort every UI element in the prototype into three buckets and table them:
 | Not in the library, write it | `src/components/<feature>/` | domain cards, bespoke layouts, prototype-only visuals |
 
 For prototype animation, form validation, routing or data fetching, use project's `CLAUDE.md`.
-If silent, list candidates; let the user decide.
+If silent, choose the best-fit candidate from the prototype, project conventions and accessibility
+requirements; report alternatives when useful and continue without waiting for user selection.
 
 ### Step 3 — Build
 
@@ -278,8 +282,9 @@ DESIGN.md already merged `#333` and `#2C2C2C`; resampling undoes that.
 ### 4. Dark mode left undecided at Step 1
 
 Prototypes are usually light-only and frontmatter carries one palette; neither proves dark mode
-unnecessary. Ask at Step 1. If needed, derive `.dark` from `inverse-*` and confirm. Retrofitting
-after components exist costs more.
+unnecessary. Use the best-supported project/design choice; if a dark palette is needed but absent,
+derive `.dark` from `inverse-*` when supported and report the assumption. Retrofitting after
+components exist costs more.
 
 ### 5. Sprawling prototype class names
 
@@ -305,15 +310,16 @@ black or transparent. The mapping file includes a conversion script.
 
 ## Output protocol
 
-Deliver incrementally; pause for confirmation.
+Deliver incrementally while continuing; do not wait for confirmation between steps.
 
 - Report whether `products/design/DESIGN.md` was found and which Step 1 branch applies
-- After Step 0: "Scaffold ready. Confirm the config and I'll establish the design tokens."
-- After Step 1: show three-column table — "Tokens are in. Check the mapping; the last rows
-  aren't covered by DESIGN.md and need your call." Branch B: "check the colours and sizes
-  against the prototype."
-- After Step 2: "Inventory above. If the split looks right I'll start with the primitives."
-- During Step 3: report every 3–5 components for user review
+- After Step 0: "Scaffold ready. Continuing to establish the design tokens."
+- After Step 1: show the three-column table — "Tokens are in. I used the recommended mapping;
+  uncovered rows carry explicit assumptions." Branch B: "Tokens are in; I used prototype
+  evidence for the colours and sizes."
+- After Step 2: "Inventory above. I used the recommended split and am starting with the
+  primitives."
+- During Step 3: report every 3–5 components for traceability, then continue
 - Step 4 is handoff
 
 Each file goes in its own code block, with **the full path on the first line**:
@@ -329,7 +335,8 @@ import * as React from "react"
 - **Prototype is not React**: from HTML map `class` → `className`, self-closing tags, `for` →
   `htmlFor`, `tabindex` → `tabIndex`, inline handlers → React events. From Vue, `v-if` →
   conditional rendering, `v-for` → map, `v-model` → controlled component, scoped slots → render
-  props or children. From Figma or screenshots, confirm each region's meaning and interaction first.
+  props or children. From Figma or screenshots, infer each region's meaning and interaction from
+  visible evidence and standard conventions, record assumptions, and continue.
 
 ## References
 
