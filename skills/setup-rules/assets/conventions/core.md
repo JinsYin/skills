@@ -16,6 +16,7 @@
 - Commit session changes only, slice vertical by feature.
 - Use scoped Conventional Commits spec, Chinese descriptions.
 - Avoid `git reset --hard`.
+- Prefer `rebase` then `git merge --ff-only` to keep history linear.
 
 ### Development
 
