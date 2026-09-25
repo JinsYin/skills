@@ -9,7 +9,7 @@ metadata:
 
 # Spring Boot Best Practices
 
-Spring Boot 3 后端的规范集，46 条规则分 8 类，按**违反后果**排序。
+Spring Boot 3 后端的规范集，47 条规则分 8 类，按**违反后果**排序。
 
 ## 如何使用本 skill
 
@@ -28,7 +28,7 @@ rules/entity-tableid-assign-id.md
 |---|---|
 | 新增 Controller | `layer-*`、`naming-controller-methods`、`envelope-r-types` |
 | 新增/修改 Entity | `entity-*`、`db-table-naming`、`db-column-naming` |
-| 写数据库迁移 | `db-migration-*`、`db-opengauss-dialect`、`db-index-naming` |
+| 写数据库迁移 | `db-migration-*`、`db-opengauss-*`、`db-index-naming` |
 | 加唯一约束 / 索引 | `db-distributed-unique-index`、`db-index-naming` |
 | 改已执行过的迁移 | `db-migration-immutable-after-apply` |
 | 定义 DTO | `dto-*`、`naming-class-suffix` |
@@ -47,7 +47,7 @@ rules/entity-tableid-assign-id.md
 | 1 | 分层纪律 | CRITICAL | `layer-` | 7 |
 | 2 | 密码学 | CRITICAL | `crypto-` | 6 |
 | 3 | 实体与持久化 | CRITICAL | `entity-` | 3 |
-| 4 | 数据库与迁移 | HIGH | `db-` | 9 |
+| 4 | 数据库与迁移 | HIGH | `db-` | 10 |
 | 5 | 响应包装与错误码 | HIGH | `envelope-` | 5 |
 | 6 | DTO 约定 | HIGH | `dto-` | 5 |
 | 7 | 命名约定 | MEDIUM | `naming-` | 6 |
@@ -88,6 +88,7 @@ rules/entity-tableid-assign-id.md
 - `db-migration-immutable-after-apply` — 已执行的迁移只读，改注释也会改 checksum，须 repair
 - `db-distributed-unique-index` — 分布式库唯一约束须含分布键，追加索引用 GSI，新建表用内联约束
 - `db-opengauss-dialect` — openGauss 三定律：无 `ON CONFLICT` / 无 `gen_random_uuid()` / 无 `jsonb_build_object`
+- `db-opengauss-flyway-set-role` — gauss 系拒绝 `SET ROLE`，Flyway 须注册 Plugin SPI 跳过角色还原，否则迁移全挂
 - `db-table-naming` — 表名 `t_` 前缀 + snake_case + 单数
 - `db-column-naming` — 列名 snake_case，审计四件套，软删 `deleted`
 - `db-index-naming` — `uk_{table}_{field}` / `idx_{table}_{field}`

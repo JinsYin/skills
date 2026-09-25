@@ -1,7 +1,7 @@
 # Spring Boot Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-08-20 06:38:25
+> 生成时间：2026-09-25 15:07:04
 
 ## 1. 分层纪律
 
@@ -706,6 +706,55 @@ WHERE NOT EXISTS (SELECT 1 FROM t_config WHERE k = 'a');
 这三条是踩坑实证，不是理论限制——写之前先对照，比迁移失败后回查便宜得多。
 
 
+### gauss 系跑 Flyway 须注册插件跳过 SET ROLE
+
+Flyway 把 openGauss / GaussDB 当 PostgreSQL，每次操作后执行 `SET ROLE '<CURRENT_USER>'` 还原角色。gauss 系拒绝非 sysadmin 执行 `SET ROLE`，即使切回自己也要 `PASSWORD`，报 SQLState 42602 `set role denied`。Flyway 随即以 `Unable to restore connection to its original state` 中止，这一步发生在查历史表时，任何迁移都跑不到。给账号 sysadmin 权限不是解法。应当用 Flyway Plugin SPI 换掉连接实现，只把还原步骤置空。
+
+**错误（沿用内置 PostgreSQL 类型，或在迁移脚本里切角色）：**
+
+```sql
+SET ROLE app_owner PASSWORD '...'; -- ❌ 连接还回池时仍是这个角色，会污染后续请求
+```
+
+**正确（三个类，依赖 `flyway-database-postgresql`，compile scope）：**
+
+```java
+// 1. DatabaseType：优先级高于内置 PostgreSQL（0），按产品名接管，否则回落父类
+public class GaussDBDatabaseType extends PostgreSQLDatabaseType {
+    @Override public String getName() { return "GaussDB"; }
+    @Override public int getPriority() { return 100; }
+    @Override public boolean handlesDatabaseProductNameAndVersion(String name, String ver, Connection c) {
+        String n = name == null ? "" : name.toLowerCase(Locale.ROOT);
+        return n.contains("gaussdb") || n.contains("opengauss") || super.handlesDatabaseProductNameAndVersion(name, ver, c);
+    }
+    @Override public Database createDatabase(Configuration cfg, JdbcConnectionFactory f, StatementInterceptor si) {
+        return new GaussDBDatabase(cfg, f, si);
+    }
+}
+// 2. Database：只替换连接实现
+public class GaussDBDatabase extends PostgreSQLDatabase {
+    // 构造器透传三个参数
+    @Override protected PostgreSQLConnection doGetConnection(Connection c) { return new GaussDBConnection(this, c); }
+}
+// 3. Connection：置空角色还原
+public class GaussDBConnection extends PostgreSQLConnection {
+    @Override protected void doRestoreOriginalState() { /* gauss 系拒绝 SET ROLE；无角色可还原 */ }
+}
+```
+
+```text
+# META-INF/services/org.flywaydb.core.extensibility.Plugin
+com.example.config.GaussDBDatabaseType
+```
+
+要点：
+
+- **只能按产品名识别，不能靠 URL。** Spring 交给 Flyway 的是 DataSource，用不到 URL 识别。openGauss 官方驱动 `getDatabaseProductName()` 返回 `PostgreSQL`，所以实际是靠「优先级 100 + 回落父类」命中的。副作用是普通 PostgreSQL 也会被这个类型接管，只支持 MySQL + gauss 系的项目可以接受。
+- **置空是安全的。** 父类的这个方法只做 `SET ROLE` 一件事，而 Flyway 自身不切换角色。schema、search_path、autocommit 由 `close()` 还原，与这里无关。前提是迁移脚本里禁写 `SET ROLE`。
+- **放在执行迁移的那个模块。** 通过 Starter 或库对外提供迁移时，插件也要跟着下沉，否则只有带插件的应用能在 gauss 系上迁移。
+- 插件依赖 `org.flywaydb.core.internal.*`，这些是内部 API，没有兼容承诺。代码里要标注：升级 Flyway 必须重跑 openGauss 的迁移 IT。
+
+
 ### 表名 t_ 前缀 + snake_case + 单数
 
 表名统一 `t_` 前缀、`snake_case`、**单数**：`t_order`、`t_user`、`t_order_item`。前缀把业务表与视图、中间表、框架表区分开；单数与实体类一一对应，避免 `t_users` ↔ `UserEntity` 这种单复数错位。
@@ -1197,13 +1246,15 @@ private ItemDTO toDTO(Item item) {
 **保留显式实现**的两种情况：工具类（私有构造 + 全静态方法）、构造函数含参数校验的类——这两种情况 Lombok 生成的构造器反而会绕过约束。
 
 
-### 根目录与每个模块都要有 README
+### 根目录与每个模块都要有 README 文档
 
 多模块工程里，**项目根目录和每一个子模块都必须有 `README.md`**。根 README 描述整个项目是什么、提供哪些能力、由哪些模块组成；模块 README 描述这一个模块负责什么、对外提供什么、依赖谁。**单模块工程只需要根 README**，包结构在根 README 里用一节说清即可。
 
 没有 README 时，模块边界只能靠读 `pom.xml` 的依赖和翻包结构反推。反推出来的边界是当前实现的样子，不是设计意图——于是新代码被放进"看起来差不多"的模块，分层和依赖方向就是这样一点点烂掉的。
 
 新增模块时同步新增 README；模块能力发生变化（新增对外接口、依赖关系调整、职责搬迁）时同步更新 README，与改代码在同一个提交里。
+
+文档引用项目或模块依赖（如 Maven/Gradle 坐标）时，不要直接写死项目或模块的当前版本号；优先引用构建配置中的统一版本管理，或使用 `${project.version}`、version catalog 占位符，避免版本升级后遗漏更新文档。
 
 **错误（模块只有代码，没有说明）：**
 

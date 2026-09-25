@@ -1,6 +1,6 @@
 # spring-boot-best-practices
 
-Spring Boot 3 + Java 21 + MyBatis Plus 后端的编码规范，46 条规则分 8 类。
+Spring Boot 3 + Java 21 + MyBatis Plus 后端的编码规范，47 条规则分 8 类。
 
 结构参考 [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices)。
 
@@ -22,7 +22,7 @@ Spring Boot 3 + Java 21 + MyBatis Plus 后端的编码规范，46 条规则分 8
 ## 结构
 
 ```
-SKILL.md            索引：46 条 slug + 一行摘要 + 按任务定位表（约 5 KB）
+SKILL.md            索引：47 条 slug + 一行摘要 + 按任务定位表（约 5 KB）
 rules/
   _sections.md      分类定义：ID / 排序 / 影响级别 / 描述（编译输入）
   _template.md      单条规则骨架
