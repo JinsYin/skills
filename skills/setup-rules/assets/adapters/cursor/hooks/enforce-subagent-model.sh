@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-expected_model="cursor-grok-4.6-xhigh"
+expected_model="cursor-grok-4.7-xhigh"
 hook_input="$(cat)"
 actual_model="$(jq -r '.subagent_model // empty' <<<"$hook_input")"
 
