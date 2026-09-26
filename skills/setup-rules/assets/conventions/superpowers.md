@@ -24,7 +24,7 @@
 - On a `design-to-code` frontend, write into the global constraints of the spec, the roadmap and every plan that tasks only swap data, wire APIs and add guards, gated by `scripts/visual-freeze.sh`; `brainstorming` never designs UI, and any visual need leaves the milestone for the prototype chain.
 - No roadmap yet → write it this run and stop; otherwise plan exactly one phase, and only after the previous phase has executed.
 - Draft against the code that phase landed, never an earlier plan's text.
-- 2–5 tasks per plan, each a vertical slice, splitting any task that touches >5 files, spans two subsystems, or mixes discovery with implementation.
+- 2–5 tasks per plan, each a vertical slice, splitting any task that spans two subsystems, or mixes discovery with implementation.
 - End the run by flipping that phase's entries `pending` → `planned`, then fixing — not reporting — every check below.
 - Require `grep -nE '^[[:space:]]*(package|import) ' <file>` to print nothing for every file the run wrote.
 - Keep every `xml`/`yaml`/`properties`/`json` fence in a plan at 20 lines or fewer, exempting `<phase-num>-00.PATTERN.md` from that cap but never from the import ban.
