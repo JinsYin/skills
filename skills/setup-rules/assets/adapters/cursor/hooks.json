@@ -4,6 +4,7 @@
     "subagentStart": [
       {
         "command": "bash .cursor/hooks/enforce-subagent-model.sh",
+        "timeout": 10,
         "failClosed": true
       }
     ]
