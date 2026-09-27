@@ -5,9 +5,10 @@ alwaysApply: true
 
 # Cursor subagent model policy
 
-- Every Cursor subagent must use `model: cursor-grok-4.7-xhigh`.
-- This selector means Grok 4.7 with `effort=xhigh`; do not append bracket syntax or use a separate unsupported effort selector.
-- Do not use `inherit`, `auto`, a lower-effort model, or silent fallback.
-- If this exact selector is unavailable, stop and report the dispatch as blocked.
+- Every Cursor subagent must run Grok 4.7 with `effort=xhigh`; no other model or effort is allowed.
+- In subagent frontmatter (`.cursor/agents/*.md`), write `model: grok-4.7[effort=xhigh]`: a model ID plus bracketed `id=value` parameters.
+- In `cursor-agent --model` or `/model`, use the flattened CLI ID `cursor-grok-4.7-xhigh`; do not put it in subagent frontmatter.
+- Do not use `inherit`, `composer-*`, `auto`, a lower-effort model, or silent fallback.
+- If the selector is unavailable, stop and report the dispatch as blocked.
 
 This rule constrains Cursor subagent model selection only. It does not define any workflow or role process.
