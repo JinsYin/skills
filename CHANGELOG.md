@@ -7,6 +7,7 @@
 
 ### 新增 (Added)
 
+- **version-release 发版技能**：仅显式调用，按参数 `major|minor|patch|x.y.z` 升版（默认 `patch`）；前端 npm/pnpm、后端 Maven/Gradle 等所有模块统一版本，补齐并收起 `CHANGELOG.md` 的 `[Unreleased]`，提交 `chore(release)` 并打注释 tag；无新提交或已由 CI 发版工具接管时跳过，push 前必须征得同意。
 - **design-to-code restyle 模式**：与 `full`、`lite` 三选一，原型只提供结构（区块、相对布局、交互流程、浮层类型、文案、状态）。Step 1 新增 Branch C：按风格描述（没写时根据产品定位自定）编写新的 DESIGN.md，经一次确认后替换 `products/design/DESIGN.md`，再走 Branch A 翻译。Step 4 用 `visual-check.mjs diff --structure` 做按顺序的文案比对和并排截图，只修结构缺漏。`progress.md` 记录所用模式，回入时沿用。`setup-rules` 的 Design 约定补充：restyle 应用的 DESIGN.md 不再从原型重新抽取。
 - **design-to-code 视觉校验档位**：新增 `full`（默认）与 `lite` 两个参数，新增 Step 4 Verify，交付顺延为 Step 5。保真度改为以 token 取值精确为准；Step 4 之前两档都不渲染、不测量原型；DESIGN.md 能解释的差异直接记为合法偏差。新增 `scripts/visual-check.mjs`：`smoke` 检查类名是否生成了 CSS、控制台报错和横向溢出，`diff` 与原型成对截图并输出差异报告，最多两轮。Step 2 先确定跨页公共组件，并产出原型索引、进度账本和校验目标清单；上下文压缩后读这两份文件，不再重读原型。Step 1 的原型比对改为静态 grep，移植期间禁止重抽 DESIGN.md 或修改原型。
 - **design-to-code 可接线产出**：新增 Data seam 规则——页面只经 `src/api/` 取数，后端就绪前转发同签名的 `src/mocks/` 替身，`grep -rn '@/mocks' src/api` 即 mock 台账；原型未画的状态与前置条件以 product-spec 的 `CURRENT.md` 为准；新增原型变更后的回入规则，只重写视觉层，保留已接线的 `src/api/` 与 `src/hooks/`；Step 4 交付视觉冻结检查 `scripts/visual-freeze.sh`，供后续 plan 证明未改 token、class、布局与文案。
