@@ -54,3 +54,5 @@
 - Flip that one entry `planned` → `executed` in `ROADMAP.md`, then commit that summary and that edit and nothing else — never batch summaries or roadmap edits to the end of a phase.
 - If the whole-branch review forces changes, amend the affected `<plan-basename>.SUMMARY.md` in the same fix commit.
 - In `finishing-a-development-branch`, this rule overrides its "Present Options" step: never print the option menu or ask "Which option?"; once tests pass, go straight to `Merge back to <base-branch> locally`, then clean up the worktree.
+- Once a phase is fully `executed` (after the merge under `subagent-driven-development`, at run end under `executing-plans`), invoke `version-release minor`, or `major` if the milestone is done.
+- Once a `systematic-debugging` fix is committed on the base branch, invoke `version-release patch`.

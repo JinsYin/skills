@@ -18,6 +18,12 @@
 - Avoid `git reset --hard`.
 - Prefer fast-forward merge then `rebase` to keep history linear.
 
+### Changelog
+
+- Keep root `CHANGELOG.md` in Chinese per [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+- Log each notable change under `[Unreleased]` in the same commit; refactors go under `Changed`.
+- Cut versions only via `version-release`, which closes `[Unreleased]`.
+
 ### Development
 
 - MUST follow the rules matched by `*-best-practices` skills.
