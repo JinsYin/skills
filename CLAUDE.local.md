@@ -4,22 +4,28 @@
 
 ### Language
 
-- Reply, comment code in Chinese.
-- Keep AI terms like Token and Agent untranslated.
+- Reply in Chinese while keeping AI terms untranslated.
 
 ### Safety
 
 - Ask before delete or overwrite active edits.
 - No reference external dirs unless told.
-- Avoid `git reset --hard`.
 
 ### Git
 
 - Commit session changes only, slice vertical by feature.
 - Use scoped Conventional Commits spec, Chinese descriptions.
-- Commit after `/setup-matt-pocock-skills`, `/to-prd`, `/to-issues`, `/implement`, `/tdd` or `/code-review`.
+- Avoid `git reset --hard`.
+- Prefer fast-forward merge then `rebase` to keep history linear.
+
+### Changelog
+
+- Keep root `CHANGELOG.md` in Chinese per [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+- Log each notable change under `[Unreleased]` in the same commit; refactors go under `Changed`.
+- Cut versions only via `version-release`, which closes `[Unreleased]`.
 
 ### Development
 
-- Prefer rules from matching `*-best-practices` skills.
+- MUST follow the rules matched by `*-best-practices` skills.
+- MUST add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
 
