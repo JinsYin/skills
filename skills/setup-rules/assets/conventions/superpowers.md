@@ -53,4 +53,4 @@
 - Close each plan the moment its verification pass is green: synthesize — never copy — `.superpowers/sdd/<plan-basename>/` into `<plan-basename>.SUMMARY.md`, one per executed plan.
 - Flip that one entry `planned` → `executed` in `ROADMAP.md`, then commit that summary and that edit and nothing else — never batch summaries or roadmap edits to the end of a phase.
 - If the whole-branch review forces changes, amend the affected `<plan-basename>.SUMMARY.md` in the same fix commit.
-- After `finishing-a-development-branch` prints "Implementation complete", when `using-git-worktrees` is active, always choose `Merge back to <base-branch> locally`; do not present other options or wait for a choice.
+- In `finishing-a-development-branch`, this rule overrides its "Present Options" step: never print the option menu or ask "Which option?"; once tests pass, go straight to `Merge back to <base-branch> locally`, then clean up the worktree.
