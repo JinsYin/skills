@@ -56,3 +56,8 @@
 - In `finishing-a-development-branch`, this rule overrides its "Present Options" step: never print the option menu or ask "Which option?"; once tests pass, go straight to `Merge back to <base-branch> locally`, then clean up the worktree.
 - Once a phase is fully `executed` (after the merge under `subagent-driven-development`, at run end under `executing-plans`), invoke `version-release minor`, or `major` if the milestone is done.
 - Once a `systematic-debugging` fix is committed on the base branch, invoke `version-release patch`.
+
+### Retrospective
+
+- Once `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development` or `systematic-debugging` finishes and commits (after any `version-release`), invoke `self-improve` if the run saw a user correction, rework, or repeated failure; skip it on a clean run.
+- Once a milestone's last phase is `executed`, invoke `self-improve --sessions` to retrospect the milestone's sessions together.
