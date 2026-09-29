@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+"""Compact Claude Code session transcripts into retrospective evidence.
+
+  transcript.py list   [--cwd DIR] [--limit N]    # sessions of a project, newest first
+  transcript.py digest [--cwd DIR] [ID|PATH ...]  # signal digest; default = newest session
+
+Transcripts live at ~/.claude/projects/<slug>/<session-id>.jsonl, where slug is
+the project path with every non-alphanumeric char replaced by '-'.
+Output is deliberately small: raw transcripts are huge, the digest keeps only
+what a retrospective needs (prompts, skill loads, errors, corrections, retries).
+"""
+import argparse
+import collections
+import json
+import os
+import re
+import sys
+from datetime import datetime
+
+ROOT = os.path.expanduser("~/.claude/projects")
+CLIP = 280
+
+# 用户纠正/否定的常见措辞（中英），只作为候选提示，最终由模型判断
+CORRECTION = re.compile(
+    r"(^|\b)(no|nope|wrong|actually|instead|don'?t|stop|again|not what|why did you|revert|undo)\b"
+    r"|不对|不是|错了|应该|别|不要|重新|又|还是|怎么没|没有按|回滚|撤销",
+    re.I,
+)
+NOISE = ("<local-command", "<command-name>", "<command-message>", "<system-reminder>", "Caveat:")
+BUILTIN = {"clear", "compact", "resume", "model", "config", "cost", "exit", "help", "init", "status"}
+INTERRUPT = ("[Request interrupted", "doesn't want to proceed", "user rejected", "was rejected")
+
+
+def project_dir(cwd):
+    return os.path.join(ROOT, re.sub(r"[^A-Za-z0-9]", "-", os.path.abspath(cwd)))
+
+
+def clip(s, n=CLIP):
+    s = re.sub(r"\s+", " ", s or "").strip()
+    return s if len(s) <= n else s[: n - 1] + "…"
+
+
+def text_of(content):
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return " ".join(
+            b.get("text", "") if b.get("type") == "text" else text_of(b.get("content"))
+            for b in content
+            if isinstance(b, dict)
+        )
+    return ""
+
+
+def records(path):
+    # 逐行流式读取，避免一次性载入大文件
+    with open(path, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            try:
+                yield json.loads(line)
+            except ValueError:
+                continue
+
+
+def human_prompt(d):
+    """Return the text of a genuine user-typed message, else None."""
+    if d.get("type") != "user" or d.get("isMeta") or d.get("isSidechain"):
+        return None
+    c = (d.get("message") or {}).get("content")
+    if isinstance(c, list) and any(b.get("type") == "tool_result" for b in c if isinstance(b, dict)):
+        return None
+    # IDE 附带的选区/打开文件提示不是用户意图，剔除以省 Token
+    t = re.sub(r"<ide_\w+>.*?</ide_\w+>|</?pasted_content[^>]*>", "", text_of(c), flags=re.S).strip()
+    m = re.search(r"<command-name>/?([^<]+)</command-name>.*?<command-args>(.*?)</command-args>", t, re.S)
+    if m:
+        # 斜杠命令：保留命令名与参数，内置的清屏等命令无复盘价值
+        return None if m.group(1) in BUILTIN else f"/{m.group(1)} {m.group(2).strip()}"
+    if not t or t.startswith(NOISE) or t.startswith("Base directory for this skill"):
+        return None
+    return t
+
+
+def skill_loaded(d):
+    """Path of a skill whose body was injected into this user record, if any."""
+    if d.get("type") != "user":
+        return None
+    m = re.match(r"\s*Base directory for this skill: (\S+)", text_of((d.get("message") or {}).get("content")))
+    return m and m.group(1)
+
+
+def cmd_list(a):
+    pdir = project_dir(a.cwd)
+    if not os.path.isdir(pdir):
+        sys.exit(f"no transcripts for {a.cwd} ({pdir})")
+    files = sorted(
+        (os.path.join(pdir, f) for f in os.listdir(pdir) if f.endswith(".jsonl")),
+        key=os.path.getmtime,
+        reverse=True,
+    )[: a.limit]
+    for i, p in enumerate(files, 1):
+        title, first, prompts = "", "", 0
+        for d in records(p):
+            if d.get("type") in ("custom-title", "ai-title"):
+                title = d.get("customTitle") or d.get("aiTitle") or d.get("title") or title
+            t = human_prompt(d)
+            if t:
+                prompts += 1
+                first = first or t
+        when = datetime.fromtimestamp(os.path.getmtime(p)).strftime("%Y-%m-%d %H:%M")
+        sid = os.path.basename(p)[:-6]
+        print(f"{i:>2}. {sid[:8]}  {when}  {prompts:>3} prompts  {clip(title or first, 90)}")
+
+
+def resolve(ids, cwd):
+    pdir = project_dir(cwd)
+    if not ids:
+        files = [os.path.join(pdir, f) for f in os.listdir(pdir) if f.endswith(".jsonl")]
+        return [max(files, key=os.path.getmtime)]
+    out = []
+    for s in ids:
+        if os.path.isfile(s):
+            out.append(s)
+            continue
+        hit = [f for f in os.listdir(pdir) if f.startswith(s) and f.endswith(".jsonl")]
+        if len(hit) != 1:
+            sys.exit(f"session '{s}' matched {len(hit)} files in {pdir}")
+        out.append(os.path.join(pdir, hit[0]))
+    return out
+
+
+def digest(path):
+    print(f"## session {os.path.basename(path)[:8]}")
+    tools = {}  # tool_use_id -> (name, short input)
+    calls = collections.Counter()
+    errors = collections.Counter()
+    turn = 0
+    for d in records(path):
+        if d.get("isCompactSummary"):
+            print(f"[compact-summary] {clip(text_of((d.get('message') or {}).get('content')), 600)}")
+            continue
+        msg = d.get("message") or {}
+        content = msg.get("content")
+        loaded = skill_loaded(d)
+        if loaded:
+            print(f"[{turn}] SKILL-LOADED: {loaded}")
+            continue
+        t = human_prompt(d)
+        if t:
+            turn += 1
+            tag = "USER*" if CORRECTION.search(t) else "USER"
+            print(f"[{turn}] {tag}: {clip(t, 400)}")
+            continue
+        if not isinstance(content, list):
+            continue
+        for b in content:
+            if not isinstance(b, dict):
+                continue
+            if b.get("type") == "tool_use":
+                name, inp = b.get("name", "?"), b.get("input") or {}
+                key = inp.get("skill") or inp.get("command") or inp.get("file_path") or inp.get("description") or ""
+                tools[b.get("id")] = (name, clip(str(key), 120))
+                if name == "Skill":
+                    print(f"[{turn}] SKILL: {inp.get('skill')} {clip(str(inp.get('args') or ''), 120)}")
+                elif name in ("Agent", "Task"):
+                    print(f"[{turn}] AGENT: {clip(inp.get('description') or '', 120)}")
+                calls[(name, key)] += 1
+            elif b.get("type") == "tool_result":
+                name, key = tools.get(b.get("tool_use_id"), ("?", ""))
+                body = text_of(b.get("content"))
+                if any(m in body for m in INTERRUPT):
+                    print(f"[{turn}] REJECTED {name}: {key}")
+                elif b.get("is_error"):
+                    errors[(name, clip(body, 80))] += 1
+                    print(f"[{turn}] ERROR {name}: {key} -> {clip(body, 200)}")
+    # 同一调用重复多次 = 重试/绕路的候选信号
+    retries = [(k, n) for k, n in calls.items() if n >= 3 and k[1]]
+    for (name, key), n in sorted(retries, key=lambda x: -x[1])[:10]:
+        print(f"[retry x{n}] {name}: {key}")
+    for (name, body), n in errors.items():
+        if n >= 2:
+            print(f"[repeat-error x{n}] {name}: {body}")
+    print()
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    l = sub.add_parser("list")
+    l.add_argument("--cwd", default=os.getcwd())
+    l.add_argument("--limit", type=int, default=20)
+    g = sub.add_parser("digest")
+    g.add_argument("--cwd", default=os.getcwd())
+    g.add_argument("ids", nargs="*")
+    a = ap.parse_args()
+    if a.cmd == "list":
+        cmd_list(a)
+    else:
+        for p in resolve(a.ids, a.cwd):
+            digest(p)
+
+
+if __name__ == "__main__":
+    main()

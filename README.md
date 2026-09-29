@@ -22,10 +22,12 @@ npx skills@latest add jinsyin/skills
 - `design-to-code` - 将高保真设计/原型还原为生产级 React 代码；技术栈与工程规则以 `frontend-ui-best-practices` 为准，设计系统以 `products/design/DESIGN.md` 为准，页面结构与交互以 `products/prototype/` 为准；产出留有数据接缝与视觉冻结检查，供后续 plan 接线而不改视觉
 - `version-release` - 显式调用的本地发版：多模块统一 bump npm / Maven / Gradle 版本（默认 patch）、提升 CHANGELOG、提交并打 tag，push 前询问
 - `gsx` - GSD 工作流的统一前门，按 `--flag` 分派 20 种模式（`--fast` `--quick` `--debug` `--plan-phase` `--uat-autorun` `--vrf-approved` 等），包裹 `/gsd:*` 命令并附加项目专属校验（Context7 文档核对、原型保真约束、验收回写）
+- `self-improve` - 显式调用的会话复盘与 skill 自进化：从失败、纠正、绕路、重复问题中提炼经验，对已加载的本仓库 skill 做最小改进或新建 skill，先建 Issue 再自动发 PR
 
 ## 项目目录
 
 - `skills/` - 自定义技能资源库（唯一事实来源）
+- `.github/` - Issue / PR 模板（`self-improve` 据此提交改进）
 - `CHANGELOG.md` - 版本变更日志
 - `LICENSE` - MIT 开源协议
 
