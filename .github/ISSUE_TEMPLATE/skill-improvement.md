@@ -10,6 +10,15 @@ labels: self-improve
 - Skill: `<name>` (existing | new)
 - Change type: fix wording | add instruction | new skill | other
 
+## Context
+
+<!-- Where the lessons came from and who proposed the change. Unknown → `unknown`. -->
+
+- Source project: `<name>`
+- Agent runtime: Claude Code | Codex | Cursor | Antigravity | … (version / surface if known)
+- Retrospected sessions: `<session-id>` (`<name>`), …
+- Improvement run (`self-improve`): session `<session-id>`, model `<model>`, effort `<effort>`
+
 ## Evidence
 
 <!-- Quote the session turns that show the problem. Mark strong (user correction / rework) or weak (detour, retry, error; needs ≥2). -->

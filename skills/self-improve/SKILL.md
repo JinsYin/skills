@@ -16,6 +16,8 @@ Args: `--sessions` retrospect user-picked sessions of this project instead of on
 - Default: the current conversation. If it was compacted or is long, also digest the current transcript: `python3 <skill-dir>/scripts/transcript.py digest` (newest session of cwd).
 - `--sessions`: run `transcript.py list`, show the numbered list, let the user pick any N (numbers or id prefixes), then `transcript.py digest <id-prefix> ...`.
 
+Record provenance for the Issue: source project name (git root basename), agent runtime, and for every retrospected session its id and name. On Claude Code, `transcript.py meta [<id-prefix> ...]` prints id, name, runtime, model and effort; bare `meta` gives the current session, whose model and effort are those of this improvement run. On other runtimes, take them from your own environment; unknown → `unknown`.
+
 The digest marks `USER*` (possible correction), `ERROR`, `REJECTED`, `[retry xN]`, `[repeat-error xN]`, `SKILL`/`SKILL-LOADED` (with path). Markers are hints; judge each by context.
 
 ## 2. Scope
@@ -55,7 +57,7 @@ Group all lessons for the same skill into one pair. In the clone:
 
 1. Follow the repo's own contribution conventions (`CLAUDE.md`, `AGENTS.md`, commit style, `CHANGELOG.md` `[Unreleased]` entry in the file's language).
 2. Issue: fill `.github/ISSUE_TEMPLATE/skill-improvement.md` (drop its front matter) and create it:
-   `gh issue create -R jinsyin/skills --title "<type>(<skill>): <summary>" --label self-improve --body-file <file>` (create the label first if missing). The Issue is the report — evidence quotes, failing step, the rule that did not fire, proposed fix, and lessons below the gate.
+   `gh issue create -R jinsyin/skills --title "<type>(<skill>): <summary>" --label self-improve --body-file <file>` (create the label first if missing). The Issue is the report — provenance (step 1), evidence quotes, failing step, the rule that did not fire, proposed fix, and lessons below the gate.
 3. Branch `self-improve/<skill>-<issue#>`, apply the diff, commit, push.
 4. PR: fill `.github/pull_request_template.md`, `gh pr create -R jinsyin/skills --base <default-branch> --body-file <file>` with `Closes #<issue#>`.
 

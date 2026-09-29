@@ -3,6 +3,7 @@
 
   transcript.py list   [--cwd DIR] [--limit N]    # sessions of a project, newest first
   transcript.py digest [--cwd DIR] [ID|PATH ...]  # signal digest; default = newest session
+  transcript.py meta   [--cwd DIR] [ID|PATH ...]  # session id/name, runtime, model, effort
 
 Transcripts live at ~/.claude/projects/<slug>/<session-id>.jsonl, where slug is
 the project path with every non-alphanumeric char replaced by '-'.
@@ -128,8 +129,28 @@ def resolve(ids, cwd):
     return out
 
 
+def meta(path):
+    """One-line provenance: id, name, runtime, model(s), effort(s)."""
+    name, ai, ver, entry = "", "", "", ""
+    models, efforts = collections.Counter(), collections.Counter()
+    for d in records(path):
+        # 手动 /rename 的 customTitle 优先于自动生成的 aiTitle，取最后一次
+        name = d.get("customTitle") or name
+        ai = d.get("aiTitle") or ai
+        ver, entry = d.get("version") or ver, d.get("entrypoint") or entry
+        m = (d.get("message") or {}).get("model")
+        if m and not m.startswith("<"):
+            models[m] += 1
+        if d.get("effort"):
+            efforts[d["effort"]] += 1
+    top = lambda c: ", ".join(k for k, _ in c.most_common()) or "unknown"
+    runtime = f"Claude Code {ver} ({entry})".replace(" ()", "") if ver else "Claude Code"
+    return (f"session={os.path.basename(path)[:-6]} name={name or ai or '-'} "
+            f"runtime={runtime} model={top(models)} effort={top(efforts)}")
+
+
 def digest(path):
-    print(f"## session {os.path.basename(path)[:8]}")
+    print(f"## {meta(path)}")
     tools = {}  # tool_use_id -> (name, short input)
     calls = collections.Counter()
     errors = collections.Counter()
@@ -191,12 +212,15 @@ def main():
     g = sub.add_parser("digest")
     g.add_argument("--cwd", default=os.getcwd())
     g.add_argument("ids", nargs="*")
+    m = sub.add_parser("meta")
+    m.add_argument("--cwd", default=os.getcwd())
+    m.add_argument("ids", nargs="*")
     a = ap.parse_args()
     if a.cmd == "list":
         cmd_list(a)
     else:
         for p in resolve(a.ids, a.cwd):
-            digest(p)
+            print(meta(p)) if a.cmd == "meta" else digest(p)
 
 
 if __name__ == "__main__":
