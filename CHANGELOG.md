@@ -15,6 +15,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **Claude Agent 模型配置**：`setup-rules` 的 `superpowers-implementer`、`superpowers-re-reviewer` 与 `superpowers-task-reviewer` 从 `opus/medium` 调整为 `sonnet/xhigh`。
 - **setup-rules 接入 version-release**：CHANGELOG 规则从 Vibe Coding 约定移入 Core 约定，全局适用，发版统一走 `version-release`；Superpowers 约定在 phase 全部 `executed` 时显式发版（`subagent-driven-development` 合并后、`executing-plans` 运行结束时），完成 phase 升 minor、完成 milestone 升 major，`systematic-debugging` 修复后升 patch。
 - **Spring Boot 迁移规则补充 gauss 系 Flyway 插件**：`spring-boot-best-practices` 新增 `db-opengauss-flyway-set-role`。gauss 系会拒绝 Flyway 在收尾时执行的 `SET ROLE`，因此需要通过 Plugin SPI 注册 DatabaseType、Database、Connection 三个类，把角色还原步骤置空。规则数由 46 增至 47。
 - **技能重命名**：将 `product-spec-generate` 重命名为 `product-spec`，并同步更新技能目录、元数据、安装示例与规范模板引用。

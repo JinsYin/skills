@@ -1,6 +1,6 @@
 ---
 name: superpowers-implementer
 description: Implements one Superpowers task using TDD.
-model: opus
-effort: medium
+model: sonnet
+effort: xhigh
 ---
