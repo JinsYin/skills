@@ -15,6 +15,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **Codex Agent 模型配置**：`setup-rules` 的 Codex Agent 版本前缀统一切换至 `gpt-5.6`，保留 `sol`/`luna` 角色后缀和各自的 reasoning effort。
 - **Cursor Agent 模型配置**：`setup-rules` 的 Cursor 子 Agent 与 enforcement hook 统一切换至 `grok-4.6`，保持 `effort=xhigh`。
 - **Claude Agent 模型配置**：`setup-rules` 的 `superpowers-implementer`、`superpowers-re-reviewer` 与 `superpowers-task-reviewer` 从 `opus/medium` 调整为 `sonnet/xhigh`。
 - **setup-rules 接入 version-release**：CHANGELOG 规则从 Vibe Coding 约定移入 Core 约定，全局适用，发版统一走 `version-release`；Superpowers 约定在 phase 全部 `executed` 时显式发版（`subagent-driven-development` 合并后、`executing-plans` 运行结束时），完成 phase 升 minor、完成 milestone 升 major，`systematic-debugging` 修复后升 patch。
