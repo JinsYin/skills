@@ -7,6 +7,7 @@
 
 ### 新增 (Added)
 
+- **github-pr-merge PR 评审合并技能**：交互式按时间从早到晚挑选 open PR，汇总 PR 与关联 Issue 后分层评审（skill 改动额外检查证据、重复与精简度），评审结论发布为 PR comment；由用户选择合并、要求修改或拒绝，以 rebase 合并并关闭关联 Issue。
 - **self-improve 自进化技能**：仅显式调用，复盘当前会话或 `--sessions` 挑选的多个会话，按「强信号 1 次、弱信号 ≥2 次」门槛提炼经验，对照 `jinsyin/skills` 最新版做根因分析与去重后，以最小修改改进已加载的 skill 或新建 skill；每个 skill 经 `gh` 先建 Issue（复盘报告）再发关联 PR，人工合并；每次运行后还会复盘并改进 `self-improve` 自身；最后可同步到当前项目的已安装副本。附 `scripts/transcript.py` 精简解析会话 transcript，新增 `.github` Issue / PR 模板。
 - **version-release 发版技能**：仅显式调用，按参数 `major|minor|patch|x.y.z` 升版（默认 `patch`）；前端 npm/pnpm、后端 Maven/Gradle 等所有模块统一版本，补齐并收起 `CHANGELOG.md` 的 `[Unreleased]`，提交 `chore(release)` 并打注释 tag；无新提交或已由 CI 发版工具接管时跳过，push 前必须征得同意。
 - **design-to-code restyle 模式**：与 `full`、`lite` 三选一，原型只提供结构（区块、相对布局、交互流程、浮层类型、文案、状态）。Step 1 新增 Branch C：按风格描述（没写时根据产品定位自定）编写新的 DESIGN.md，经一次确认后替换 `products/design/DESIGN.md`，再走 Branch A 翻译。Step 4 用 `visual-check.mjs diff --structure` 做按顺序的文案比对和并排截图，只修结构缺漏。`progress.md` 记录所用模式，回入时沿用。`setup-rules` 的 Design 约定补充：restyle 应用的 DESIGN.md 不再从原型重新抽取。
