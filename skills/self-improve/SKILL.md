@@ -1,6 +1,6 @@
 ---
 name: self-improve
-description: Retrospect an agent session (failures, user corrections, detours, repeated problems), distill reusable lessons, and turn them into minimal edits to the loaded skills from the jinsyin/skills repo — or a new skill — each shipped as a GitHub Issue plus linked PR via `gh`. A self-evolving feedback loop (RSI) for skills. Args `[--sessions] [--dry-run] [focus]`. Explicit invocation only — run when the user or another skill calls it; never auto-invoke.
+description: Retrospect an agent session (failures, user corrections, detours, repeated problems, token-heavy or slow turns and subagents), distill reusable lessons that make skills more correct, cheaper and shorter, and turn them into minimal, concise edits to the loaded skills from the jinsyin/skills repo — or a new skill — each shipped as a GitHub Issue plus linked PR via `gh`. A self-evolving feedback loop (RSI) for skills. Args `[--sessions] [--dry-run] [focus]`. Explicit invocation only — run when the user or another skill calls it; never auto-invoke.
 ---
 
 # self-improve
@@ -13,12 +13,12 @@ Args: `--sessions` retrospect user-picked sessions of this project instead of on
 
 ## 1. Collect evidence
 
-- Default: the current conversation. If it was compacted or is long, also digest the current transcript: `python3 <skill-dir>/scripts/transcript.py digest` (newest session of cwd).
+- Default: the current conversation plus `python3 <skill-dir>/scripts/transcript.py digest` (newest session of cwd). The digest is compact and is the only source of token and time data, so run it even when the context looks complete.
 - `--sessions`: run `transcript.py list`, show the numbered list, let the user pick any N (numbers or id prefixes), then `transcript.py digest <id-prefix> ...`.
 
 Record provenance for the Issue: source project name (git root basename), agent runtime, and for every retrospected session its id and name. On Claude Code, `transcript.py meta [<id-prefix> ...]` prints id, name, runtime, model and effort; bare `meta` gives the current session, whose model and effort are those of this improvement run. On other runtimes, take them from your own environment; unknown → `unknown`.
 
-The digest marks `USER*` (possible correction), `ERROR`, `REJECTED`, `[retry xN]`, `[repeat-error xN]`, `SKILL`/`SKILL-LOADED` (with path). Markers are hints; judge each by context.
+The digest marks `USER*` (possible correction), `ERROR`, `REJECTED`, `[retry xN]`, `[repeat-error xN]`, `SKILL`/`SKILL-LOADED` (with path), and cost lines: `[cost]` totals for the main agent and subagents, `[heavy-turn N]` (a turn using ≥15% of input, with its skills, calls and wall time — wall time includes waiting on the user), `HEAVY-AGENT` (subagent ≥200k tokens), `BIG-RESULT` (tool output >20k chars). Markers are hints; judge each by context.
 
 ## 2. Scope
 
@@ -28,8 +28,10 @@ Candidate skills = skills used in the evidence (Skill call, slash command, `SKIL
 
 Look for: user corrections, a rule/instruction/config that existed but did not take effect, wrong-phase mistakes, detours and abandoned approaches, retries, tool errors, questions the agent asked that a skill should have answered, repeated manual steps.
 
+Also look for waste a skill caused, since cutting tokens and flow length is as much a goal as correctness: steps that add no value, steps that could merge or run in parallel, broad reads where a targeted grep would do, re-reading what is already in context, oversized or over-scoped subagents (or heavy inline work that a subagent should isolate), strong models on mechanical subtasks, and interview rounds the skill could have defaulted.
+
 Gate each lesson:
-- **Strong** (1 occurrence is enough): explicit user correction or rework caused by a skill gap or an ignored rule.
+- **Strong** (1 occurrence is enough): explicit user correction or rework caused by a skill gap or an ignored rule; a `heavy-turn`, `HEAVY-AGENT` or `BIG-RESULT` clearly caused by a skill instruction.
 - **Weak** (needs ≥2 occurrences, across one or more sessions): detours, retries, tool errors, repeated questions.
 - Below the gate → list in the summary, no Issue.
 
@@ -45,7 +47,7 @@ For each lesson decide:
 - **Gap** → add the smallest instruction to the owning section.
 - **No owner and reusable across projects** → new skill (`skills/<name>/SKILL.md`, matching existing skills' style).
 
-Minimal-diff rules: edit the smallest owning passage; prefer rewording over adding; no restructuring; keep the skill's language and tone; growth per pass ≤ ~20% of the file. Explain *why* in the instruction itself rather than adding ALL-CAPS MUSTs.
+Minimal-diff rules: edit the smallest owning passage; prefer rewording over adding, and deleting or merging over rewording when a step is waste; write in the fewest words that still change behavior, since every word is paid for on every load; no restructuring; keep the skill's language and tone; growth per pass ≤ ~20% of the file. Explain *why* in the instruction itself rather than adding ALL-CAPS MUSTs.
 
 Dedupe before writing: `gh issue list -R jinsyin/skills --state all --search "<skill> <keywords>"` and the same for `gh pr list`. An open match → add the new evidence as a comment on it and skip; a closed-as-rejected match → skip unless the evidence is materially new.
 
@@ -57,15 +59,15 @@ Group all lessons for the same skill into one pair. In the clone:
 
 1. Follow the repo's own contribution conventions (`CLAUDE.md`, `AGENTS.md`, commit style, `CHANGELOG.md` `[Unreleased]` entry in the file's language).
 2. Issue: fill `.github/ISSUE_TEMPLATE/skill-improvement.md` (drop its front matter) and create it:
-   `gh issue create -R jinsyin/skills --title "<type>(<skill>): <summary>" --label self-improve --body-file <file>` (create the label first if missing). The Issue is the report — provenance (step 1), evidence quotes, failing step, the rule that did not fire, proposed fix, and lessons below the gate.
+   `gh issue create -R jinsyin/skills --title "<type>(<skill>): <summary>" --label self-improve --label <skill> --body-file <file>`, one `--label` per improved skill (create missing labels first with `gh label create <name> -R jinsyin/skills`). The Issue is the report — provenance (step 1), evidence quotes, failing step, the rule that did not fire, proposed fix, and lessons below the gate.
 3. Branch `self-improve/<skill>-<issue#>`, apply the diff, commit, push.
-4. PR: fill `.github/pull_request_template.md`, `gh pr create -R jinsyin/skills --base <default-branch> --body-file <file>` with `Closes #<issue#>`.
+4. PR: fill `.github/pull_request_template.md`, `gh pr create -R jinsyin/skills --base <default-branch> --label self-improve --label <skill> --body-file <file>` with `Closes #<issue#>`.
 
 Never push to the default branch and never merge.
 
 ## 6. Improve self-improve
 
-Last, retrospect this run of `self-improve`: ambiguous or missing instructions you had to guess at, `transcript.py` errors or noisy output, wasted calls, and any correction the user made to this run. Apply the same gate, root-cause, and dedupe; ship survivors as their own `self-improve` Issue + PR (in `--dry-run`, add them to the report). Judge only this skill's instructions, not the lessons it produced.
+Last, retrospect this run of `self-improve`: ambiguous or missing instructions you had to guess at, `transcript.py` errors or noisy output, wasted calls, and this run's own cost in the digest, and any correction the user made to this run. Apply the same gate, root-cause, and dedupe; ship survivors as their own `self-improve` Issue + PR (in `--dry-run`, add them to the report). Judge only this skill's instructions, not the lessons it produced.
 
 ## 7. Wrap up
 

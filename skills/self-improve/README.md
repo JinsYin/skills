@@ -2,12 +2,12 @@
 
 > **会话复盘与 skill 自进化**（self-evolving / RSI 反馈循环）
 
-- 从当前会话（或 `--sessions` 挑选的本项目多个会话）中找出失败、用户纠正、绕路与重复问题，按「强信号 1 次、弱信号 ≥2 次」门槛提炼可复用经验，对照 `jinsyin/skills` 最新版做根因分析，以最小修改改进已加载的 skill 或新建 skill；
+- 从当前会话（或 `--sessions` 挑选的本项目多个会话）中找出失败、用户纠正、绕路、重复问题，以及耗 Token、耗时过长的轮次与子 Agent，按「强信号 1 次、弱信号 ≥2 次」门槛提炼可复用经验，对照 `jinsyin/skills` 最新版做根因分析，以最小且精炼的修改改进已加载的 skill（含删减、合并无效步骤以缩短流程）或新建 skill；
 - 每个 skill 先建 Issue（即复盘报告）再发关联 PR，由人工合并；
 - 随后复盘本次运行对 `self-improve` 自身做同样的改进（自我改进）；最后询问是否同步到当前项目的已安装副本；
 - `--dry-run` 只出报告。
 
-`scripts/transcript.py` 流式解析 `~/.claude/projects/<slug>/*.jsonl`，输出精简的信号摘要（纠正候选、报错、拒绝、重试、skill 加载路径），避免把原始 transcript 灌进上下文。
+`scripts/transcript.py` 流式解析 `~/.claude/projects/<slug>/*.jsonl`，输出精简的信号摘要（纠正候选、报错、拒绝、重试、skill 加载路径、主/子 Agent 的 Token 与耗时热点），避免把原始 transcript 灌进上下文。
 
 ## 参考
 

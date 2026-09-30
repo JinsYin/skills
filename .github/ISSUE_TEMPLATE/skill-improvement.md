@@ -8,7 +8,7 @@ labels: self-improve
 ## Target
 
 - Skill: `<name>` (existing | new)
-- Change type: fix wording | add instruction | new skill | other
+- Change type: fix wording | add instruction | cut tokens | shorten flow | new skill | other
 
 ## Context
 
@@ -21,7 +21,7 @@ labels: self-improve
 
 ## Evidence
 
-<!-- Quote the session turns that show the problem. Mark strong (user correction / rework) or weak (detour, retry, error; needs ≥2). -->
+<!-- Quote the session turns that show the problem. Mark strong (user correction / rework / skill-caused cost hotspot) or weak (detour, retry, error; needs ≥2). For cost, cite the digest's tokens and wall time. -->
 
 | # | Step where it went wrong | What happened | Signal |
 |---|---|---|---|
@@ -33,7 +33,7 @@ labels: self-improve
 
 ## Proposed change
 
-<!-- Minimal diff: the passage before and after, and why it prevents a recurrence. -->
+<!-- Minimal, concise diff: the passage before and after, why it prevents a recurrence, and the expected token / step saving if any. -->
 
 ## Checked
 

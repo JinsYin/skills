@@ -6,5 +6,5 @@ Closes #<issue>
 
 ## Checklist
 
-- [ ] Minimal diff; no unrelated restructuring
+- [ ] Minimal, concise diff; no unrelated restructuring
 - [ ] `CHANGELOG.md` `[Unreleased]` updated

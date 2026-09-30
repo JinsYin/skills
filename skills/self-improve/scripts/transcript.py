@@ -20,6 +20,8 @@ from datetime import datetime
 
 ROOT = os.path.expanduser("~/.claude/projects")
 CLIP = 280
+BIG_RESULT = 20_000  # 单个工具结果字符数阈值，超过视为可能浪费上下文
+HEAVY_AGENT = 200_000  # 子 Agent Token 阈值
 
 # 用户纠正/否定的常见措辞（中英），只作为候选提示，最终由模型判断
 CORRECTION = re.compile(
@@ -155,7 +157,23 @@ def digest(path):
     calls = collections.Counter()
     errors = collections.Counter()
     turn = 0
+    # 按用户轮次累计开销；同一 message.id 会拆成多条记录，usage 只计一次
+    cost = collections.defaultdict(lambda: {"in": 0, "out": 0, "calls": 0, "ms": 0, "skills": set(), "prompt": ""})
+    seen, peak, span = set(), 0, {}
     for d in records(path):
+        ts = stamp(d)
+        if ts:
+            # 每轮耗时 = 该轮首末记录的时间差（turn_duration 记录并非总存在）
+            a, _ = span.get(turn, (ts, ts))
+            span[turn] = (a, ts)
+        u = (d.get("message") or {}).get("usage")
+        mid = (d.get("message") or {}).get("id")
+        if u and mid not in seen and not d.get("isSidechain"):
+            seen.add(mid)
+            ctx = sum(u.get(k) or 0 for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
+            cost[turn]["in"] += ctx
+            cost[turn]["out"] += u.get("output_tokens") or 0
+            peak = max(peak, ctx)
         if d.get("isCompactSummary"):
             print(f"[compact-summary] {clip(text_of((d.get('message') or {}).get('content')), 600)}")
             continue
@@ -164,11 +182,13 @@ def digest(path):
         loaded = skill_loaded(d)
         if loaded:
             print(f"[{turn}] SKILL-LOADED: {loaded}")
+            cost[turn]["skills"].add(os.path.basename(loaded.rstrip("/")).split(":")[-1])
             continue
         t = human_prompt(d)
         if t:
             turn += 1
             tag = "USER*" if CORRECTION.search(t) else "USER"
+            cost[turn]["prompt"] = t
             print(f"[{turn}] {tag}: {clip(t, 400)}")
             continue
         if not isinstance(content, list):
@@ -180,7 +200,9 @@ def digest(path):
                 name, inp = b.get("name", "?"), b.get("input") or {}
                 key = inp.get("skill") or inp.get("command") or inp.get("file_path") or inp.get("description") or ""
                 tools[b.get("id")] = (name, clip(str(key), 120))
+                cost[turn]["calls"] += 1
                 if name == "Skill":
+                    cost[turn]["skills"].add(str(inp.get("skill")).split(":")[-1])
                     print(f"[{turn}] SKILL: {inp.get('skill')} {clip(str(inp.get('args') or ''), 120)}")
                 elif name in ("Agent", "Task"):
                     print(f"[{turn}] AGENT: {clip(inp.get('description') or '', 120)}")
@@ -193,6 +215,8 @@ def digest(path):
                 elif b.get("is_error"):
                     errors[(name, clip(body, 80))] += 1
                     print(f"[{turn}] ERROR {name}: {key} -> {clip(body, 200)}")
+                if len(body) > BIG_RESULT:
+                    print(f"[{turn}] BIG-RESULT {name}: {key} -> {len(body) // 1000}k chars")
     # 同一调用重复多次 = 重试/绕路的候选信号
     retries = [(k, n) for k, n in calls.items() if n >= 3 and k[1]]
     for (name, key), n in sorted(retries, key=lambda x: -x[1])[:10]:
@@ -200,7 +224,72 @@ def digest(path):
     for (name, body), n in errors.items():
         if n >= 2:
             print(f"[repeat-error x{n}] {name}: {body}")
+    for t, (a, b) in span.items():
+        cost[t]["ms"] = int((b - a).total_seconds() * 1000)
+    cost_report(cost, peak, subagents(path))
     print()
+
+
+def stamp(d):
+    try:
+        return datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00"))
+    except (KeyError, ValueError, AttributeError):
+        return None
+
+
+def subagents(path):
+    """Per-subagent totals from <session>/subagents/agent-*.jsonl (sync and async alike)."""
+    sdir = os.path.join(path[:-6], "subagents")
+    out = []
+    for f in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
+        if not f.endswith(".jsonl"):
+            continue
+        tok, calls, seen, model, ts = 0, 0, set(), "", []
+        for d in records(os.path.join(sdir, f)):
+            m = d.get("message") or {}
+            t = stamp(d)
+            if t:
+                ts.append(t)
+            if m.get("id") and m.get("usage") and m["id"] not in seen:
+                seen.add(m["id"])
+                u = m["usage"]
+                tok += sum(u.get(k) or 0 for k in ("input_tokens", "cache_creation_input_tokens",
+                                                     "cache_read_input_tokens", "output_tokens"))
+                model = m.get("model") or model
+            if isinstance(m.get("content"), list):
+                calls += sum(1 for b in m["content"] if isinstance(b, dict) and b.get("type") == "tool_use")
+        try:
+            info = json.load(open(os.path.join(sdir, f[:-6] + ".meta.json")))
+        except (OSError, ValueError):
+            info = {}
+        wall = int((max(ts) - min(ts)).total_seconds()) if ts else 0
+        out.append({"desc": info.get("description") or f[:-6], "type": info.get("agentType"),
+                    "model": model, "tokens": tok, "calls": calls, "wall": wall})
+    return out
+
+
+def fmt(n):
+    return f"{n / 1e6:.1f}M" if n >= 1e6 else f"{n / 1e3:.0f}k"
+
+
+def cost_report(cost, peak, agents):
+    """Token/time hotspots of the main agent and its subagents."""
+    tin = sum(c["in"] for c in cost.values())
+    tout = sum(c["out"] for c in cost.values())
+    ms = sum(c["ms"] for c in cost.values())
+    sub = sum(a["tokens"] for a in agents)
+    print(f"[cost] main in={fmt(tin)} out={fmt(tout)} peak-ctx={fmt(peak)} wall={ms // 60000}m "
+          f"subagents={len(agents)} ({fmt(sub)})")
+    # 占总输入 ≥15% 的轮次为热点，附带所用 skill 便于定位过长流程
+    for t, c in sorted(cost.items(), key=lambda x: -x[1]["in"])[:3]:
+        if tin and c["in"] / tin >= 0.15:
+            sk = ",".join(sorted(filter(None, c["skills"]))) or "-"
+            print(f"[heavy-turn {t}] in={fmt(c['in'])} ({c['in'] * 100 // tin}%) calls={c['calls']} "
+                  f"wall={c['ms'] // 60000}m skills={sk}: {clip(c['prompt'], 100)}")
+    for a in agents:
+        tag = "HEAVY-AGENT" if a["tokens"] >= HEAVY_AGENT else "agent"
+        print(f"[{tag}] {a['type']}/{a['model']} tokens={fmt(a['tokens'])} calls={a['calls']} "
+              f"wall={a['wall']}s: {clip(a['desc'], 80)}")
 
 
 def main():

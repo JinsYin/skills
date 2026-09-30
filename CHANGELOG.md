@@ -16,6 +16,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **self-improve 节省 Token 与缩短流程**：复盘目标新增成本与流程长度，`transcript.py digest` 输出主 Agent 与子 Agent 的 Token/耗时汇总、热点轮次（`heavy-turn`）、重量级子 Agent（`HEAVY-AGENT`）与超大工具结果（`BIG-RESULT`），由 skill 指令导致的热点视为强信号；最小改动同时要求指令精炼，可删除或合并无效步骤；Issue 与 PR 额外打上被改进 skill 的标签。
 - **self-improve 记录改进来源**：Issue 模板新增 Context 段，记录来源项目、宿主 Agent Runtime、被复盘会话的 ID 与名称，以及执行 `self-improve` 时的 model 与 effort；`transcript.py` 新增 `meta` 子命令从 Claude Code transcript 自动提取这些信息，digest 头部同步输出。
 - **setup-rules 接入 self-improve**：GSD 约定在 `spec-phase`、`discuss-phase`、`plan-phase`、`execute-phase`、`verify-work`、`code-review`、`debug` 完成并提交后，Superpowers 约定在 `brainstorming`、`writing-plans`、`executing-plans`、`subagent-driven-development`、`systematic-debugging` 完成并提交后，若本轮出现用户纠正、返工或重复失败则显式调用 `self-improve`，干净的运行跳过；里程碑完成时调用 `self-improve --sessions` 合并复盘整个里程碑的会话。
 - **Codex Agent 模型配置**：`setup-rules` 的 Codex Agent 版本前缀统一切换至 `gpt-5.6`，保留 `sol`/`luna` 角色后缀和各自的 reasoning effort。
