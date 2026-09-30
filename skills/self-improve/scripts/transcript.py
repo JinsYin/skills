@@ -22,6 +22,7 @@ ROOT = os.path.expanduser("~/.claude/projects")
 CLIP = 280
 BIG_RESULT = 20_000  # 单个工具结果字符数阈值，超过视为可能浪费上下文
 HEAVY_AGENT = 200_000  # 子 Agent Token 阈值
+HEAVY_SKILL = 0.25  # skill 占全会话 Token 或耗时的比例阈值
 
 # 用户纠正/否定的常见措辞（中英），只作为候选提示，最终由模型判断
 CORRECTION = re.compile(
@@ -74,10 +75,10 @@ def human_prompt(d):
         return None
     # IDE 附带的选区/打开文件提示不是用户意图，剔除以省 Token
     t = re.sub(r"<ide_\w+>.*?</ide_\w+>|</?pasted_content[^>]*>", "", text_of(c), flags=re.S).strip()
-    m = re.search(r"<command-name>/?([^<]+)</command-name>.*?<command-args>(.*?)</command-args>", t, re.S)
+    m = re.search(r"<command-name>/?([^<]+)</command-name>(?:.*?<command-args>(.*?)</command-args>)?", t, re.S)
     if m:
-        # 斜杠命令：保留命令名与参数，内置的清屏等命令无复盘价值
-        return None if m.group(1) in BUILTIN else f"/{m.group(1)} {m.group(2).strip()}"
+        # 斜杠命令：保留命令名与参数（无参数时没有 command-args 标签），内置的清屏等命令无复盘价值
+        return None if m.group(1) in BUILTIN else f"/{m.group(1)} {(m.group(2) or '').strip()}".rstrip()
     if not t or t.startswith(NOISE) or t.startswith("Base directory for this skill"):
         return None
     return t
@@ -158,7 +159,7 @@ def digest(path):
     errors = collections.Counter()
     turn = 0
     # 按用户轮次累计开销；同一 message.id 会拆成多条记录，usage 只计一次
-    cost = collections.defaultdict(lambda: {"in": 0, "out": 0, "calls": 0, "ms": 0, "skills": set(), "prompt": ""})
+    cost = collections.defaultdict(lambda: {"in": 0, "out": 0, "calls": 0, "ms": 0, "skills": set(), "manual": set(), "prompt": ""})
     seen, peak, span = set(), 0, {}
     for d in records(path):
         ts = stamp(d)
@@ -189,6 +190,9 @@ def digest(path):
             turn += 1
             tag = "USER*" if CORRECTION.search(t) else "USER"
             cost[turn]["prompt"] = t
+            if t.startswith("/"):
+                # 用户手敲的斜杠命令 = 手动触发；Skill 工具调用则是模型或其他 skill 自动触发
+                cost[turn]["manual"].add(t[1:].split()[0].split(":")[-1])
             print(f"[{turn}] {tag}: {clip(t, 400)}")
             continue
         if not isinstance(content, list):
@@ -226,7 +230,7 @@ def digest(path):
             print(f"[repeat-error x{n}] {name}: {body}")
     for t, (a, b) in span.items():
         cost[t]["ms"] = int((b - a).total_seconds() * 1000)
-    cost_report(cost, peak, subagents(path))
+    cost_report(cost, peak, subagents(path), span)
     print()
 
 
@@ -264,6 +268,7 @@ def subagents(path):
             info = {}
         wall = int((max(ts) - min(ts)).total_seconds()) if ts else 0
         out.append({"desc": info.get("description") or f[:-6], "type": info.get("agentType"),
+                    "start": min(ts) if ts else None,
                     "model": model, "tokens": tok, "calls": calls, "wall": wall})
     return out
 
@@ -272,7 +277,7 @@ def fmt(n):
     return f"{n / 1e6:.1f}M" if n >= 1e6 else f"{n / 1e3:.0f}k"
 
 
-def cost_report(cost, peak, agents):
+def cost_report(cost, peak, agents, span):
     """Token/time hotspots of the main agent and its subagents."""
     tin = sum(c["in"] for c in cost.values())
     tout = sum(c["out"] for c in cost.values())
@@ -290,6 +295,25 @@ def cost_report(cost, peak, agents):
         tag = "HEAVY-AGENT" if a["tokens"] >= HEAVY_AGENT else "agent"
         print(f"[{tag}] {a['type']}/{a['model']} tokens={fmt(a['tokens'])} calls={a['calls']} "
               f"wall={a['wall']}s: {clip(a['desc'], 80)}")
+    skill_report(cost, agents, span, tin + sub, ms)
+
+
+def skill_report(cost, agents, span, ttok, tms):
+    """Per-skill totals: main-agent input and wall time of the turns it was active in,
+    plus subagents started within those turns. A turn with several skills counts for each."""
+    per = collections.defaultdict(lambda: {"tok": 0, "ms": 0, "manual": False})
+    for t, c in cost.items():
+        for sk in filter(None, c["skills"] | c["manual"]):
+            p = per[sk]
+            p["tok"] += c["in"] + sum(a["tokens"] for a in agents
+                                      if t in span and a["start"] and span[t][0] <= a["start"] <= span[t][1])
+            p["ms"] += c["ms"]
+            p["manual"] |= sk in c["manual"]
+    for sk, p in sorted(per.items(), key=lambda x: -x[1]["tok"])[:5]:
+        tp, mp = p["tok"] * 100 // max(ttok, 1), p["ms"] * 100 // max(tms, 1)
+        tag = "HEAVY-SKILL" if max(tp, mp) >= HEAVY_SKILL * 100 else "skill-cost"
+        print(f"[{tag}] {sk} via={'manual' if p['manual'] else 'auto'} tokens={fmt(p['tok'])} ({tp}%) "
+              f"wall={p['ms'] // 60000}m ({mp}%)")
 
 
 def main():

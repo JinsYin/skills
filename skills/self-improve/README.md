@@ -4,10 +4,11 @@
 
 - 从当前会话（或 `--sessions` 挑选的本项目多个会话）中找出失败、用户纠正、绕路、重复问题，以及耗 Token、耗时过长的轮次与子 Agent，按「强信号 1 次、弱信号 ≥2 次」门槛提炼可复用经验，对照 `jinsyin/skills` 最新版做根因分析，以最小且精炼的修改改进已加载的 skill（含删减、合并无效步骤以缩短流程）或新建 skill；
 - 每个 skill 先建 Issue（即复盘报告）再发关联 PR，由人工合并；
+- 对手动触发且重度调用（Token 或耗时占全会话 ≥25%）的第三方 skill，复盘其调用细节，把驾驭它的规则写入 `setup-rules` 对应约定（无则新建），并入 `setup-rules` 的 Issue + PR；
 - 随后复盘本次运行对 `self-improve` 自身做同样的改进（自我改进）；最后询问是否同步到当前项目的已安装副本；
 - `--dry-run` 只出报告。
 
-`scripts/transcript.py` 流式解析 `~/.claude/projects/<slug>/*.jsonl`，输出精简的信号摘要（纠正候选、报错、拒绝、重试、skill 加载路径、主/子 Agent 的 Token 与耗时热点），避免把原始 transcript 灌进上下文。
+`scripts/transcript.py` 流式解析 `~/.claude/projects/<slug>/*.jsonl`，输出精简的信号摘要（纠正候选、报错、拒绝、重试、skill 加载路径、主/子 Agent 的 Token 与耗时热点、按 skill 聚合的开销及触发方式），避免把原始 transcript 灌进上下文。
 
 ## 参考
 

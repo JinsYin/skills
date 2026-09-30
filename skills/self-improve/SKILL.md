@@ -1,6 +1,6 @@
 ---
 name: self-improve
-description: Retrospect an agent session (failures, user corrections, detours, repeated problems, token-heavy or slow turns and subagents), distill reusable lessons that make skills more correct, cheaper and shorter, and turn them into minimal, concise edits to the loaded skills from the jinsyin/skills repo — or a new skill — each shipped as a GitHub Issue plus linked PR via `gh`. A self-evolving feedback loop (RSI) for skills. Args `[--sessions] [--dry-run] [focus]`. Explicit invocation only — run when the user or another skill calls it; never auto-invoke.
+description: Retrospect an agent session (failures, user corrections, detours, repeated problems, token-heavy or slow turns and subagents), distill reusable lessons that make skills more correct, cheaper and shorter, and turn them into minimal, concise edits to the loaded skills from the jinsyin/skills repo — or a new skill, or `setup-rules` conventions steering heavy manually-invoked third-party skills — each shipped as a GitHub Issue plus linked PR via `gh`. A self-evolving feedback loop (RSI) for skills. Args `[--sessions] [--dry-run] [focus]`. Explicit invocation only — run when the user or another skill calls it; never auto-invoke.
 ---
 
 # self-improve
@@ -18,11 +18,11 @@ Args: `--sessions` retrospect user-picked sessions of this project instead of on
 
 Record provenance for the Issue: source project name (git root basename), agent runtime, and for every retrospected session its id and name. On Claude Code, `transcript.py meta [<id-prefix> ...]` prints id, name, runtime, and the most-used and last `model/effort` pair; bare `meta` gives the current session, whose `last` pair is this improvement run's. On other runtimes, take them from your own environment; unknown → `unknown`.
 
-The digest marks `USER*` (possible correction), `ERROR`, `REJECTED`, `[retry xN]`, `[repeat-error xN]`, `SKILL`/`SKILL-LOADED` (with path), and cost lines: `[cost]` totals for the main agent and subagents, `[heavy-turn N]` (a turn using ≥15% of input, with its skills, calls and wall time — wall time includes waiting on the user), `HEAVY-AGENT` (subagent ≥200k tokens), `BIG-RESULT` (tool output >20k chars). Markers are hints; judge each by context.
+The digest marks `USER*` (possible correction), `ERROR`, `REJECTED`, `[retry xN]`, `[repeat-error xN]`, `SKILL`/`SKILL-LOADED` (with path), and cost lines: `[cost]` totals for the main agent and subagents, `[heavy-turn N]` (a turn using ≥15% of input, with its skills, calls and wall time — wall time includes waiting on the user), `HEAVY-AGENT` (subagent ≥200k tokens), `BIG-RESULT` (tool output >20k chars), `[skill-cost]`/`HEAVY-SKILL` (per-skill totals incl. its subagents; heavy = ≥25% of session tokens or wall time; `via=manual` = user-typed slash command, `auto` = Skill call by the model or another skill). Markers are hints; judge each by context.
 
 ## 2. Scope
 
-Candidate skills = skills used in the evidence (Skill call, slash command, `SKILL-LOADED`, or reading/editing the skill's own files) ∩ skills from upstream: entries in the project's `skills-lock.json` whose `source` is `jinsyin/skills` (case-insensitive), or a load path inside a `jinsyin/skills` checkout. Lessons that belong to no loaded skill can still justify a new skill. `self-improve` itself is always a candidate (see step 6). Everything else (third-party skills, the project's own code) is out of scope — mention it in the final summary only.
+Candidate skills = skills used in the evidence (Skill call, slash command, `SKILL-LOADED`, or reading/editing the skill's own files) ∩ skills from upstream: entries in the project's `skills-lock.json` whose `source` is `jinsyin/skills` (case-insensitive), or a load path inside a `jinsyin/skills` checkout. Lessons that belong to no loaded skill can still justify a new skill. `self-improve` itself is always a candidate (see step 6). Third-party skills are out of scope, except one tagged `HEAVY-SKILL via=manual`: retrospect its call details for lessons that belong in a `setup-rules` convention, since its own files cannot be changed here. Everything else (other third-party skills, the project's own code) → final summary only.
 
 ## 3. Extract lessons
 
@@ -45,6 +45,7 @@ For each lesson decide:
 - **Already covered upstream** → drop (installed copy is just stale; note it for sync). This includes corrections already fixed later in the same session, e.g. while authoring that skill.
 - **Rule exists but did not fire** → fix *why*: wording, placement, precedence, discoverability. Never add a duplicate rule.
 - **Gap** → add the smallest instruction to the owning section.
+- **Heavy third-party skill** → a rule steering how the agent drives it (skip or override a step, default an answer, delegate, cap output), never a copy of its content. Target `skills/setup-rules/assets/conventions/<ecosystem>.md` when one matches (e.g. `superpowers.md`); otherwise create it and register it in `setup-rules/SKILL.md` (convention order, file list, Workflow 2 menu).
 - **No owner and reusable across projects** → new skill (`skills/<name>/SKILL.md`, matching existing skills' style).
 
 Minimal-diff rules: edit the smallest owning passage; prefer rewording over adding, and deleting or merging over rewording when a step is waste; write in the fewest words that still change behavior, since every word is paid for on every load; no restructuring; keep the skill's language and tone; growth per pass ≤ ~20% of the file. Explain *why* in the instruction itself rather than adding ALL-CAPS MUSTs.
@@ -55,7 +56,7 @@ Dedupe before writing: `gh issue list -R jinsyin/skills --state all --search "<s
 
 ## 5. Issue + PR, one pair per skill
 
-Group all lessons for the same skill into one pair. In the clone:
+Group all lessons for the same skill into one pair; heavy third-party lessons join the `setup-rules` pair, with one extra `--label` per third-party skill. In the clone:
 
 1. Follow the repo's own contribution conventions (`CLAUDE.md`, `AGENTS.md`, commit style, `CHANGELOG.md` `[Unreleased]` entry in the file's language).
 2. Issue: fill `.github/ISSUE_TEMPLATE/skill-improvement.md` (drop its front matter) and create it:
@@ -71,4 +72,4 @@ Last, retrospect this run of `self-improve`: ambiguous or missing instructions y
 
 ## 7. Wrap up
 
-Print a short table: skill · lesson · Issue · PR, plus skipped/below-gate items. Then ask whether to sync the changed skills into this project. On yes, copy the changed files from the PR branch over each installed copy (`.claude/skills/<name>`, `.agents/skills/<name>`, …; resolve symlinks and write to the real target once). Note that re-running `npx skills@latest add jinsyin/skills` after merge makes it official.
+Print a short table: skill · lesson · Issue · PR, plus skipped/below-gate items. Then ask whether to sync the changed skills into this project. On yes, copy the changed files from the PR branch over each installed copy (`.claude/skills/<name>`, `.agents/skills/<name>`, …; resolve symlinks and write to the real target once). Note that re-running `npx skills@latest add jinsyin/skills` after merge makes it official. If a convention changed, tell the user to run `setup-rules update` to refresh `CLAUDE.local.md` (it is explicit-invocation only).
