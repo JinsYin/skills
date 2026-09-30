@@ -7,7 +7,7 @@
 
 ### 新增 (Added)
 
-- **github-pr-merge**：交互式评审 open PR，发布评审 comment，按用户选择 rebase 合并或打回。
+- **github-pr-merge**：交互式评审 open PR，发布评审 comment，按用户选择 squash 合并或打回。
 - **self-improve**：复盘会话提炼经验，经 Issue + PR 改进相关 skill。
 - **version-release**：统一升级各模块版本，收起 `[Unreleased]` 并打 tag。
 - **design-to-code restyle 模式**：原型只提供结构，按新风格重写 DESIGN.md 后还原。

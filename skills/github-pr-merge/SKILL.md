@@ -1,6 +1,6 @@
 ---
 name: github-pr-merge
-description: Interactively review and rebase-merge open GitHub PRs via `gh` — pick from open PRs (oldest first), summarize the PR and its linked Issue, review it (with extra checks for skill edits such as `self-improve` PRs), then merge, reject, or request changes, and close the Issue. Use whenever the user wants to review, triage, or merge open PRs, or process the PRs `self-improve` opened. Args `[<pr#>] [-R <owner/repo>]`.
+description: Interactively review and squash-merge open GitHub PRs via `gh` — pick from open PRs (oldest first), summarize the PR and its linked Issue, review it (with extra checks for skill edits such as `self-improve` PRs), then merge, reject, or request changes, and close the Issue. Use whenever the user wants to review, triage, or merge open PRs, or process the PRs `self-improve` opened. Args `[<pr#>] [-R <owner/repo>]`.
 ---
 
 # github-pr-merge
@@ -42,13 +42,13 @@ Report findings per layer; a failed check is a finding, not an automatic reject.
    - Minimality: smallest owning passage, growth ≤ ~20%, no restructuring, same language and tone, reasons over ALL-CAPS MUSTs.
    - `description` changed: would it over- or under-trigger?
 
-**Conflicts**: resolve before deciding, since the merge needs a clean rebase. Same-repo branches only (`isCrossRepository` → report and stop). In a scratchpad `git worktree` of the head branch, rebase onto `origin/<base>`; for `CHANGELOG.md` keep both sides' entries in their sections; ask the user about any other conflict. Then `git push --force-with-lease`, remove the worktree, and re-check.
+**Conflicts**: resolve before deciding, since the merge needs a conflict-free branch. Same-repo branches only (`isCrossRepository` → report and stop). In a scratchpad `git worktree` of the head branch, rebase onto `origin/<base>`; for `CHANGELOG.md` keep both sides' entries in their sections; ask the user about any other conflict. Then `git push --force-with-lease`, remove the worktree, and re-check.
 
 ## 4. Decide
 
 Post the review as a PR comment (`gh pr comment <n> --body-file <f>`) — authors cannot approve their own PRs, so the comment is the review record. Then ask the user, recommending one:
 
-- **Merge** — `gh pr merge <n> -R <repo> --rebase --match-head-commit <reviewed-sha>`. The SHA guard refuses to merge commits you did not review.
+- **Merge** — `gh pr merge <n> -R <repo> --squash --match-head-commit <reviewed-sha>`. The SHA guard refuses to merge commits you did not review.
 - **Request changes** — list the concrete edits; with the user's consent, apply them on the head branch (worktree as above, commit per repo conventions), push, and return to step 3.
 - **Reject** — `gh pr close <n> --comment "<reason>"`, then close each linked Issue with `--reason "not planned"` and the reason, so `self-improve`'s dedupe skips it next time.
 
