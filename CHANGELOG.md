@@ -17,6 +17,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **design-to-code 结构以原型渲染为准**：隐藏区块不移植；`CURRENT.md` 与原型冲突时以原型和 DESIGN.md 为准，差异走 `product-spec add`。
 - **CHANGELOG 条目精简**：`setup-rules` Core 约定要求每条单行，只写变更及其影响，省略实现细节。
 - **self-improve 成本复盘**：分析 Token 与耗时热点以缩短流程，Issue/PR 按 skill 打标签。
 - **self-improve 来源记录**：Issue 记录来源项目、Agent Runtime、会话与 model/effort。
