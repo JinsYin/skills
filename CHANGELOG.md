@@ -17,7 +17,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
-- **self-improve 区分常用与当前档位**：`transcript.py meta` 按 `model/effort` 成对统计，分别输出用得最多的 `most` 与最后一次的 `last`，改进运行取 `last`。
+- **self-improve 区分常用与当前档位**：`transcript.py meta` 按 `model/effort` 成对统计，分别输出用得最多的 `most` 与最后一次的 `last`，改进运行取 `last`；Issue 模板 Context 同步。
 - **design-to-code 结构以原型渲染为准**：隐藏区块不移植；`CURRENT.md` 与原型冲突时以原型和 DESIGN.md 为准，差异走 `product-spec add`。
 - **CHANGELOG 条目精简**：`setup-rules` Core 约定要求每条单行，只写变更及其影响，省略实现细节。
 - **self-improve 成本复盘**：分析 Token 与耗时热点以缩短流程，Issue/PR 按 skill 打标签。

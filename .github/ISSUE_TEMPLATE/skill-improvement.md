@@ -16,8 +16,8 @@ labels: self-improve
 
 - Source project: `<name>`
 - Agent runtime: Claude Code | Codex | Cursor | Antigravity | … (version / surface if known)
-- Retrospected sessions: `<session-id>` (`<name>`), …
-- Improvement run (`self-improve`): session `<session-id>`, model `<model>`, effort `<effort>`
+- Retrospected sessions: `<session-id>` (`<name>`), most `<model>/<effort>`, last `<model>/<effort>`; …
+- Improvement run (`self-improve`): session `<session-id>`, `<model>/<effort>` (`meta` last)
 
 ## Evidence
 
