@@ -22,6 +22,7 @@
 
 - Keep root `CHANGELOG.md` in Chinese per [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Log each notable change under `[Unreleased]` in the same commit; refactors go under `Changed`.
+- Keep entries terse: one line each, what changed and its user-facing effect; omit implementation details, file lists and rationale.
 - Cut versions only via `version-release`, which closes `[Unreleased]`.
 
 ### Development
