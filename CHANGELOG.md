@@ -23,6 +23,7 @@
 - **self-improve 成本复盘**：分析 Token 与耗时热点以缩短流程，Issue/PR 按 skill 打标签。
 - **self-improve 来源记录**：Issue 记录来源项目、Agent Runtime、会话与 model/effort。
 - **setup-rules 接入 self-improve**：GSD 与 Superpowers 流程出现纠正或返工后显式调用。
+- **Design 约定接入 self-improve**：`design-to-code` 完成并提交后调用 `self-improve`；Design 约定按三级标题归类。
 - **Agent 模型配置**：Codex 切至 `gpt-5.6`，Cursor 切至 `grok-4.6`，Claude 子 Agent 改为 `sonnet/xhigh`。
 - **setup-rules 接入 version-release**：CHANGELOG 规则移入 Core，发版统一走 `version-release`。
 - **Spring Boot gauss 系 Flyway**：新增规则绕过 gauss 系拒绝的 `SET ROLE`。
