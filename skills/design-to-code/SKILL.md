@@ -29,7 +29,7 @@ This skill owns neither stack nor design system; it wires their sources of truth
 | Stack, dependencies, scaffold, project structure, module docs | `frontend-ui-best-practices` |
 | Design system: palette, type, radii, spacing, elevation, shape language, component specs | `products/design/DESIGN.md` |
 | Page structure, layout, copy, interaction flow, state transitions | `products/prototype/` |
-| States and preconditions the prototype leaves undrawn: loading, empty, error, no-permission, disabled | `products/specs/<product>/CURRENT.md`: `状态与流转` and the `前置条件` column; where it contradicts a block, state or tone the prototype renders, the prototype and DESIGN.md win and the drift goes to the handoff for `product-spec add`, never into code |
+| States and preconditions the prototype leaves undrawn: loading, empty, error, no-permission, disabled | `products/specs/<product>/CURRENT.md`: `状态与流转` and the `前置条件` column; on conflict, prototype and DESIGN.md win and the drift goes to `product-spec add` |
 | Interface detail: validation timing, overlay state, destructive confirmation, pagination, date and number formats | `ui-ux-best-practices` |
 | Anything above that conflicts with the project | the project's `CLAUDE.md` — it wins |
 
@@ -146,9 +146,8 @@ requirements; report alternatives when useful and continue without waiting for u
 Mark every component two or more pages share; Step 3 settles them before any page. Then write:
 
 - `.design-to-code/index.md`: per page id, its prototype source line ranges, CSS selectors,
-  states and shared components; `restyle` records structure only. Structure is what the prototype
-  renders, not what its JSX contains: note later CSS overrides that hide or move a block
-  (`display: none`, grid placement), and drop a hidden block even if the spec lists it
+  states and shared components; `restyle` records structure only. Note CSS overrides that hide or
+  move a block; hidden blocks are not ported
 - `.design-to-code/progress.md`: slices done with commits, decisions, gaps and sanctioned
   deviations; updated per slice. After a context compaction, read these two, not the prototype
 - `scripts/visual-targets.mjs` (format in the `visual-check.mjs` header): every page, the first
