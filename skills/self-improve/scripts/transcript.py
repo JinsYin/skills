@@ -3,7 +3,7 @@
 
   transcript.py list   [--cwd DIR] [--limit N]    # sessions of a project, newest first
   transcript.py digest [--cwd DIR] [ID|PATH ...]  # signal digest; default = newest session
-  transcript.py meta   [--cwd DIR] [ID|PATH ...]  # session id/name, runtime, model, effort
+  transcript.py meta   [--cwd DIR] [ID|PATH ...]  # session id/name, runtime, most-used and last model/effort
 
 Transcripts live at ~/.claude/projects/<slug>/<session-id>.jsonl, where slug is
 the project path with every non-alphanumeric char replaced by '-'.
@@ -132,9 +132,10 @@ def resolve(ids, cwd):
 
 
 def meta(path):
-    """One-line provenance: id, name, runtime, model(s), effort(s)."""
-    name, ai, ver, entry = "", "", "", ""
-    models, efforts = collections.Counter(), collections.Counter()
+    """One-line provenance: id, name, runtime, most-used and last model/effort."""
+    name, ai, ver, entry, last = "", "", "", "", ""
+    # model 与 effort 会话中途都可能被切换：按对计数，最后一对才是当前档位
+    pairs = collections.Counter()
     for d in records(path):
         # 手动 /rename 的 customTitle 优先于自动生成的 aiTitle，取最后一次
         name = d.get("customTitle") or name
@@ -142,13 +143,12 @@ def meta(path):
         ver, entry = d.get("version") or ver, d.get("entrypoint") or entry
         m = (d.get("message") or {}).get("model")
         if m and not m.startswith("<"):
-            models[m] += 1
-        if d.get("effort"):
-            efforts[d["effort"]] += 1
-    top = lambda c: ", ".join(k for k, _ in c.most_common()) or "unknown"
+            last = f"{m}/{d.get('effort') or 'unknown'}"
+            pairs[last] += 1
+    most = pairs.most_common(1)[0][0] if pairs else "unknown"
     runtime = f"Claude Code {ver} ({entry})".replace(" ()", "") if ver else "Claude Code"
     return (f"session={os.path.basename(path)[:-6]} name={name or ai or '-'} "
-            f"runtime={runtime} model={top(models)} effort={top(efforts)}")
+            f"runtime={runtime} most={most} last={last or 'unknown'}")
 
 
 def digest(path):
