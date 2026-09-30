@@ -1,4 +1,4 @@
 # Project Conventions
 
-- Write skills in English.
-- Keep instructions and rules in skills concise.
+- MUST write skills in English.
+- MUST keep instructions and rules in skills concise.
