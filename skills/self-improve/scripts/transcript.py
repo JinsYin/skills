@@ -210,7 +210,8 @@ def digest(path):
                     print(f"[{turn}] SKILL: {inp.get('skill')} {clip(str(inp.get('args') or ''), 120)}")
                 elif name in ("Agent", "Task"):
                     print(f"[{turn}] AGENT: {clip(inp.get('description') or '', 120)}")
-                calls[(name, key)] += 1
+                # 同一文件的不同 Edit、不同段落的 Read 不是重试：签名带上改动内容或偏移
+                calls[(name, key, str(inp.get("old_string") or inp.get("offset") or ""))] += 1
             elif b.get("type") == "tool_result":
                 name, key = tools.get(b.get("tool_use_id"), ("?", ""))
                 body = text_of(b.get("content"))
@@ -223,7 +224,7 @@ def digest(path):
                     print(f"[{turn}] BIG-RESULT {name}: {key} -> {len(body) // 1000}k chars")
     # 同一调用重复多次 = 重试/绕路的候选信号
     retries = [(k, n) for k, n in calls.items() if n >= 3 and k[1]]
-    for (name, key), n in sorted(retries, key=lambda x: -x[1])[:10]:
+    for (name, key, _), n in sorted(retries, key=lambda x: -x[1])[:10]:
         print(f"[retry x{n}] {name}: {key}")
     for (name, body), n in errors.items():
         if n >= 2:
