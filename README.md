@@ -1,36 +1,41 @@
 # Agent Skills
 
-自定义 Agent 配置与技能（Skills）集合。
+自定义 Agent Skills 。
 
-## 安装与使用
+## 安装
 
 ```bash
 npx skills@latest add jinsyin/skills
 ```
 
-## 包含技能
+## Skills
 
-- `frontend-ui-best-practices` - 前端技术栈基线、项目脚手架、样式与 token 文件组织、模块文档规范
-- `ui-ux-best-practices` - 后台管理界面 UI/UX 最佳实践
-- `devops-best-practices` - DevOps 运维最佳实践
-- `doc-writing-best-practices` - 文档编写最佳实践
-- `spring-boot-best-practices` - Spring Boot 后端开发最佳实践
-- `setup-rules` - 交互式安装 Agent 约定、适配器及敏感文件禁读配置
-- `ideate` - 将产品想法与上下文方案逐项澄清，按固定结构整理并保存为 `docs/ideas/idea.md`
-- `doc-to-md` - 内容转换 Markdown 工具
-- `product-spec` - 管理产品功能规范（功能、交互、Flyway 式版本化变更记录），合成的 `CURRENT.md` 直接喂 Claude Design / v0 / Figma Make / Lovable
-- `design-to-code` - 将高保真设计/原型还原为生产级 React 代码；技术栈与工程规则以 `frontend-ui-best-practices` 为准，设计系统以 `products/design/DESIGN.md` 为准，页面结构与交互以 `products/prototype/` 为准；产出留有数据接缝与视觉冻结检查，供后续 plan 接线而不改视觉
-- `version-release` - 显式调用的本地发版：多模块统一 bump npm / Maven / Gradle 版本（默认 patch）、提升 CHANGELOG、提交并打 tag，push 前询问
-- `gsx` - GSD 工作流的统一前门，按 `--flag` 分派 20 种模式（`--fast` `--quick` `--debug` `--plan-phase` `--uat-autorun` `--vrf-approved` 等），包裹 `/gsd:*` 命令并附加项目专属校验（Context7 文档核对、原型保真约束、验收回写）
-- `self-improve` - 显式调用的会话复盘与 skill 自进化：从失败、纠正、绕路、重复问题中提炼经验，对已加载的本仓库 skill 做最小改进或新建 skill，先建 Issue 再自动发 PR
+| Skill | 说明 |
+| --- | --- |
+| `frontend-ui-best-practices` | 前端技术栈、项目结构与文档规范 |
+| `ui-ux-best-practices` | 后台管理界面 UI/UX 规范 |
+| `devops-best-practices` | DevOps 运维规范 |
+| `doc-writing-best-practices` | 文档编写规范 |
+| `spring-boot-best-practices` | Spring Boot 开发规范 |
+| `setup-rules` | 安装 Agent 约定与适配器配置 |
+| `ideate` | 澄清产品想法并整理为方案文档 |
+| `doc-to-md` | 将文档转换为 Markdown |
+| `product-spec` | 管理产品功能、交互与版本化变更规范 |
+| `design-to-code` | 按设计系统与原型实现 React 界面 |
+| `version-release` | 统一多模块版本、更新日志与本地发版 |
+| `gsx` | GSD 工作流入口与项目校验 |
+| `self-improve` | 复盘会话并改进相关技能 |
 
-## 项目目录
+## 目录
 
-- `skills/` - 自定义技能资源库（唯一事实来源）
-- `.github/` - Issue / PR 模板（`self-improve` 据此提交改进）
-- `CHANGELOG.md` - 版本变更日志
-- `LICENSE` - MIT 开源协议
+```
+.
+├── skills/       # 自定义技能资源库（唯一事实来源）
+├── .github/      # Issue / PR 模板（`self-improve` 据此提交改进）
+├── CHANGELOG.md  # 版本变更日志
+└── LICENSE       # MIT 开源协议
+```
 
-## 开源协议
+## LICENSE
 
 本项目采用 [MIT License](LICENSE) 协议开源。
