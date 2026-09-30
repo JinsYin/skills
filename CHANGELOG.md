@@ -7,29 +7,27 @@
 
 ### 新增 (Added)
 
-- **github-pr-merge PR 评审合并技能**：交互式按时间从早到晚挑选 open PR，汇总 PR 与关联 Issue 后分层评审（skill 改动额外检查证据、重复与精简度），评审结论发布为 PR comment；由用户选择合并、要求修改或拒绝，以 rebase 合并并关闭关联 Issue。
-- **self-improve 自进化技能**：仅显式调用，复盘当前会话或 `--sessions` 挑选的多个会话，按「强信号 1 次、弱信号 ≥2 次」门槛提炼经验，对照 `jinsyin/skills` 最新版做根因分析与去重后，以最小修改改进已加载的 skill 或新建 skill；每个 skill 经 `gh` 先建 Issue（复盘报告）再发关联 PR，人工合并；每次运行后还会复盘并改进 `self-improve` 自身；最后可同步到当前项目的已安装副本。附 `scripts/transcript.py` 精简解析会话 transcript，新增 `.github` Issue / PR 模板。
-- **version-release 发版技能**：仅显式调用，按参数 `major|minor|patch|x.y.z` 升版（默认 `patch`）；前端 npm/pnpm、后端 Maven/Gradle 等所有模块统一版本，补齐并收起 `CHANGELOG.md` 的 `[Unreleased]`，提交 `chore(release)` 并打注释 tag；无新提交或已由 CI 发版工具接管时跳过，push 前必须征得同意。
-- **design-to-code restyle 模式**：与 `full`、`lite` 三选一，原型只提供结构（区块、相对布局、交互流程、浮层类型、文案、状态）。Step 1 新增 Branch C：按风格描述（没写时根据产品定位自定）编写新的 DESIGN.md，经一次确认后替换 `products/design/DESIGN.md`，再走 Branch A 翻译。Step 4 用 `visual-check.mjs diff --structure` 做按顺序的文案比对和并排截图，只修结构缺漏。`progress.md` 记录所用模式，回入时沿用。`setup-rules` 的 Design 约定补充：restyle 应用的 DESIGN.md 不再从原型重新抽取。
-- **design-to-code 视觉校验档位**：新增 `full`（默认）与 `lite` 两个参数，新增 Step 4 Verify，交付顺延为 Step 5。保真度改为以 token 取值精确为准；Step 4 之前两档都不渲染、不测量原型；DESIGN.md 能解释的差异直接记为合法偏差。新增 `scripts/visual-check.mjs`：`smoke` 检查类名是否生成了 CSS、控制台报错和横向溢出，`diff` 与原型成对截图并输出差异报告，最多两轮。Step 2 先确定跨页公共组件，并产出原型索引、进度账本和校验目标清单；上下文压缩后读这两份文件，不再重读原型。Step 1 的原型比对改为静态 grep，移植期间禁止重抽 DESIGN.md 或修改原型。
-- **design-to-code 可接线产出**：新增 Data seam 规则——页面只经 `src/api/` 取数，后端就绪前转发同签名的 `src/mocks/` 替身，`grep -rn '@/mocks' src/api` 即 mock 台账；原型未画的状态与前置条件以 product-spec 的 `CURRENT.md` 为准；新增原型变更后的回入规则，只重写视觉层，保留已接线的 `src/api/` 与 `src/hooks/`；Step 4 交付视觉冻结检查 `scripts/visual-freeze.sh`，供后续 plan 证明未改 token、class、布局与文案。
-- **前端分流与 plan 视觉边界约定**：`setup-rules` 的 Design 约定新增 design-to-code 之后的分流——新功能先 `product-spec add`；新页面或 DESIGN.md 缺失的样式走原型 → DESIGN.md → design-to-code，其余直接改代码，走全链路前一次性按已落地前端回写原型；plan 只换数据实现、接线、加守卫，须通过视觉冻结检查；mock 可作为交付态。Superpowers 约定把该边界写进 SPEC、ROADMAP 与 plan 的 Global Constraints，ROADMAP `deliverables` 标注 `mock`/`live`，前端 task 的 Done 必跑冻结检查。
+- **github-pr-merge**：交互式评审 open PR，发布评审 comment，按用户选择 rebase 合并或打回。
+- **self-improve**：复盘会话提炼经验，经 Issue + PR 改进相关 skill。
+- **version-release**：统一升级各模块版本，收起 `[Unreleased]` 并打 tag。
+- **design-to-code restyle 模式**：原型只提供结构，按新风格重写 DESIGN.md 后还原。
+- **design-to-code 视觉校验**：新增 `full`/`lite` 档位与 Verify 步骤，附 `visual-check.mjs` 截图比对。
+- **design-to-code 可接线产出**：页面经 `src/api/` 取数、可用 mock 替身，并提供视觉冻结检查。
+- **前端分流约定**：`setup-rules` 明确 design-to-code 之后的改动路径，plan 须通过视觉冻结检查。
 
 ### 变更与重构 (Changed & Refactored)
 
 - **CHANGELOG 条目精简**：`setup-rules` Core 约定要求每条单行，只写变更及其影响，省略实现细节。
-- **self-improve 节省 Token 与缩短流程**：复盘目标新增成本与流程长度，`transcript.py digest` 输出主 Agent 与子 Agent 的 Token/耗时汇总、热点轮次（`heavy-turn`）、重量级子 Agent（`HEAVY-AGENT`）与超大工具结果（`BIG-RESULT`），由 skill 指令导致的热点视为强信号；最小改动同时要求指令精炼，可删除或合并无效步骤；Issue 与 PR 额外打上被改进 skill 的标签。
-- **self-improve 记录改进来源**：Issue 模板新增 Context 段，记录来源项目、宿主 Agent Runtime、被复盘会话的 ID 与名称，以及执行 `self-improve` 时的 model 与 effort；`transcript.py` 新增 `meta` 子命令从 Claude Code transcript 自动提取这些信息，digest 头部同步输出。
-- **setup-rules 接入 self-improve**：GSD 约定在 `spec-phase`、`discuss-phase`、`plan-phase`、`execute-phase`、`verify-work`、`code-review`、`debug` 完成并提交后，Superpowers 约定在 `brainstorming`、`writing-plans`、`executing-plans`、`subagent-driven-development`、`systematic-debugging` 完成并提交后，若本轮出现用户纠正、返工或重复失败则显式调用 `self-improve`，干净的运行跳过；里程碑完成时调用 `self-improve --sessions` 合并复盘整个里程碑的会话。
-- **Codex Agent 模型配置**：`setup-rules` 的 Codex Agent 版本前缀统一切换至 `gpt-5.6`，保留 `sol`/`luna` 角色后缀和各自的 reasoning effort。
-- **Cursor Agent 模型配置**：`setup-rules` 的 Cursor 子 Agent 与 enforcement hook 统一切换至 `grok-4.6`，保持 `effort=xhigh`。
-- **Claude Agent 模型配置**：`setup-rules` 的 `superpowers-implementer`、`superpowers-re-reviewer` 与 `superpowers-task-reviewer` 从 `opus/medium` 调整为 `sonnet/xhigh`。
-- **setup-rules 接入 version-release**：CHANGELOG 规则从 Vibe Coding 约定移入 Core 约定，全局适用，发版统一走 `version-release`；Superpowers 约定在 phase 全部 `executed` 时显式发版（`subagent-driven-development` 合并后、`executing-plans` 运行结束时），完成 phase 升 minor、完成 milestone 升 major，`systematic-debugging` 修复后升 patch。
-- **Spring Boot 迁移规则补充 gauss 系 Flyway 插件**：`spring-boot-best-practices` 新增 `db-opengauss-flyway-set-role`。gauss 系会拒绝 Flyway 在收尾时执行的 `SET ROLE`，因此需要通过 Plugin SPI 注册 DatabaseType、Database、Connection 三个类，把角色还原步骤置空。规则数由 46 增至 47。
-- **技能重命名**：将 `product-spec-generate` 重命名为 `product-spec`，并同步更新技能目录、元数据、安装示例与规范模板引用。
-- **前端基线扩容**：`frontend-ui-best-practices` 新增 `stack-scaffold`（脚手架命令与四项必须一开始就配对的设置）与 `stack-style-files`（`src/styles/` 下样式与 token 文件拆分）两条规则，`stack-baseline` 补充 lucide-react 图标选型，规则数由 2 增至 4。
-- **design-to-code 接入外部事实来源**：新增 Authority 章节明确四个事实来源——技术栈、脚手架与样式组织以 `frontend-ui-best-practices` 为准，设计系统以 `products/design/DESIGN.md` 为准，页面结构与交互以 `products/prototype/` 为准，界面交互细则以 `ui-ux-best-practices` 为准。Step 1 拆成「有 DESIGN.md 翻译」与「无 DESIGN.md 反推」双分支，补充 `references/design-md-mapping.md` 记录角色色板到组件库 token 的逐项映射（含首选/次选链、正文核对要求、自定义 token 追加规则）与 hex→HSL 转换；目录结构改为体现 monorepo 下 `src/` 的包路径层级。
-- **design-to-code 改写为英文**：技能正文与参考文件统一英文，并精简 description（该技能仅用户手动触发，原有的触发词清单为冗余）。
+- **self-improve 成本复盘**：分析 Token 与耗时热点以缩短流程，Issue/PR 按 skill 打标签。
+- **self-improve 来源记录**：Issue 记录来源项目、Agent Runtime、会话与 model/effort。
+- **setup-rules 接入 self-improve**：GSD 与 Superpowers 流程出现纠正或返工后显式调用。
+- **Agent 模型配置**：Codex 切至 `gpt-5.6`，Cursor 切至 `grok-4.6`，Claude 子 Agent 改为 `sonnet/xhigh`。
+- **setup-rules 接入 version-release**：CHANGELOG 规则移入 Core，发版统一走 `version-release`。
+- **Spring Boot gauss 系 Flyway**：新增规则绕过 gauss 系拒绝的 `SET ROLE`。
+- **技能重命名**：`product-spec-generate` 改回 `product-spec`。
+- **前端基线扩容**：新增脚手架与样式文件拆分规则，图标选用 lucide-react。
+- **design-to-code 事实来源**：明确技术栈、DESIGN.md、原型与交互规范各自的权威来源。
+- **design-to-code 英文化**：正文改为英文，精简 description。
 
 ## [v0.9.0] - 2026-09-19
 
