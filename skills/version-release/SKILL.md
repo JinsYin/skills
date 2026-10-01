@@ -1,27 +1,26 @@
 ---
 name: version-release
-description: Cut SemVer release — bump every module's version (npm/pnpm package.json, Maven pom.xml, Gradle, others) in lockstep, promote CHANGELOG.md, commit, tag, push to origin. Args `major|minor|patch|<x.y.z>`, default `patch`. Explicit invocation only — run when user or another skill/convention calls it; never auto-invoke.
+description: Cut a SemVer release — bump every module's version in lockstep, promote CHANGELOG.md, commit, tag, push to origin. Args `major|minor|patch|<x.y.z>`, default `patch`. Invoke only on explicit request: the user, another skill, or a project convention asking for a release.
 ---
 # version-release
 
-Turn commits since last tag into one versioned, tagged release, then push it to `origin`.
-
 ## 1. Gate
 
-Stop with one-line note when any hold:
+Stop with a one-line note when any holds:
 
-- Not git repo, detached HEAD, or no commits since last tag (`git describe --tags --abbrev=0`; no tag → all history).
-- Project delegate releases to CI tooling — `.releaserc*`, `release-please-config.json`, `.changeset/`, `maven-release-plugin`, `axion-release`. Hand-bump would fight it.
+- Not a git repo, or HEAD detached.
+- No commits since the last tag (`git describe --tags --abbrev=0`; no tag → all history counts).
+- CI tooling owns releases — `.releaserc*`, `release-please-config.json`, `.changeset/`, `maven-release-plugin`, `axion-release`. A hand bump would fight it.
 
-Uncommitted changes: belong to just-finished work → commit first; else stop and ask.
+Uncommitted changes from the just-finished work → commit them on their own first. Any other uncommitted change → stop and ask, leaving it untouched.
 
 ## 2. Version
 
-Bump last tag by argument; no argument → `patch`. Explicit `x.y.z` used as-is. No tag yet → no argument releases current project version minus `-SNAPSHOT` as-is; argument bumps it. Follow existing tag style (`v1.2.3` vs `1.2.3`); default `v`. Tag already exists → stop.
+Bump the last tag by the argument; no argument → `patch`. Explicit `x.y.z` is used as-is. No tag yet → no argument releases the current project version minus `-SNAPSHOT` as-is; an argument bumps it. Follow the existing tag style (`v1.2.3` vs `1.2.3`); default `v`. Tag already exists → stop.
 
-## 3. Bump every module to the same version
+## 3. Bump every module in lockstep
 
-One project, one version: update all modules, even untouched ones, so artifacts from same commit always agree. Find every version declaration first (`git ls-files` for `package.json`, `pom.xml`, `build.gradle*`, `gradle.properties`, `pyproject.toml`, `Cargo.toml`, `VERSION`, ...), then:
+One project, one version: every module gets the new version, untouched ones included, so artifacts built from one commit always agree. Find every version declaration first (`git ls-files` for `package.json`, `pom.xml`, `build.gradle*`, `gradle.properties`, `pyproject.toml`, `Cargo.toml`, `VERSION`, ...), then:
 
 | Stack | How |
 |---|---|
@@ -30,32 +29,34 @@ One project, one version: update all modules, even untouched ones, so artifacts 
 | Gradle | Edit `version=` in `gradle.properties`, or `version = "..."` in root `build.gradle(.kts)` / `allprojects {}`; check subprojects that override. |
 | Other | Edit manifest version field; refresh lockfile. |
 
-Release versions drop `-SNAPSHOT`. Verify: grep tracked manifests for old version — any hit that is this project's own version = missed module.
+Release versions drop `-SNAPSHOT`. Done when grepping tracked manifests for the old version finds no hit that is this project's own version.
 
 ## 4. CHANGELOG.md
 
-Day-to-day entries accumulate under `[Unreleased]` in root `CHANGELOG.md` ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/), in file's existing language); release closes that section. Missing → create.
+Day-to-day entries accumulate under `[Unreleased]` in root `CHANGELOG.md` ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/), in the file's existing language); the release closes that section. Missing → create.
 
-- Backfill notable changes from commits since last tag that `[Unreleased]` missed.
-- Rename `[Unreleased]` to `[<tag>] - <YYYY-MM-DD>`, open new empty one above.
-- Bottom link refs present (`[Unreleased]: .../compare/...`) → point `[Unreleased]` at `<tag>...HEAD`, add `[<tag>]` compare link.
+- Backfill until every user-facing commit since the last tag (feat, fix, perf, breaking change) has an entry.
+- Rename `[Unreleased]` to `[<tag>] - <YYYY-MM-DD>`, open a new empty one above.
+- Bottom link refs present (`[Unreleased]: .../compare/...`) → point `[Unreleased]` at `<tag>...HEAD`, add a `[<tag>]` compare link.
 
 ## 5. Commit and tag
 
 ```bash
-git add -u && git add CHANGELOG.md   # never `git add -A`: stray untracked files would ship in the release
+git add -u && git add CHANGELOG.md   # tracked edits + CHANGELOG only, so untracked strays stay out of the release
 git commit -m "chore(release): <tag>"   # follow the project's commit-language convention
 git tag -a <tag> -m "<tag>"
 ```
 
 ## 6. Push to `origin`
 
-`origin` exists → push without asking:
+`origin` exists → push without asking, only this branch and this tag:
 
 ```bash
-git push origin HEAD <tag>   # only this branch and this tag; never `--all` / `--tags`
+git push origin HEAD <tag>
 ```
 
-No remote, or remotes but no `origin` → ask which remote to push to (or skip); push only after that answer.
+No `origin` (no remote, or other remotes only) → ask which remote to push to, or whether to skip; push only after the answer.
 
-Push rejected → stop and report; keep local commit and tag. Finish with summary: version, files changed, changelog excerpt, push result.
+Push rejected → stop and report, keeping the local commit and tag as-is; reconciling with the remote is the user's call.
+
+Finish with a summary: version, files changed, changelog excerpt, push result.
