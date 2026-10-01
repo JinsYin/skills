@@ -14,9 +14,9 @@
 ### Git
 
 - Commit session changes only, slice vertical by feature.
-- Use scoped Conventional Commits spec, Chinese descriptions.
-- Avoid `git reset --hard`.
+- Use scoped Conventional Commits with Chinese descriptions, following `caveman-commit` skill rules if installed.
 - Prefer fast-forward merge then `rebase` to keep history linear.
+- Avoid `git reset --hard`.
 
 ### Changelog
 
