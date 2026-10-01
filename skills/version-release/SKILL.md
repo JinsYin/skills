@@ -1,10 +1,10 @@
 ---
 name: version-release
-description: Cut local SemVer release — bump every module's version (npm/pnpm package.json, Maven pom.xml, Gradle, others) in lockstep, promote CHANGELOG.md, commit, tag. Args `major|minor|patch|<x.y.z>`, default `patch`. Explicit invocation only — run when user or another skill/convention calls it; never auto-invoke.
+description: Cut SemVer release — bump every module's version (npm/pnpm package.json, Maven pom.xml, Gradle, others) in lockstep, promote CHANGELOG.md, commit, tag, push to origin. Args `major|minor|patch|<x.y.z>`, default `patch`. Explicit invocation only — run when user or another skill/convention calls it; never auto-invoke.
 ---
 # version-release
 
-Turn commits since last tag into one versioned, tagged release. All local until user approve push.
+Turn commits since last tag into one versioned, tagged release, then push it to `origin`.
 
 ## 1. Gate
 
@@ -48,12 +48,14 @@ git commit -m "chore(release): <tag>"   # follow the project's commit-language c
 git tag -a <tag> -m "<tag>"
 ```
 
-## 6. Push — only with consent
+## 6. Push to `origin`
 
-No `git remote` → stop and report. Remote = current branch's upstream, else `origin`, else ask. Summarise (version, files changed, changelog excerpt), ask whether push. On yes:
+`origin` exists → push without asking:
 
 ```bash
-git push <remote> HEAD <tag>   # only this branch and this tag; never `--all` / `--tags`
+git push origin HEAD <tag>   # only this branch and this tag; never `--all` / `--tags`
 ```
 
-Pushed tag may trigger deploys, can't quietly withdraw — never push without that answer.
+No remote, or remotes but no `origin` → ask which remote to push to (or skip); push only after that answer.
+
+Push rejected → stop and report; keep local commit and tag. Finish with summary: version, files changed, changelog excerpt, push result.
