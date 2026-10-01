@@ -10,14 +10,14 @@ Turn commits since last tag into one versioned, tagged release. All local until 
 
 Stop with one-line note when any hold:
 
-- Not git repo, or no commits since last tag (`git describe --tags --abbrev=0`; no tag → all history).
+- Not git repo, detached HEAD, or no commits since last tag (`git describe --tags --abbrev=0`; no tag → all history).
 - Project delegate releases to CI tooling — `.releaserc*`, `release-please-config.json`, `.changeset/`, `maven-release-plugin`, `axion-release`. Hand-bump would fight it.
 
 Uncommitted changes: belong to just-finished work → commit first; else stop and ask.
 
 ## 2. Version
 
-Bump last tag (no tag → current project version minus `-SNAPSHOT`) by argument; no argument → `patch`. Explicit `x.y.z` used as-is. Follow existing tag style (`v1.2.3` vs `1.2.3`); default `v`.
+Bump last tag by argument; no argument → `patch`. Explicit `x.y.z` used as-is. No tag yet → no argument releases current project version minus `-SNAPSHOT` as-is; argument bumps it. Follow existing tag style (`v1.2.3` vs `1.2.3`); default `v`. Tag already exists → stop.
 
 ## 3. Bump every module to the same version
 
@@ -38,20 +38,22 @@ Day-to-day entries accumulate under `[Unreleased]` in root `CHANGELOG.md` ([Keep
 
 - Backfill notable changes from commits since last tag that `[Unreleased]` missed.
 - Rename `[Unreleased]` to `[<tag>] - <YYYY-MM-DD>`, open new empty one above.
+- Bottom link refs present (`[Unreleased]: .../compare/...`) → point `[Unreleased]` at `<tag>...HEAD`, add `[<tag>]` compare link.
 
 ## 5. Commit and tag
 
 ```bash
-git add -A && git commit -m "chore(release): <tag>"   # follow the project's commit-language convention
+git add -u && git add CHANGELOG.md   # never `git add -A`: stray untracked files would ship in the release
+git commit -m "chore(release): <tag>"   # follow the project's commit-language convention
 git tag -a <tag> -m "<tag>"
 ```
 
 ## 6. Push — only with consent
 
-No `git remote` → stop and report. Else summarise (version, files changed, changelog excerpt), ask whether push. On yes:
+No `git remote` → stop and report. Remote = current branch's upstream, else `origin`, else ask. Summarise (version, files changed, changelog excerpt), ask whether push. On yes:
 
 ```bash
-git push --all <remote> && git push --tags <remote>
+git push <remote> HEAD <tag>   # only this branch and this tag; never `--all` / `--tags`
 ```
 
 Pushed tag may trigger deploys, can't quietly withdraw — never push without that answer.
