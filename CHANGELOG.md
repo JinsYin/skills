@@ -17,6 +17,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **design-to-code 文案压缩**：精简 SKILL.md 正文、description 与 `design-md-mapping.md`，减少每次加载的 Token。
 - **commit message 优先 caveman-commit**：`setup-rules` Core 约定提交信息在已安装时遵循 `caveman-commit` 规则，描述始终用中文。
 - **github-pr-merge 文案压缩**：精简 SKILL.md 正文与 description，减少每次加载的 Token。
 - **version-release 文案压缩**：精简 SKILL.md 正文与 description，减少每次加载的 Token。
