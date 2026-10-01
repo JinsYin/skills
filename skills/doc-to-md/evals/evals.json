@@ -3,24 +3,126 @@
   "evals": [
     {
       "id": 0,
-      "name": "single-pdf",
+      "name": "single-pdf-refined",
       "prompt": "帮我把这份季度报告转成 markdown：./q3_report.pdf",
-      "expected_output": "在 q3_report.pdf 同目录下生成 q3_report.md，内容为该 PDF 的 Markdown 文本（含标题/正文），并已过 lint 清理。",
-      "files": ["q3_report.pdf"]
+      "expected_output": "q3_report.pdf has 2 pages with two heading levels, a running header and page number on each page, a revenue table, and one word hyphenated across a line break. Produces q3_report.md beside the PDF via convert.sh, refines it against the PDF (heading levels, table, header/page-number noise, hyphenation) while keeping the wording verbatim, finishes with a `--lint-only` pass, and reports what refinement changed.",
+      "files": ["evals/files/q3_report.pdf"],
+      "expectations": [
+        "Runs `scripts/convert.sh` resolved from the skill directory, with no hand-rolled markitdown or markdownlint command",
+        "q3_report.md is in the same directory as q3_report.pdf",
+        "Heading levels in q3_report.md match the PDF's visual hierarchy",
+        "The revenue table is a valid Markdown table with the PDF's rows and columns",
+        "Running headers and standalone page numbers are removed",
+        "The hyphenated word is rejoined",
+        "Body text matches the PDF wording, with no paraphrase or added sentences",
+        "Runs `convert.sh --lint-only` on q3_report.md after refinement",
+        "The report gives the output path and summarizes the refinement edits"
+      ]
     },
     {
       "id": 1,
       "name": "batch-directory",
       "prompt": "把 ./briefing 这个文件夹里的几个文档都转成 md 版本",
-      "expected_output": "briefing/ 下的 meeting_notes.docx、phoenix_deck.pptx、headcount.xlsx 各生成同名 .md（同目录），都过 lint。",
-      "files": ["briefing/meeting_notes.docx", "briefing/phoenix_deck.pptx", "briefing/headcount.xlsx"]
+      "expected_output": "briefing/ holds meeting_notes.docx, phoenix_deck.pptx, headcount.xlsx, an existing README.md, and a subfolder archive/old_plan.docx. Converts and refines the three top-level documents into same-name .md files beside them, leaving README.md and archive/ untouched.",
+      "files": [
+        "evals/files/briefing/meeting_notes.docx",
+        "evals/files/briefing/phoenix_deck.pptx",
+        "evals/files/briefing/headcount.xlsx",
+        "evals/files/briefing/README.md",
+        "evals/files/briefing/archive/old_plan.docx"
+      ],
+      "expectations": [
+        "meeting_notes.md, phoenix_deck.md, and headcount.md exist in briefing/",
+        "briefing/README.md is unchanged",
+        "No .md is generated in briefing/archive/",
+        "Refines all three outputs without asking first, since the batch is small",
+        "The report lists all three output paths"
+      ]
     },
     {
       "id": 2,
-      "name": "overwrite-existing",
+      "name": "overwrite-existing-asks",
       "prompt": "把 ./policy.docx 转成 markdown",
-      "expected_output": "policy.md 已存在且含哨兵旧内容；skill 应先察觉冲突并征求用户是否覆盖，而不是静默覆盖丢失旧内容。",
-      "files": ["policy.docx", "policy.md"]
+      "expected_output": "policy.md already exists with sentinel content. Runs convert.sh without `--force`, gets exit code 3 with EXISTS, then asks whether to overwrite and waits; policy.md keeps its sentinel content.",
+      "files": ["evals/files/policy.docx", "evals/files/policy.md"],
+      "expectations": [
+        "The first convert.sh run omits `--force`",
+        "Asks the user whether to overwrite policy.md",
+        "No `--force` run happens before the user answers",
+        "policy.md still holds its sentinel content"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "raw-only-skips-refine",
+      "prompt": "./spec.docx 直接转成 md 就行，不用精修，越快越好",
+      "expected_output": "Converts spec.docx to spec.md with convert.sh and skips LLM refinement because the user asked for raw output, then reports the path.",
+      "files": ["evals/files/spec.docx"],
+      "expectations": [
+        "spec.md exists beside spec.docx",
+        "spec.md is left as convert.sh produced it, with no follow-up Edit",
+        "The report gives the output path and claims no refinement edits"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "large-batch-asks-before-refine",
+      "prompt": "把 ./archive 目录下的网页全部转成 markdown",
+      "expected_output": "archive/ holds 15 HTML pages. Converts all 15 with convert.sh, then, before refining, says refinement goes file by file and asks whether to refine all, only key files, or keep the raw output.",
+      "files": ["evals/files/archive/"],
+      "expectations": [
+        "15 .md files are generated in archive/",
+        "Asks the user to choose between refining all, refining selected files, or keeping raw output",
+        "No generated .md is edited before the user answers"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "conversion-failure-continues",
+      "prompt": "把 ./inbox 里的文件都转成 markdown",
+      "expected_output": "inbox/ holds a password-protected locked.pdf and a normal memo.docx. memo.docx converts and is refined into memo.md; locked.pdf fails with exit code 2, leaves no partial locked.md, and is reported as failed.",
+      "files": ["evals/files/inbox/locked.pdf", "evals/files/inbox/memo.docx"],
+      "expectations": [
+        "memo.md exists and is refined",
+        "No locked.md remains in inbox/",
+        "The report names locked.pdf as failed, with the reason"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "audio-refine-without-source",
+      "prompt": "这段站会录音帮我转成 markdown：./standup.mp3",
+      "expected_output": "standup.mp3 cannot be rendered by Read. Produces standup.md beside it, refines only structure visible in the .md itself (paragraphs, obvious lists), and reports that the source could not be checked.",
+      "files": ["evals/files/standup.mp3"],
+      "expectations": [
+        "standup.md exists beside standup.mp3",
+        "Refinement adds no table or content absent from the transcript",
+        "The report states that refinement was not checked against the audio source"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "markitdown-missing-stops",
+      "prompt": "把 ./q3_report.pdf 转成 md",
+      "expected_output": "markitdown is not on PATH. Detects it, tells the user to run `pip install 'markitdown[all]'`, and stops.",
+      "files": ["evals/files/q3_report.pdf"],
+      "expectations": [
+        "Tells the user to install with `pip install 'markitdown[all]'`",
+        "Installs nothing itself",
+        "Stops without creating q3_report.md"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "npx-missing-skips-lint",
+      "prompt": "帮我把 ./notes.html 转成 markdown",
+      "expected_output": "npx is not on PATH. convert.sh skips lint and keeps notes.md; refinement still runs, the conversion counts as successful, and the report mentions the skipped lint.",
+      "files": ["evals/files/notes.html"],
+      "expectations": [
+        "notes.md exists beside notes.html and is refined",
+        "Treats the conversion as successful despite the skipped lint",
+        "The report mentions that lint was skipped because npx is unavailable"
+      ]
     }
   ]
 }
