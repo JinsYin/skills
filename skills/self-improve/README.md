@@ -8,7 +8,7 @@
 - 随后复盘本次运行对 `self-improve` 自身做同样的改进（自我改进）；最后询问是否同步到当前项目的已安装副本；
 - `--dry-run` 只出报告。
 
-`scripts/transcript.py` 流式解析 `~/.claude/projects/<slug>/*.jsonl`，输出精简的信号摘要（纠正候选、报错、拒绝、重试、skill 加载路径、主/子 Agent 的 Token 与耗时热点、按 skill 聚合的开销及触发方式），避免把原始 transcript 灌进上下文。
+`scripts/transcript.py` 流式解析 `~/.claude/projects/<slug>/*.jsonl`，输出精简的信号摘要（纠正候选、报错、拒绝、重试、skill 加载路径、主/子 Agent 的 Token 与耗时热点、单次调用的开销（Token、调用数、压缩次数、峰值上下文、子 Agent 数）、按 skill 聚合的开销及触发方式），避免把原始 transcript 灌进上下文。
 
 ## 参考
 

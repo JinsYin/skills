@@ -159,7 +159,8 @@ def digest(path):
     errors = collections.Counter()
     turn = 0
     # 按用户轮次累计开销；同一 message.id 会拆成多条记录，usage 只计一次
-    cost = collections.defaultdict(lambda: {"in": 0, "out": 0, "calls": 0, "ms": 0, "skills": set(), "manual": set(), "prompt": ""})
+    cost = collections.defaultdict(lambda: {"in": 0, "out": 0, "calls": 0, "ms": 0, "skills": set(), "manual": set(), "prompt": "",
+                                         "compact": 0, "peak": 0, "res": 0})
     seen, peak, span = set(), 0, {}
     for d in records(path):
         ts = stamp(d)
@@ -174,8 +175,10 @@ def digest(path):
             ctx = sum(u.get(k) or 0 for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
             cost[turn]["in"] += ctx
             cost[turn]["out"] += u.get("output_tokens") or 0
+            cost[turn]["peak"] = max(cost[turn]["peak"], ctx)
             peak = max(peak, ctx)
         if d.get("isCompactSummary"):
+            cost[turn]["compact"] += 1
             print(f"[compact-summary] {clip(text_of((d.get('message') or {}).get('content')), 600)}")
             continue
         msg = d.get("message") or {}
@@ -215,6 +218,7 @@ def digest(path):
             elif b.get("type") == "tool_result":
                 name, key = tools.get(b.get("tool_use_id"), ("?", ""))
                 body = text_of(b.get("content"))
+                cost[turn]["res"] += len(body)
                 if any(m in body for m in INTERRUPT):
                     print(f"[{turn}] REJECTED {name}: {key}")
                 elif b.get("is_error"):
@@ -286,12 +290,19 @@ def cost_report(cost, peak, agents, span):
     sub = sum(a["tokens"] for a in agents)
     print(f"[cost] main in={fmt(tin)} out={fmt(tout)} peak-ctx={fmt(peak)} wall={ms // 60000}m "
           f"subagents={len(agents)} ({fmt(sub)})")
-    # 占总输入 ≥15% 的轮次为热点，附带所用 skill 便于定位过长流程
-    for t, c in sorted(cost.items(), key=lambda x: -x[1]["in"])[:3]:
-        if tin and c["in"] / tin >= 0.15:
-            sk = ",".join(sorted(filter(None, c["skills"]))) or "-"
-            print(f"[heavy-turn {t}] in={fmt(c['in'])} ({c['in'] * 100 // tin}%) calls={c['calls']} "
-                  f"wall={c['ms'] // 60000}m skills={sk}: {clip(c['prompt'], 100)}")
+    # 占总输入 ≥15% 的轮次为热点；其余调用了 skill 的轮次记为 skill-run。
+    # 每行即一次调用的完整开销，复盘时可直接按行列成 Issue 证据表
+    for t, c in sorted(cost.items(), key=lambda x: -x[1]["in"])[:10]:
+        heavy = tin and c["in"] / tin >= 0.15
+        sks = sorted(filter(None, c["skills"] | c["manual"]))
+        if not heavy and (not sks or not c["calls"]):  # 无工具调用的 /plugin、/effort 等内置命令不算
+            continue
+        sk = ",".join(f"{s}({'manual' if s in c['manual'] else 'auto'})" for s in sks) or "-"
+        ags = [a for a in agents if t in span and a["start"] and span[t][0] <= a["start"] <= span[t][1]]
+        print(f"[{'heavy-turn' if heavy else 'skill-run'} {t}] in={fmt(c['in'])} ({c['in'] * 100 // max(tin, 1)}%) "
+              f"out={fmt(c['out'])} calls={c['calls']} compactions={c['compact']} peak-ctx={fmt(c['peak'])} "
+              f"subagents={len(ags)} ({fmt(sum(a['tokens'] for a in ags))}) results={c['res'] // 1000}k chars "
+              f"wall={c['ms'] // 60000}m skills={sk}: {clip(c['prompt'], 100)}")
     for a in agents:
         tag = "HEAVY-AGENT" if a["tokens"] >= HEAVY_AGENT else "agent"
         print(f"[{tag}] {a['type']}/{a['model']} tokens={fmt(a['tokens'])} calls={a['calls']} "
