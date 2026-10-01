@@ -1,24 +1,23 @@
 ---
 name: github-pr-merge
-description: Interactively review and squash-merge open GitHub PRs via `gh` — pick from open PRs (oldest first), summarize the PR and its linked Issue, review it (with extra checks for skill edits such as `self-improve` PRs), then merge, reject, or request changes, and close the Issue. Use whenever the user wants to review, triage, or merge open PRs, or process the PRs `self-improve` opened. Args `[<pr#>] [-R <owner/repo>]`.
+description: Interactively review and squash-merge open GitHub PRs via `gh` — pick from open PRs (oldest first), summarize PR + linked Issue, review (extra checks for skill edits like `self-improve` PRs), then merge, reject, or request changes, close Issue. Use whenever user wants to review, triage, or merge open PRs, or process PRs `self-improve` opened. Args `[<pr#>] [-R <owner/repo>]`.
 ---
-
 # github-pr-merge
 
-Pick a PR → understand it → review → user decides → merge and close the Issue → next PR.
+Pick PR → understand → review → user decides → merge, close Issue → next PR.
 
-Repo: `-R <owner/repo>` if given, else the current repo (`gh repo view --json nameWithOwner,defaultBranchRef`). Pass `-R` to every `gh` call.
+Repo: `-R <owner/repo>` if given, else current repo (`gh repo view --json nameWithOwner,defaultBranchRef`). Pass `-R` to every `gh` call.
 
 ## 1. Pick a PR
 
-A `<pr#>` argument skips this step. Otherwise:
+`<pr#>` arg skips step. Else:
 
 ```bash
 gh pr list -R <repo> --state open --limit 200 \
   --json number,title,createdAt,author,labels,headRefName --jq 'sort_by(.createdAt)'
 ```
 
-Ask with the ask-user tool: the 3 oldest PRs as options (`#<n> <title> · <author> · <date> · <labels>`), plus a last option "List all open PRs". On that choice, print the full numbered list and let the user pick. No open PRs → say so and stop.
+Ask via ask-user tool: 3 oldest PRs as options (`#<n> <title> · <author> · <date> · <labels>`), plus last option "List all open PRs". On that choice, print full numbered list, user picks. No open PRs → say so, stop.
 
 ## 2. Understand
 
@@ -28,32 +27,32 @@ gh pr diff <n> -R <repo>
 gh issue view <i> -R <repo> --comments   # each closing Issue, plus any `#<i>` the body only mentions
 ```
 
-Summarize briefly: the problem (from the Issue), what the PR changes, files touched.
+Brief summary: problem (from Issue), what PR changes, files touched.
 
 ## 3. Review
 
-Report findings per layer; a failed check is a finding, not an automatic reject.
+Report findings per layer; failed check = finding, not auto-reject.
 
-1. **Gate** — conflicts (`mergeable`), CI (`statusCheckRollup`), files outside the PR's stated scope, commit style and `CHANGELOG.md` per the repo's `CLAUDE.md`/`AGENTS.md`.
-2. **Intent** — does the diff actually solve the Issue, and nothing else?
-3. **Skill edits** (any `skills/**/SKILL.md` or skill resource changed) — read the whole target skill on the latest default branch, not just the diff:
-   - Evidence: does the Issue's evidence meet the bar (strong once, weak ≥2), or is it a one-off slip or project-specific fact? Rules fitted to one incident make every future load pay for them.
-   - Duplication/conflict: already covered on the default branch, or contradicts another passage or skill?
-   - Minimality: smallest owning passage, growth ≤ ~20%, no restructuring, same language and tone, reasons over ALL-CAPS MUSTs.
-   - `description` changed: would it over- or under-trigger?
+1. **Gate** — conflicts (`mergeable`), CI (`statusCheckRollup`), files outside PR's stated scope, commit style and `CHANGELOG.md` per repo's `CLAUDE.md`/`AGENTS.md`.
+2. **Intent** — diff actually solves Issue, nothing else?
+3. **Skill edits** (any `skills/**/SKILL.md` or skill resource changed) — read whole target skill on latest default branch, not just diff:
+   - Evidence: Issue evidence meets bar (strong once, weak ≥2), or one-off slip / project-specific fact? Rules fitted to one incident make every future load pay.
+   - Duplication/conflict: already covered on default branch, or contradicts other passage/skill?
+   - Minimality: smallest owning passage, growth ≤ ~20%, no restructuring, same language/tone, reasons over ALL-CAPS MUSTs.
+   - `description` changed: over- or under-trigger?
 
-**Conflicts**: resolve before deciding, since the merge needs a conflict-free branch. Same-repo branches only (`isCrossRepository` → report and stop). In a scratchpad `git worktree` of the head branch, rebase onto `origin/<base>`; for `CHANGELOG.md` keep both sides' entries in their sections; ask the user about any other conflict. Then `git push --force-with-lease`, remove the worktree, and re-check.
+**Conflicts**: resolve before deciding; merge needs conflict-free branch. Same-repo branches only (`isCrossRepository` → report, stop). In scratchpad `git worktree` of head branch, rebase onto `origin/<base>`; `CHANGELOG.md` → keep both sides' entries in their sections; ask user about other conflicts. Then `git push --force-with-lease`, remove worktree, re-check.
 
 ## 4. Decide
 
-Post the review as a PR comment (`gh pr comment <n> --body-file <f>`) — authors cannot approve their own PRs, so the comment is the review record. Then ask the user, recommending one:
+Post review as PR comment (`gh pr comment <n> --body-file <f>`) — authors can't approve own PRs, so comment = review record. Then ask user, recommend one:
 
-- **Merge** — `gh pr merge <n> -R <repo> --squash --match-head-commit <reviewed-sha>`. The SHA guard refuses to merge commits you did not review.
-- **Request changes** — list the concrete edits; with the user's consent, apply them on the head branch (worktree as above, commit per repo conventions), push, and return to step 3.
-- **Reject** — `gh pr close <n> --comment "<reason>"`, then close each linked Issue with `--reason "not planned"` and the reason, so `self-improve`'s dedupe skips it next time.
+- **Merge** — `gh pr merge <n> -R <repo> --squash --match-head-commit <reviewed-sha>`. SHA guard refuses unreviewed commits.
+- **Request changes** — list concrete edits; with user consent, apply on head branch (worktree as above, commit per repo conventions), push, back to step 3.
+- **Reject** — `gh pr close <n> --comment "<reason>"`, then close each linked Issue with `--reason "not planned"` + reason, so `self-improve` dedupe skips it next time.
 
 ## 5. Wrap up
 
-- After a merge, check each closing Issue; if still open, `gh issue close <i> --comment "Fixed by #<n>"`. Issues only mentioned (not `Closes`) → ask before closing.
-- If cwd is a checkout of this repo on a clean default branch, `git pull --ff-only`; otherwise just note it.
-- Return to step 1 for the next PR until the user stops.
+- After merge, check each closing Issue; still open → `gh issue close <i> --comment "Fixed by #<n>"`. Issues only mentioned (not `Closes`) → ask before closing.
+- cwd is checkout of this repo on clean default branch → `git pull --ff-only`; else just note.
+- Back to step 1 for next PR until user stops.

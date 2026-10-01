@@ -17,6 +17,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **github-pr-merge 文案压缩**：精简 SKILL.md 正文与 description，减少每次加载的 Token。
 - **version-release 文案压缩**：精简 SKILL.md 正文与 description，减少每次加载的 Token。
 - **self-improve 文案压缩**：精简 SKILL.md 正文与 description，减少每次加载的 Token。
 - **self-improve 重试信号去误报**：`digest` 的重复计数带上 Edit 内容与 Read 偏移，同一文件的多处修改不再被标为重试。
