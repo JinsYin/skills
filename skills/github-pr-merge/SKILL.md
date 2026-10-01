@@ -54,5 +54,7 @@ Post review as PR comment (`gh pr comment <n> --body-file <f>`) — authors can'
 ## 5. Wrap up
 
 - After merge, check each closing Issue; still open → `gh issue close <i> --comment "Fixed by #<n>"`. Issues only mentioned (not `Closes`) → ask before closing.
-- cwd is checkout of this repo on clean default branch → `git pull --ff-only`; else just note.
 - Back to step 1 for next PR until user stops.
+- Loop ends (no open PRs or user stops) → auto-sync local if cwd is `<repo>` checkout (`origin` matches) on default branch, no uncommitted tracked changes (untracked OK); else just note. `git fetch origin` first — merges landed remotely, local `origin/<base>` stale. Then:
+  - No local commits (`git rev-list --count origin/<base>..HEAD` = 0) → `git pull --ff-only`.
+  - Local commits → `git rebase origin/<base>` (linear history), `git push`. `CHANGELOG.md` conflicts → keep both, local on top; ask on others. Push rejected → fetch, rebase, retry; never force.

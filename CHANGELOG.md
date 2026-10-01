@@ -17,6 +17,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **github-pr-merge 收尾同步本地**：处理完所有 PR 后，本地无新提交则 `pull --ff-only`，有新提交则 rebase 到远端默认分支后自动 push。
 - **Codex sol Agent 模型配置**：`setup-rules` 的 `superpowers-fixer` 与 `superpowers-final-reviewer` 切换至 `gpt-6.1-sol`，保持 reasoning effort。
 - **design-to-code 文案压缩**：精简 SKILL.md 正文、description 与 `design-md-mapping.md`，减少每次加载的 Token。
 - **commit message 优先 caveman-commit**：`setup-rules` Core 约定提交信息在已安装时遵循 `caveman-commit` 规则，描述始终用中文。
