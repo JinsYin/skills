@@ -7,7 +7,7 @@ description: Retrospect agent session (failures, user corrections, detours, repe
 
 Session evidence → lessons → minimal skill diffs → Issue + PR. PR = human review gate, so open without asking approval; human merges.
 
-Upstream: `jinsyin/skills` (skills in `skills/<name>/`). Keep main context lean: delegate transcript reading and each Issue/PR to subagent when available; hand over only lessons + paths.
+Upstream: `jinsyin/skills` (skills in `skills/<name>/`). Keep main context lean: work from digest, open raw transcript only for specific turns. Subagents only for many `--sessions`; inline is cheaper otherwise.
 
 Args: `--sessions` retrospect user-picked sessions of this project, not just current; `--dry-run` stop after step 4 (plus step 6 findings), print report; free text narrows focus.
 
@@ -39,7 +39,7 @@ Keep only lessons changing *future* behavior beyond this one project. Drop one-o
 
 ## 4. Root-cause against latest upstream
 
-Clone once into scratchpad (or temp dir): `gh repo clone jinsyin/skills <tmp>/skills -- --depth 1`. If cwd already `jinsyin/skills` checkout, `git fetch` + add `git worktree` on `origin/<default-branch>` instead; leave user's working tree alone. Read target skill there — not possibly stale installed copy.
+Clone once into scratchpad (or temp dir): `gh repo clone jinsyin/skills <tmp>/skills -- --depth 1`. If cwd already `jinsyin/skills` checkout, `git fetch` + add `git worktree` on `origin/<default-branch>` instead; leave user's working tree alone. Read target skill there — not possibly stale installed copy. Get `<default-branch>` via `gh repo view jinsyin/skills --json defaultBranchRef -q .defaultBranchRef.name`; never guess `main`.
 
 Per lesson decide:
 - **Already covered upstream** → drop (installed copy stale; note for sync). Includes corrections already fixed later same session, e.g. while authoring that skill.
@@ -61,8 +61,8 @@ Group all lessons for same skill into one pair; heavy third-party lessons join `
 1. Follow repo's contribution conventions (`CLAUDE.md`, `AGENTS.md`, commit style, `CHANGELOG.md` `[Unreleased]` entry in file's language).
 2. Issue: fill `.github/ISSUE_TEMPLATE/skill-improvement.md` (drop front matter), create:
    `gh issue create -R jinsyin/skills --title "<type>(<skill>): <summary>" --label self-improve --label <skill> --body-file <file>`, one `--label` per improved skill (create missing labels first with `gh label create <name> -R jinsyin/skills`). Issue = report — provenance (step 1), evidence quotes, failing step, rule that didn't fire, proposed fix, lessons below gate.
-3. Branch `self-improve/<skill>-<issue#>`, apply diff, commit, push.
-4. PR: fill `.github/pull_request_template.md`, `gh pr create -R jinsyin/skills --base <default-branch> --label self-improve --label <skill> --body-file <file>` with `Closes #<issue#>`.
+3. Branch `self-improve/<skill>-<issue#>`, apply diff, commit, `git push -u origin <branch>` unpiped so network failures surface; retry until pushed.
+4. PR: fill `.github/pull_request_template.md`, `gh pr create -R jinsyin/skills --base <default-branch> --head <branch> --label self-improve --label <skill> --body-file <file>` with `Closes #<issue#>`.
 
 Never push to default branch, never merge.
 
@@ -72,4 +72,4 @@ Last, retrospect this `self-improve` run: ambiguous/missing instructions you gue
 
 ## 7. Wrap up
 
-Print short table: skill · lesson · Issue · PR, plus skipped/below-gate items. Then ask whether to sync changed skills into this project. On yes, copy changed files from PR branch over each installed copy (`.claude/skills/<name>`, `.agents/skills/<name>`, …; resolve symlinks, write real target once). Note re-running `npx skills@latest add jinsyin/skills` after merge makes it official. If convention changed, tell user run `setup-rules update` to refresh `CLAUDE.local.md` (explicit-invocation only).
+Print short table: skill · lesson · Issue · PR, plus skipped/below-gate items. Then ask whether to sync changed skills into this project. On yes, copy changed files from local PR branch (shallow clone has no `origin/<branch>` refs) over each installed copy (`.claude/skills/<name>`, `.agents/skills/<name>`, …; resolve symlinks, write real target once). Note re-running `npx skills@latest add jinsyin/skills` after merge makes it official. If convention changed, tell user run `setup-rules update` to refresh `CLAUDE.local.md` (explicit-invocation only).

@@ -15,6 +15,10 @@
 - **design-to-code 可接线产出**：页面经 `src/api/` 取数、可用 mock 替身，并提供视觉冻结检查。
 - **前端分流约定**：`setup-rules` 明确 design-to-code 之后的改动路径，plan 须通过视觉冻结检查。
 
+### 修复 (Fixed)
+
+- **self-improve 发 PR 与同步更稳**：显式取默认分支、push 失败不再被吞、`gh pr create` 带 `--head`，同步改从本地 PR 分支取文件；不再默认派生子 Agent。
+
 ### 变更与重构 (Changed & Refactored)
 
 - **github-pr-merge 收尾同步本地**：处理完所有 PR 后，本地无新提交则 `pull --ff-only`，有新提交则 rebase 到远端默认分支后自动 push。
