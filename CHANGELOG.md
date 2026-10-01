@@ -28,6 +28,7 @@
 - **github-pr-merge 文案压缩**：精简 SKILL.md 正文与 description，减少每次加载的 Token。
 - **version-release 文案压缩**：精简 SKILL.md 正文与 description，减少每次加载的 Token。
 - **version-release 完成标准更明确**：changelog 须覆盖自上个 tag 起所有面向用户的提交，无关的未提交改动原样保留并询问。
+- **self-improve 完成标准更明确**：`--dry-run` 也会复盘自身并写入报告，各步补齐完成标准，description 更精简。
 - **self-improve 文案压缩**：精简 SKILL.md 正文与 description，减少每次加载的 Token。
 - **self-improve 重试信号去误报**：`digest` 的重复计数带上 Edit 内容与 Read 偏移，同一文件的多处修改不再被标为重试。
 - **self-improve 复盘重度第三方 skill**：手动触发且 Token 或耗时占比 ≥25% 的第三方 skill，改进建议写入 `setup-rules` 约定并提 PR；修复无参数斜杠命令未被识别。
