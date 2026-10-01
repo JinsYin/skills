@@ -17,6 +17,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **self-improve 重试信号去误报**：`digest` 的重复计数带上 Edit 内容与 Read 偏移，同一文件的多处修改不再被标为重试。
 - **self-improve 复盘重度第三方 skill**：手动触发且 Token 或耗时占比 ≥25% 的第三方 skill，改进建议写入 `setup-rules` 约定并提 PR；修复无参数斜杠命令未被识别。
 - **self-improve 区分常用与当前档位**：`transcript.py meta` 按 `model/effort` 成对统计，分别输出用得最多的 `most` 与最后一次的 `last`，改进运行取 `last`；Issue 模板 Context 同步。
 - **design-to-code 结构以原型渲染为准**：隐藏区块不移植；`CURRENT.md` 与原型冲突时以原型和 DESIGN.md 为准，差异走 `product-spec add`。
