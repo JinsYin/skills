@@ -5,53 +5,159 @@
       "id": 0,
       "name": "monorepo-auto-push-origin",
       "prompt": "/version-release minor",
-      "expected_output": "pnpm monorepo（根 + packages/a、packages/b，均为 1.2.3，最新 tag v1.2.3，有 origin 和 upstream 两个 remote，另有未跟踪的 notes.txt）：所有 package.json 统一升到 1.3.0 并刷新 lockfile，[Unreleased] 改为 [v1.3.0] - 当天日期并新开空 [Unreleased]，提交 chore(release): v1.3.0，打附注 tag v1.3.0，不询问直接 git push origin HEAD v1.3.0。",
+      "expected_output": "pnpm monorepo (root + packages/a, packages/b, all at 1.2.3; latest tag v1.2.3; remotes origin and upstream; untracked notes.txt): every package.json goes to 1.3.0 with the lockfile refreshed, [Unreleased] becomes [v1.3.0] - <today> under a new empty [Unreleased], commit chore(release): v1.3.0, annotated tag v1.3.0, then `git push origin HEAD v1.3.0` without asking.",
       "files": [],
       "expectations": [
-        "根与所有 workspace 的 package.json version 都是 1.3.0",
-        "CHANGELOG.md 含 `## [v1.3.0] - <今天>` 且其上方有新的空 `## [Unreleased]`",
-        "release commit 不包含未跟踪的 notes.txt（未使用 git add -A）",
-        "创建附注 tag v1.3.0",
-        "未询问用户即执行 push，目标为 origin 而非 upstream",
-        "push 只推当前分支与 v1.3.0，未使用 --all 或 --tags"
+        "Root and every workspace package.json have version 1.3.0",
+        "CHANGELOG.md contains `## [v1.3.0] - <today>` with a new empty `## [Unreleased]` above it",
+        "The release commit excludes the untracked notes.txt (no `git add -A`)",
+        "Annotated tag v1.3.0 is created",
+        "Pushes to origin, not upstream, without asking the user",
+        "Pushes only the current branch and v1.3.0, without `--all` or `--tags`"
       ]
     },
     {
       "id": 1,
-      "name": "no-origin-asks-before-push",
-      "prompt": "发个 patch 版本",
-      "expected_output": "Maven 多模块项目（父 pom + 2 个子模块，版本 0.4.1-SNAPSHOT，最新 tag 0.4.0，唯一 remote 名为 github，无 origin）：所有模块升到 0.4.1（去 -SNAPSHOT），tag 沿用无 v 前缀风格 0.4.1，提交并打 tag 后询问推送到哪个 remote，得到答复前不 push。",
+      "name": "maven-default-patch-asks-remote",
+      "prompt": "发个版本",
+      "expected_output": "Maven multi-module project (parent pom + 2 child modules at 0.4.1-SNAPSHOT; latest tag 0.4.0; only remote is named github, no origin): no argument defaults to patch, so every module goes to 0.4.1 with -SNAPSHOT dropped; the tag keeps the unprefixed style as 0.4.1; after commit and tag, asks which remote to push to and holds the push until answered.",
       "files": [],
       "expectations": [
-        "父 pom 与所有子模块 version 都是 0.4.1，无 -SNAPSHOT 残留",
-        "tag 名为 0.4.1（沿用无 v 前缀风格）",
-        "本地已完成 release commit 与 tag",
-        "push 前询问用户选择 remote，且在答复前未执行任何 git push"
+        "Parent pom and both child modules have version 0.4.1, with no -SNAPSHOT left",
+        "Tag is named 0.4.1, following the existing unprefixed style",
+        "Release commit and tag exist locally",
+        "Asks which remote to push to, and runs no `git push` before the answer"
       ]
     },
     {
       "id": 2,
       "name": "no-remote-no-tag-first-release",
       "prompt": "/version-release",
-      "expected_output": "全新 npm 单包项目（package.json 版本 0.1.0，没有任何 tag，没有 remote，没有 CHANGELOG.md）：首发按当前版本原样发布 v0.1.0（不 bump 到 0.1.1），新建 CHANGELOG.md 并从提交历史回填，提交并打 tag v0.1.0，然后询问是否/推送到哪个 remote，不自行添加 remote。",
+      "expected_output": "Fresh single-package npm project (package.json at 0.1.0; no tags, no remote, no CHANGELOG.md): the first release ships the current version as-is (v0.1.0, not 0.1.1), creates CHANGELOG.md backfilled from commit history, commits and tags v0.1.0, then asks whether and where to push without adding a remote itself.",
       "files": [],
       "expectations": [
-        "发布版本为 v0.1.0，package.json 仍为 0.1.0",
-        "新建 CHANGELOG.md，包含 `## [v0.1.0] - <今天>` 与从提交回填的条目",
-        "创建 tag v0.1.0",
-        "因无 remote 而询问用户，未执行 git push，也未擅自 git remote add"
+        "Released version is v0.1.0 and package.json stays at 0.1.0",
+        "CHANGELOG.md is created with `## [v0.1.0] - <today>` and entries backfilled from commits",
+        "Tag v0.1.0 is created",
+        "Asks the user about pushing because no remote exists, and runs neither `git push` nor `git remote add`"
       ]
     },
     {
       "id": 3,
       "name": "existing-tag-stops",
       "prompt": "/version-release 2.0.0",
-      "expected_output": "项目已存在 tag v2.0.0（最新 tag 为 v2.0.0 之后还有新提交）：检测到目标 tag 已存在，一行说明后停止，不改版本、不提交、不打 tag、不 push。",
+      "expected_output": "Tag v2.0.0 already exists (with new commits after it): detects the existing target tag, stops with a one-line note, and leaves versions, commits, tags, and remotes untouched.",
       "files": [],
       "expectations": [
-        "明确指出 tag v2.0.0 已存在并停止",
-        "工作区无版本号改动，未新增提交",
-        "未创建、移动或删除任何 tag，未执行 git push"
+        "States that tag v2.0.0 already exists and stops",
+        "No version changes in the working tree and no new commit",
+        "No tag is created, moved, or deleted, and no `git push` runs"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "no-commits-since-tag-stops",
+      "prompt": "/version-release",
+      "expected_output": "npm package at 1.0.0 whose HEAD is exactly tag v1.0.0: finds no commits since the last tag and stops with a one-line note.",
+      "files": [],
+      "expectations": [
+        "States there are no commits since v1.0.0 and stops",
+        "No file changes, commits, tags, or pushes"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "detached-head-stops",
+      "prompt": "/version-release patch",
+      "expected_output": "npm package with HEAD detached at a commit after tag v1.0.0: detects the detached HEAD and stops with a one-line note.",
+      "files": [],
+      "expectations": [
+        "States that HEAD is detached and stops",
+        "No file changes, commits, tags, or pushes"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "not-a-git-repo-stops",
+      "prompt": "/version-release",
+      "expected_output": "npm package directory that is not a git repository: detects it and stops with a one-line note.",
+      "files": [],
+      "expectations": [
+        "States the directory is not a git repository and stops",
+        "Runs no `git init` and changes no files"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "ci-release-tooling-stops",
+      "prompt": "/version-release",
+      "expected_output": "npm project with a `.changeset/` directory and new commits since v0.3.0: recognizes that Changesets owns releases and stops with a one-line note instead of bumping by hand.",
+      "files": [],
+      "expectations": [
+        "Names Changesets (`.changeset/`) as the reason and stops",
+        "No version bump, CHANGELOG edit, commit, or tag"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "unrelated-dirty-tree-asks",
+      "prompt": "/version-release",
+      "expected_output": "npm package (tag v1.1.0, new commits since) with an uncommitted edit to src/config.ts that no work in this session produced: stops and asks how to handle the change before releasing.",
+      "files": [],
+      "expectations": [
+        "Asks the user how to handle the uncommitted src/config.ts change",
+        "No version bump, commit, tag, or push before the answer",
+        "src/config.ts is neither stashed, discarded, nor committed"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "finished-work-committed-first",
+      "prompt": "刚把导出 CSV 时中文乱码的问题修好了，顺便发个 patch 版本",
+      "expected_output": "npm package at 1.4.2 (tag v1.4.2, empty [Unreleased], origin present) with the just-finished fix uncommitted in src/export.ts: commits the fix on its own first, then releases v1.4.3 with the fix backfilled into the changelog.",
+      "files": [],
+      "expectations": [
+        "src/export.ts is committed in its own commit before the release commit",
+        "The `chore(release): v1.4.3` commit contains only version and CHANGELOG changes",
+        "The `[v1.4.3]` CHANGELOG section has an entry for the CSV encoding fix"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "gradle-explicit-version-changelog-links",
+      "prompt": "/version-release 3.0.0",
+      "expected_output": "Gradle multi-project (version=2.4.0 in gradle.properties; subproject :legacy overrides `version = \"2.4.0\"` in its build.gradle.kts; latest tag v2.4.0; origin present). CHANGELOG.md is written in Chinese, its [Unreleased] lists only one of the two feat commits since v2.4.0, and it ends with compare link refs. Releases exactly 3.0.0: updates both version declarations, backfills the missed feat in Chinese, and rewrites the link refs.",
+      "files": [],
+      "expectations": [
+        "gradle.properties has version=3.0.0",
+        "The :legacy override in its build.gradle.kts is 3.0.0",
+        "Tag is v3.0.0, using the explicit version as-is",
+        "The `[v3.0.0]` CHANGELOG section includes the missed feat commit, written in Chinese",
+        "Link refs point `[Unreleased]` at `v3.0.0...HEAD` and add a `[v3.0.0]` compare link"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "maven-revision-first-release-bump",
+      "prompt": "/version-release minor",
+      "expected_output": "Maven multi-module project versioned through `${revision}` (parent pom `<revision>1.0.0-SNAPSHOT</revision>`; no tags; origin present): with no tag, the minor argument bumps the current 1.0.0 to 1.1.0 by editing the `<revision>` property; the tag takes the default v prefix.",
+      "files": [],
+      "expectations": [
+        "Parent pom `<revision>` is 1.1.0",
+        "Child poms still reference `${revision}` rather than a hard-coded version",
+        "Tag is v1.1.0"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "push-rejected-keeps-local",
+      "prompt": "/version-release patch",
+      "expected_output": "npm package at 2.1.0 (tag v2.1.0, new commits since) whose origin branch holds commits missing locally, so the push is rejected: stops and reports the rejection, keeping the local release commit and tag.",
+      "files": [],
+      "expectations": [
+        "Reports the push rejection and stops",
+        "Local release commit and tag v2.1.1 remain in place",
+        "No force push, pull, rebase, or tag deletion is attempted"
       ]
     }
   ]
