@@ -15,6 +15,10 @@
 - **design-to-code 可接线产出**：页面经 `src/api/` 取数、可用 mock 替身，并提供视觉冻结检查。
 - **前端分流约定**：`setup-rules` 明确 design-to-code 之后的改动路径，plan 须通过视觉冻结检查。
 
+### 变更 (Changed)
+
+- **superpowers 约定**：分阶段写计划时按章节定向读取，多计划阶段按计划分派 subagent 起草，避免上下文溢出。
+
 ### 修复 (Fixed)
 
 - **Claude 文件跟踪补齐**：移除 Claude 目录忽略规则，纳入 setup-rules update 的 Claude eval fixtures。
