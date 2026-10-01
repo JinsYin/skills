@@ -1,6 +1,6 @@
 ---
 name: github-pr-merge
-description: Interactively review and squash-merge open GitHub PRs via `gh` — pick from open PRs (oldest first), summarize PR + linked Issue, review (extra checks for skill edits like `self-improve` PRs), then merge, reject, or request changes, close Issue. Use whenever user wants to review, triage, or merge open PRs, or process PRs `self-improve` opened. Args `[<pr#>] [-R <owner/repo>]`.
+description: Review and squash-merge open GitHub PRs one by one via `gh`, user deciding each. Use when user wants to review, triage, or merge open PRs, including PRs `self-improve` opened. Args `[<pr#>] [-R <owner/repo>]`.
 ---
 # github-pr-merge
 
@@ -10,14 +10,14 @@ Repo: `-R <owner/repo>` if given, else current repo (`gh repo view --json nameWi
 
 ## 1. Pick a PR
 
-`<pr#>` arg skips step. Else:
+`<pr#>` arg skips step (not open → say so, go to step 5). Else:
 
 ```bash
 gh pr list -R <repo> --state open --limit 200 \
   --json number,title,createdAt,author,labels,headRefName --jq 'sort_by(.createdAt)'
 ```
 
-Ask via ask-user tool: 3 oldest PRs as options (`#<n> <title> · <author> · <date> · <labels>`), plus last option "List all open PRs". On that choice, print full numbered list, user picks. No open PRs → say so, stop.
+Ask via ask-user tool: 3 oldest PRs as options (`#<n> <title> · <author> · <date> · <labels>`), plus last option "List all open PRs". On that choice, print full numbered list, user picks. No open PRs → say so, go to step 5.
 
 ## 2. Understand
 
@@ -31,24 +31,26 @@ Brief summary: problem (from Issue), what PR changes, files touched.
 
 ## 3. Review
 
-Report findings per layer; failed check = finding, not auto-reject.
+Every layer gets a verdict: pass, or findings. A failed check is a finding; user still decides.
 
 1. **Gate** — conflicts (`mergeable`), CI (`statusCheckRollup`), files outside PR's stated scope, commit style and `CHANGELOG.md` per repo's `CLAUDE.md`/`AGENTS.md`.
 2. **Intent** — diff actually solves Issue, nothing else?
-3. **Skill edits** (any `skills/**/SKILL.md` or skill resource changed) — read whole target skill on latest default branch, not just diff:
+3. **Skill edits** (any `skills/**/SKILL.md` or skill resource changed) — read whole target skill on latest default branch:
    - Evidence: Issue evidence meets bar (strong once, weak ≥2), or one-off slip / project-specific fact? Rules fitted to one incident make every future load pay.
    - Duplication/conflict: already covered on default branch, or contradicts other passage/skill?
    - Minimality: smallest owning passage, growth ≤ ~20%, no restructuring, same language/tone, reasons over ALL-CAPS MUSTs.
    - `description` changed: over- or under-trigger?
 
-**Conflicts**: resolve before deciding; merge needs conflict-free branch. Same-repo branches only (`isCrossRepository` → report, stop). In scratchpad `git worktree` of head branch, rebase onto `origin/<base>`; `CHANGELOG.md` → keep both sides' entries in their sections; ask user about other conflicts. Then `git push --force-with-lease`, remove worktree, re-check.
+**Conflicts**: merge needs a conflict-free branch, so resolve before deciding via a head-branch edit: rebase onto `origin/<base>`; `CHANGELOG.md` → keep both sides' entries in their sections; ask user about other conflicts.
+
+**Head-branch edit** (conflict fix or requested change): same-repo only; `isCrossRepository` → report, put fixes in a PR comment, user picks request changes or reject. In scratchpad `git worktree` of head branch, edit, commit per repo conventions, `git push --force-with-lease`, remove worktree, back to step 2 (new `headRefOid`).
 
 ## 4. Decide
 
-Post review as PR comment (`gh pr comment <n> --body-file <f>`) — authors can't approve own PRs, so comment = review record. Then ask user, recommend one:
+Post review as PR comment (`gh pr comment <n> --body-file <f>`) — authors can't approve own PRs, so comment = review record. Then ask user, recommend one; act only on user's pick:
 
-- **Merge** — `gh pr merge <n> -R <repo> --squash --match-head-commit <reviewed-sha>`. SHA guard refuses unreviewed commits.
-- **Request changes** — list concrete edits; with user consent, apply on head branch (worktree as above, commit per repo conventions), push, back to step 3.
+- **Merge** — `gh pr merge <n> -R <repo> --squash --match-head-commit <reviewed-sha>`. `<reviewed-sha>` = `headRefOid` from latest step 2, so the guard refuses unreviewed commits.
+- **Request changes** — list concrete edits; with user consent, apply as head-branch edit. Cross-repo → edits stay in the PR comment; next PR.
 - **Reject** — `gh pr close <n> --comment "<reason>"`, then close each linked Issue with `--reason "not planned"` + reason, so `self-improve` dedupe skips it next time.
 
 ## 5. Wrap up

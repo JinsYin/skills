@@ -1,0 +1,161 @@
+{
+  "skill_name": "github-pr-merge",
+  "evals": [
+    {
+      "id": 0,
+      "name": "pick-oldest-three-plus-list-all",
+      "prompt": "帮我看看有哪些待合并的 PR",
+      "expected_output": "Repo with 6 open PRs: lists them sorted by createdAt and asks via the ask-user tool with the 3 oldest as options plus a last option \"List all open PRs\"; choosing that option prints a full numbered list for the user to pick from.",
+      "files": [],
+      "expectations": [
+        "Runs `gh pr list` with `--state open` and sorts by createdAt ascending",
+        "Ask-user options are exactly the 3 oldest PRs plus \"List all open PRs\"",
+        "Each PR option shows number, title, author, date and labels",
+        "Choosing \"List all open PRs\" prints all 6 PRs as a numbered list"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "no-open-prs-stops",
+      "prompt": "/github-pr-merge",
+      "expected_output": "Repo with no open PRs: says there are none and stops, then runs the loop-end local sync check.",
+      "files": [],
+      "expectations": [
+        "States there are no open PRs",
+        "Runs no `gh pr view`, `gh pr comment`, `gh pr merge` or `gh pr close`"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "pr-arg-not-open-stops",
+      "prompt": "/github-pr-merge 42",
+      "expected_output": "PR #42 is already merged: skips the picker, reports it is not open and goes to the loop-end local sync check without commenting or merging.",
+      "files": [],
+      "expectations": [
+        "Does not show the PR picker",
+        "States that #42 is not open",
+        "Runs no `gh pr comment`, `gh pr merge` or `gh pr close`"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "clean-merge-closes-issue",
+      "prompt": "/github-pr-merge 12 -R acme/tools",
+      "expected_output": "Same-repo PR #12 (CI green, mergeable, `Closes #7`, also mentions #9): summarizes problem from Issue #7 and the diff, posts review as PR comment, recommends Merge; after the user picks Merge, squash-merges with `--match-head-commit <headRefOid>`, closes #7 if still open, asks before closing #9, then returns to step 1.",
+      "files": [],
+      "expectations": [
+        "Every `gh` call passes `-R acme/tools`",
+        "Reads Issue #7 and #9 with `gh issue view --comments`",
+        "Posts the review via `gh pr comment` before asking the user",
+        "Runs `gh pr merge` only after the user picks Merge",
+        "Merge command uses `--squash` and `--match-head-commit` with the reviewed headRefOid",
+        "Closes #7 with \"Fixed by #12\" only if it is still open",
+        "Asks before closing #9 instead of closing it directly",
+        "Goes back to PR selection afterwards"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "skill-edit-weak-evidence-reject",
+      "prompt": "处理一下 self-improve 提的那个 PR",
+      "expected_output": "self-improve PR adds an ALL-CAPS MUST rule to skills/foo/SKILL.md based on a single weak-evidence incident, partly duplicating an existing passage: reads the whole skill on the default branch, reports evidence, duplication and minimality findings, recommends Reject; on user approval closes the PR with a reason and closes the linked Issue as not planned.",
+      "files": [],
+      "expectations": [
+        "Reads the full skills/foo/SKILL.md from the latest default branch, not just the diff",
+        "Flags the evidence as below the bar (single weak signal)",
+        "Flags the duplication with the existing passage",
+        "Flags ALL-CAPS MUST wording against the minimality check",
+        "Recommends Reject",
+        "Closes the PR with `gh pr close --comment` and the linked Issue with `--reason \"not planned\"` and a reason"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "failed-ci-is-finding-not-auto-reject",
+      "prompt": "/github-pr-merge 5",
+      "expected_output": "PR #5 has a failing CI check and touches a file outside its stated scope: reports both as Gate findings, still posts the review and asks the user to decide, without auto-closing.",
+      "files": [],
+      "expectations": [
+        "Reports the failing check and the out-of-scope file as findings",
+        "Does not close or reject the PR without the user's choice",
+        "Asks the user to choose among Merge, Request changes and Reject with one recommended"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "same-repo-conflict-rebase-refresh-sha",
+      "prompt": "/github-pr-merge 8",
+      "expected_output": "Same-repo PR #8 conflicts with main only in CHANGELOG.md: rebases in a scratchpad worktree onto origin/main keeping both sides' entries, pushes with `--force-with-lease`, removes the worktree, re-reads the PR and uses the new headRefOid for the merge guard.",
+      "files": [],
+      "expectations": [
+        "Creates a git worktree in the scratchpad directory, not in the repo",
+        "Rebases onto `origin/main`",
+        "Resolved CHANGELOG.md keeps entries from both sides",
+        "Pushes with `--force-with-lease`, never plain `--force`",
+        "Removes the worktree after pushing",
+        "Re-reads the PR and `--match-head-commit` uses the post-rebase headRefOid"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "cross-repo-conflict-no-push",
+      "prompt": "/github-pr-merge 15",
+      "expected_output": "Fork PR #15 (isCrossRepository true) has conflicts and the user picks Request changes: reports the conflict, does not rebase or push, posts the requested edits as a PR comment and moves to the next PR.",
+      "files": [],
+      "expectations": [
+        "Reports the conflict without creating a worktree or rebasing",
+        "Runs no `git push` to the fork branch",
+        "Posts the requested edits as a PR comment",
+        "Does not attempt `gh pr merge`"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "request-changes-same-repo-loop",
+      "prompt": "/github-pr-merge 20",
+      "expected_output": "Same-repo PR #20 has a small bug; user picks Request changes and consents to fixing: applies the fix in a worktree on the head branch, commits per repo conventions, pushes, and re-reads the PR from step 2 to review again with the new head SHA.",
+      "files": [],
+      "expectations": [
+        "Lists concrete edits before changing anything",
+        "Asks for consent before committing to the head branch",
+        "Commit message follows the repo's CLAUDE.md conventions",
+        "Re-reads the PR (`gh pr view`) and re-runs the review after pushing, using the new headRefOid for any later merge"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "loop-end-sync-ff-only",
+      "prompt": "不用了，先这样",
+      "expected_output": "User stops after merging PRs; cwd is the repo checkout on main with no local commits and only untracked files: runs `git fetch origin` then `git pull --ff-only`.",
+      "files": [],
+      "expectations": [
+        "Runs `git fetch origin` before deciding",
+        "Treats untracked files as allowed",
+        "Runs `git pull --ff-only` and does not rebase or push"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "loop-end-sync-rebase-push",
+      "prompt": "就到这里吧",
+      "expected_output": "User stops; cwd is the repo on main with 2 local commits ahead and a CHANGELOG.md conflict: rebases onto origin/main keeping both entries with local on top, then `git push`; if push is rejected, fetches, rebases and retries without force.",
+      "files": [],
+      "expectations": [
+        "Runs `git rebase origin/main`, not merge",
+        "CHANGELOG.md keeps both sides with local entries on top",
+        "Runs plain `git push`, never `--force` or `--force-with-lease`"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "loop-end-sync-skipped-dirty",
+      "prompt": "停",
+      "expected_output": "User stops; cwd is on a feature branch with modified tracked files: does not pull, rebase or push, just notes that local sync was skipped and why.",
+      "files": [],
+      "expectations": [
+        "Runs no `git pull`, `git rebase` or `git push`",
+        "Notes that local sync was skipped and gives the reason"
+      ]
+    }
+  ]
+}
