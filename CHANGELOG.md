@@ -18,6 +18,7 @@
 
 ### Changed
 
+- **self-improve 从克隆执行贡献流程**：上游 `CLAUDE.md` 点名的 skill 从克隆的 `.claude/skills/` 读取执行，不再因发起项目看不到而跳过。
 - **self-improve 跟随上游自身规则**：安装副本与上游不一致时，后续步骤改按上游 `SKILL.md` 执行，避免旧副本漏掉 Issue 语言等规则。
 - **github-pr-merge 评审记录**：Review/Re-review comment 标注 `Reviewer: <model>/<effort>`，并向用户简报核心问题与建议（Re-review 为结论）及 comment 完整链接。
 - **self-improve 单次调用开销**：digest 为每次 skill 调用输出 Token、调用数、压缩次数、峰值上下文与子 Agent 数，开销类 Issue 按调用列表作证据。
