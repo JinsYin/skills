@@ -41,7 +41,7 @@ Keep only lessons changing *future* behavior beyond this one project. Drop one-o
 
 ## 4. Root-cause against latest upstream
 
-Clone once into scratchpad (or temp dir): `gh repo clone jinsyin/skills <tmp>/skills -- --depth 1`. If cwd already `jinsyin/skills` checkout, `git fetch` + add `git worktree` on `origin/<default-branch>` instead; leave user's working tree alone. Read target skill there — not possibly stale installed copy. If installed `self-improve` differs from the clone, run the rest of this pass from the clone's `SKILL.md`: the loaded copy may predate rules it must follow (e.g. Issue language). Get `<default-branch>` via `gh repo view jinsyin/skills --json defaultBranchRef -q .defaultBranchRef.name`; never guess `main`.
+Clone once into scratchpad (or temp dir): `gh repo clone jinsyin/skills <tmp>/skills -- --depth 1`. If cwd already `jinsyin/skills` checkout, `git fetch` + add `git worktree` on `origin/<default-branch>` instead; leave user's working tree alone. Read target skill there — not possibly stale installed copy. Get `<default-branch>` via `gh repo view jinsyin/skills --json defaultBranchRef -q .defaultBranchRef.name`; never guess `main`.
 
 Give every lesson exactly one verdict:
 - **Already covered upstream** → drop (installed copy stale; note for sync). Includes corrections already fixed later same session, e.g. while authoring that skill.
@@ -61,11 +61,10 @@ Dedupe before writing: `gh issue list -R jinsyin/skills --state all --search "<s
 Group all lessons for same skill into one pair; heavy third-party lessons join `setup-rules` pair, one extra `--label` per third-party skill. In step 4 clone/worktree:
 
 1. Follow repo's contribution conventions (`CLAUDE.md`, `AGENTS.md`, commit style, `CHANGELOG.md` `[Unreleased]` entry in file's language).
-   Issue + PR bodies: prose you author (field values, table cells, root cause, proposed change, change notes) in Chinese for the human reviewer; template skeleton verbatim in English so Issues read alike — headings, field keys (`Skill:`, `Source project:` …), table header, checklist items, `<model>/<effort>` pairs, Signal `strong`/`weak`. Session quotes verbatim.
 2. Issue: fill `.github/ISSUE_TEMPLATE/skill-improvement.md` (drop front matter), create:
    `gh issue create -R jinsyin/skills --title "<type>(<skill>): <summary>" --label self-improve --label <skill> --body-file <file>`, one `--label` per improved skill (create missing labels first with `gh label create <name> -R jinsyin/skills`). Issue = report — provenance (step 1), evidence quotes, failing step, rule that didn't fire, proposed fix, lessons below gate. Cost lessons: one evidence row per cited run with its `[heavy-turn]`/`[skill-run]` fields, so reviewers compare runs without transcripts.
 3. Branch `self-improve/<skill>-<issue#>`, apply diff, commit, `git push -u origin <branch>` unpiped so network failures surface; retry until pushed.
-4. PR: fill `.github/pull_request_template.md`, `gh pr create -R jinsyin/skills --base <default-branch> --head <branch> --label self-improve --label <skill> --body-file <file>` with `Closes #<issue#>`.
+4. PR: fill `.github/pull_request_template.md`, `gh pr create -R jinsyin/skills --base <default-branch> --label self-improve --label <skill> --body-file <file>` with `Closes #<issue#>`.
 
 ## 6. Improve self-improve
 

@@ -78,12 +78,13 @@
       "id": 4,
       "name": "covered-upstream-and-duplicate-issue",
       "prompt": "/self-improve",
-      "expected_output": "Fixture `covered-and-duplicate`: an earlier self-improve run where (a) `gh pr create` lacked `--head` — already fixed upstream — and (b) digest truncated `[skill-run]` rows past the top 10 — a gap upstream. Stub `gh issue list` to return an open Issue #99 `feat(self-improve): digest 列出全部 skill-run` matching (b). Drops (a) noting the installed copy is stale, comments new evidence on #99 instead of opening a new pair.",
+      "expected_output": "Fixture `covered-and-duplicate`: an earlier self-improve run where (a) `gh pr create` lacked `--head` — already fixed upstream — and (b) digest truncated `[skill-run]` rows past the top 10 — a gap upstream. Stub `gh issue list` to return an open Issue #99 `feat(self-improve): digest 列出全部 skill-run` matching (b). The fixture's installed `project/.claude/skills/self-improve/SKILL.md` is a stale copy (no `--head`, no Issue-language rule). Drops (a) noting the installed copy is stale, comments new evidence on #99 instead of opening a new pair.",
       "files": [
         "evals/files/covered-and-duplicate/"
       ],
       "expectations": [
         "Searches existing Issues and PRs (`gh issue list --search`, `gh pr list`) before writing anything",
+        "Notices the installed `self-improve` differs from the clone and follows the clone's `SKILL.md` for the remaining steps",
         "Drops the `--head` lesson as already covered upstream and notes the installed copy needs sync",
         "Adds the truncated skill-run evidence as a (stubbed) `gh issue comment` on #99",
         "Opens no new Issue or PR for either lesson"
