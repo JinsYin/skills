@@ -19,10 +19,11 @@
 Create/edit skill in this order, run every step through final sync without pausing for confirmation; finish each step before next; stop only where step says ask user:
 
 1. `/skill-creator`: draft/revise skill. Done when evals satisfy every Skill Evals rule.
-2. `/skill-optimizer`: tune activation, salience, context cost.
-3. `/writing-for-agents`: polish wording for agent readers.
-4. `/caveman-commit`: write Chinese message, then `git commit`.
-5. Push: `git fetch origin`, `git rebase origin/<branch>` for linear history, then plain `git push`. Rebase conflicts in `CHANGELOG.md`: keep both sides, local entries on top; ask user on any other conflict. Push rejected: fetch, rebase, retry. Done when `HEAD` equals `origin/<branch>`.
-6. Sync: refresh installed copies of added/changed skills, e.g. `npx skills@latest add jinsyin/skills --agent universal claude-code --skill foo bar`; if `setup-rules` changed, also run `/setup-rules update`. Commit in batches (skills, then rules) per step 4, push per step 5. Done when every sync change is committed and `HEAD` equals `origin/<branch>`.
+2. `/writing-for-agents`: restructure and polish wording for agent readers.
+3. `/caveman-compress`: apply its rules by hand to added/changed text only, leaving untouched lines as-is. Done when headings, code, URLs, and paths are unchanged.
+4. `/skill-optimizer`: rerun evals with vs without skill on compressed text, fix misses and regressions. Done when no eval regresses.
+5. `/caveman-commit`: write Chinese message, then `git commit`.
+6. Push: `git fetch origin`, `git rebase origin/<branch>` for linear history, then plain `git push`. Rebase conflicts in `CHANGELOG.md`: keep both sides, local entries on top; ask user on any other conflict. Push rejected: fetch, rebase, retry. Done when `HEAD` equals `origin/<branch>`.
+7. Sync: refresh installed copies of added/changed skills, e.g. `npx skills@latest add jinsyin/skills --agent universal claude-code --skill foo bar`; if `setup-rules` changed, also run `/setup-rules update`. Commit in batches (skills, then rules) per step 5, push per step 6. Done when every sync change is committed and `HEAD` equals `origin/<branch>`.
 
-Steps 2–3 run only on agent-loaded files (`SKILL.md`, `references/*.md`, `rules/*.md`) added/modified in this change; done when every finding applied or rejected with reason. `AGENTS.md` generated: edit `rules/`, rebuild.
+Steps 2–4 run only on agent-loaded files (`SKILL.md`, `references/*.md`, `rules/*.md`) added/modified in this change; steps 2 and 4 also need every finding applied or rejected with reason. `AGENTS.md` generated: edit `rules/`, rebuild.
