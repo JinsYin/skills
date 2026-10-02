@@ -78,7 +78,7 @@
       "id": 4,
       "name": "covered-upstream-and-duplicate-issue",
       "prompt": "/self-improve",
-      "expected_output": "Fixture `covered-and-duplicate`: an earlier self-improve run where (a) `gh pr create` lacked `--head` — already fixed upstream — and (b) digest truncated `[skill-run]` rows past the top 10 — a gap upstream. Stub `gh issue list` to return an open Issue #99 `feat(self-improve): digest 列出全部 skill-run` matching (b). Drops (a) noting the installed copy is stale, comments new evidence on #99 instead of opening a new pair.",
+      "expected_output": "Fixture `covered-and-duplicate`: an earlier self-improve run where (a) `gh pr create` lacked `--head` — already fixed upstream — and (b) digest truncated `[skill-run]` rows past the top 10 — a gap upstream. Stub `gh issue list` to return an open Issue #99 `feat(self-improve): digest 列出全部 skill-run` matching (b). The fixture's installed `project/.claude/skills/self-improve/SKILL.md` is a stale copy (no `--head`, no Issue-language rule). Drops (a) noting the installed copy is stale, comments new evidence on #99 instead of opening a new pair.",
       "files": [
         "evals/files/covered-and-duplicate/"
       ],
