@@ -82,22 +82,24 @@ def project(name, lock, extra=None):
 
 SK = "/work/demo/.claude/skills"
 
-# A. doc-to-md: 强信号缺口（图片丢失）+ 单次弱信号报错 + 一次性拼写纠正
-home = project("doc-to-md-gap", {"doc-to-md": LOCK_UP, "caveman-commit": {**LOCK_3P, "source": "JuliusBrussee/caveman"}})
-s = S("a1f0c2d4-0000-4000-8000-000000000001", "handbook-to-md")
-s.slash("doc-to-md", "docs/handbook.pdf")
-s.skill_body(f"{SK}/doc-to-md")
-s.tool("Bash", {"command": "$SKILL_DIR/scripts/convert.sh docs/handbook.pdf", "description": "Convert handbook"}, "OK\tdocs/handbook.md")
-s.tool("Read", {"file_path": "/work/demo/docs/handbook.pdf"}, "[pdf pages 1-12 rendered, 9 figures]")
-s.tool("Edit", {"file_path": "/work/demo/docs/handbook.md", "old_string": "# Handbok", "new_string": "# Handbook"}, "updated")
-s.tool("Bash", {"command": "npx markdownlint-cli2 --fix docs/handbook.md", "description": "Lint"},
-       "npm ERR! network request to registry.npmjs.org failed (ETIMEDOUT)", err=True)
-s.say("已生成 docs/handbook.md，结构已修复。")
-s.user("不对，PDF 里 9 张架构图你全丢了。图片要导出到同目录的 handbook_assets/，在 md 里用相对路径引用，不然这份文档没法用")
-s.tool("Bash", {"command": "pdfimages -png docs/handbook.pdf docs/handbook_assets/img", "description": "Extract images"}, "9 images")
-s.tool("Edit", {"file_path": "/work/demo/docs/handbook.md", "old_string": "<!-- fig -->", "new_string": "![arch](handbook_assets/img-000.png)"}, "updated")
-s.user("标题里 Handbok 是我原文拼错的，别改成 Handbook，转换要忠于原文")
-s.tool("Edit", {"file_path": "/work/demo/docs/handbook.md", "old_string": "# Handbook", "new_string": "# Handbok"}, "updated")
+# A. ideate: 强信号缺口（更新后未列变更）+ 规则存在未生效（自行补选型）+ 单次弱信号报错
+home = project("ideate-gap", {"ideate": LOCK_UP, "caveman-commit": {**LOCK_3P, "source": "JuliusBrussee/caveman"}},
+               {"docs/ideas/idea.md": "# 账单助手 - 产品构想\n", "docs/requirements/raw.md": "- 支持多币种\n"})
+s = S("a1f0c2d4-0000-4000-8000-000000000001", "update-idea")
+s.slash("ideate", "加上多币种，并把 raw.md 迁进来")
+s.skill_body(f"{SK}/ideate")
+s.tool("Read", {"file_path": "/work/demo/docs/ideas/idea.md"}, "# 账单助手 - 产品构想 …")
+s.tool("Read", {"file_path": "/work/demo/docs/requirements/raw.md"}, "- 支持多币种")
+s.tool("Write", {"file_path": "/work/demo/docs/ideas/idea.md", "content": "…2. 产品交付矩阵\n1. **billing-spring-boot-starter**：基于 Redis 缓存汇率…"}, "written")
+s.tool("Bash", {"command": "git rm docs/requirements/raw.md", "description": "Remove migrated source"},
+       "fatal: pathspec 'docs/requirements/raw.md' did not match any files", err=True)
+s.tool("Bash", {"command": "rm docs/requirements/raw.md", "description": "Remove migrated source"}, "")
+s.say("已更新 docs/ideas/idea.md，已删除 docs/requirements/raw.md。待定：无。")
+s.user("交付矩阵里的 Spring Boot Starter 和 Redis 是你自己加的吧？我从没说过，没定的选型要问我，不要替我补")
+s.tool("Edit", {"file_path": "/work/demo/docs/ideas/idea.md", "old_string": "1. **billing-spring-boot-starter**：基于 Redis 缓存汇率", "new_string": "待定：交付形态与技术约束"}, "updated")
+s.user("另外你这次到底改了 idea.md 哪些地方？每次更新完要列出新增、修改、删除了哪几条，不然我只能自己 diff")
+s.tool("Bash", {"command": "git diff docs/ideas/idea.md", "description": "Show idea changes"}, "+ 支持多币种 …")
+s.say("本次新增：1.2 多币种结算；修改：无；删除：无。")
 s.slash("self-improve")
 s.save(home)
 
@@ -152,17 +154,17 @@ s.user("gh pr create 要显式带 --head <branch>，别让它自己猜")
 s.save(home)
 
 # E. --sessions：同项目三个会话
-home = project("multi-session", {"doc-to-md": LOCK_UP})
-for i, (title, prompt) in enumerate([("convert-q3-report", "把 reports/q3.docx 转成 markdown"),
+home = project("multi-session", {"ideate": LOCK_UP})
+for i, (title, prompt) in enumerate([("idea-billing", "把账单助手的想法整理一下"),
                                      ("fix-ci", "CI 上 lint 挂了帮我看看"),
-                                     ("convert-slides", "slides/kickoff.pptx 转 md")]):
+                                     ("idea-export", "idea 里再加一个导出功能")]):
     s = S(f"e5{i}a6b8c-0000-4000-8000-00000000000{5 + i}", title)
     s.user(prompt)
     s.say("好的。")
     s.save(home, mtime_offset=i * 3600)
 
 # F. 无归属、可跨项目复用的经验 → 新 skill
-home = project("new-skill-no-owner", {"doc-to-md": LOCK_UP})
+home = project("new-skill-no-owner", {"ideate": LOCK_UP})
 s = S("f6e5a7b9-0000-4000-8000-000000000008", "arch-diagrams")
 s.user("给 docs/architecture.md 画一张服务调用的 Mermaid 时序图")
 s.tool("Edit", {"file_path": "/work/demo/docs/architecture.md", "old_string": "## 调用链", "new_string": "## 调用链\n```mermaid\nsequenceDiagram\n  A->>B: call()\n```"}, "updated")
