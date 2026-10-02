@@ -54,13 +54,14 @@ Minimal-diff rules: edit smallest owning passage; prefer rewording over adding, 
 
 Dedupe before writing: `gh issue list -R jinsyin/skills --state all --search "<skill> <keywords>"`, same for `gh pr list`. Open match → add new evidence as comment, skip; closed-as-rejected match → skip unless evidence materially new.
 
-`--dry-run`: skip step 5, run step 6, then print report (step 5 Issue structure).
+`--dry-run`: skip step 5, run step 6, then print each would-be Issue body in full (filled template, step 5 language) so preview matches what would be filed.
 
 ## 5. Issue + PR, one pair per skill
 
 Group all lessons for same skill into one pair; heavy third-party lessons join `setup-rules` pair, one extra `--label` per third-party skill. In step 4 clone/worktree:
 
 1. Follow repo's contribution conventions (`CLAUDE.md`, `AGENTS.md`, commit style, `CHANGELOG.md` `[Unreleased]` entry in file's language).
+   Issue + PR bodies: prose you author (field values, table cells, root cause, proposed change, change notes) in Chinese for the human reviewer; template skeleton verbatim in English so Issues read alike — headings, field keys (`Skill:`, `Source project:` …), table header, checklist items, `<model>/<effort>` pairs, Signal `strong`/`weak`. Session quotes verbatim.
 2. Issue: fill `.github/ISSUE_TEMPLATE/skill-improvement.md` (drop front matter), create:
    `gh issue create -R jinsyin/skills --title "<type>(<skill>): <summary>" --label self-improve --label <skill> --body-file <file>`, one `--label` per improved skill (create missing labels first with `gh label create <name> -R jinsyin/skills`). Issue = report — provenance (step 1), evidence quotes, failing step, rule that didn't fire, proposed fix, lessons below gate.
 3. Branch `self-improve/<skill>-<issue#>`, apply diff, commit, `git push -u origin <branch>` unpiped so network failures surface; retry until pushed.
