@@ -22,6 +22,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **self-improve 单次调用开销**：digest 为每次 skill 调用输出 Token、调用数、压缩次数、峰值上下文与子 Agent 数，开销类 Issue 按调用列表作证据。
 - **superpowers 约定**：写计划时只定向读取路线图、规格章节、上游接口与相关代码，每份计划分派独立 subagent 起草，避免上下文溢出。
 - **doc-to-md 补齐 eval fixtures 并校正精修范围**：新增全部评测样例文件，Office/EPUB 源按无法渲染处理，evals 改为斜杠命令触发。
 - **doc-to-md 改写为英文**：SKILL.md 全文译为英文并精简重复说明，改为手动调用；行为不变。

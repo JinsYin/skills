@@ -140,14 +140,14 @@ s.tool("Edit", {"file_path": "/work/demo/README.md", "old_string": "(docs/spec)"
 s.slash("self-improve")
 s.save(home)
 
-# D. 上游已覆盖（gh pr create 缺 --head）+ 与 open Issue #9 重复（digest 按调用统计开销）
+# D. 上游已覆盖（gh pr create 缺 --head）+ 与 stub 的 open Issue #99 重复（digest 截断靠后的 skill-run 行）
 home = project("covered-and-duplicate", {"self-improve": LOCK_UP})
 s = S("d4c3f5a7-0000-4000-8000-000000000004", "retro-last-week")
 s.slash("self-improve")
 s.skill_body(f"{SK}/self-improve")
 s.tool("Bash", {"command": "python3 scripts/transcript.py digest", "description": "Digest"}, "[cost] main in=40.1M …")
-s.tool("Bash", {"command": "python3 - <<'EOF'\n# 临时扫 jsonl 统计每次调用开销\nEOF", "description": "Scan jsonl per-call cost"}, "turn 3: 16.8M / 125 calls …")
-s.user("digest 看不出每次调用的开销，你又临时写脚本扫 jsonl。这个应该内建到 transcript.py 里")
+s.tool("Bash", {"command": "python3 - <<'EOF'\n# 临时扫 jsonl 补出 digest 没列的 skill-run\nEOF", "description": "Scan jsonl for missing skill runs"}, "turn 14: 3.2M / 41 calls …")
+s.user("digest 只列了前 10 个轮次，后面的 skill-run 都被截掉了，你又临时写脚本扫 jsonl。transcript.py 应该把每个 skill-run 都列出来")
 s.tool("Bash", {"command": "gh pr create -R jinsyin/skills --base master --label self-improve --body-file /tmp/pr.md", "description": "Create PR"},
        "must specify --head when running non-interactively from a shallow clone", err=True)
 s.user("gh pr create 要显式带 --head <branch>，别让它自己猜")
