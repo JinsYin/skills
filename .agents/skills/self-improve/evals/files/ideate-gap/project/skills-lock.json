@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "ideate": {
+      "source": "jinsyin/skills",
+      "sourceType": "github",
+      "computedHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "caveman-commit": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "1111111111111111111111111111111111111111111111111111111111111111"
+    }
+  }
+}

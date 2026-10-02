@@ -1,0 +1,3 @@
+{"type": "custom-title", "customTitle": "fix-ci", "sessionId": "e51a6b8c-0000-4000-8000-000000000006"}
+{"type": "user", "sessionId": "e51a6b8c-0000-4000-8000-000000000006", "version": "2.1.290", "entrypoint": "cli", "timestamp": "2026-09-28T09:01:00Z", "cwd": "/work/demo", "message": {"role": "user", "content": "CI 上 lint 挂了帮我看看"}}
+{"type": "assistant", "sessionId": "e51a6b8c-0000-4000-8000-000000000006", "version": "2.1.290", "entrypoint": "cli", "timestamp": "2026-09-28T09:01:20Z", "cwd": "/work/demo", "effort": "high", "message": {"id": "msg_e51a1", "role": "assistant", "model": "claude-opus-5-5", "content": [{"type": "text", "text": "好的。"}], "usage": {"input_tokens": 50, "cache_read_input_tokens": 20000, "output_tokens": 400}}}

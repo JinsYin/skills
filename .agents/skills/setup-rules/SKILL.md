@@ -1,6 +1,6 @@
 ---
 name: setup-rules
-description: Conduct an interactive interview, then install selected agent conventions, adapters, and sensitive-file read restrictions into a project; `update` refreshes installed items. Explicit invocation only.
+description: Conduct an interactive interview, then install selected agent conventions, adapters, and sensitive-file read restrictions into a project; `update` refreshes installed items without prompting. Explicit invocation only.
 disable-model-invocation: true
 ---
 
@@ -10,7 +10,7 @@ Assemble, never author. Conventions live verbatim in `assets/conventions/`; conc
 
 Modes: `setup-rules` → Workflow; `setup-rules update` → Update.
 
-Interactive interview required: ask, wait, clarify, and confirm the final manifest before writing. Never infer optional selections from project evidence or defaults. Ask at most four focused questions per round; leave ambiguous items pending.
+Workflow requires an interactive interview: ask, wait, clarify, and confirm the final manifest before writing. Never infer optional selections from project evidence or defaults. Ask at most four focused questions per round; leave ambiguous items pending.
 
 | Category | Source | Target | Condition |
 |---|---|---|---|
@@ -91,16 +91,12 @@ The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the pr
 
 ## Update
 
-Refresh installed items from current assets; skip Workflow steps 2–8, 12, 14.
+Refresh only installed items from current assets, without asking: invoking `update` pre-authorizes every overwrite, overriding every ask, confirm, or stop-and-ask step in Workflow and the reference. New selections need full `setup-rules`. Skip Workflow steps 2–9, 12, 14.
 
 **1. Root.** As Workflow 1; stop if `CLAUDE.local.md` is missing.
 
-**2. Detect.** Match `CLAUDE.local.md` H2s to convention first H2s; existing targets mark installed subagents/adapters; existing denies mark sensitive targets. Ask per unmatched H2 section: keep (append last) or drop.
+**2. Detect.** Match `CLAUDE.local.md` H2s to convention first H2s; existing targets mark installed subagents/adapters; existing denies mark sensitive targets. Keep every unmatched H2 section, appended last in original order, so no user content is lost.
 
-**3. Add.** Offer uninstalled optional conventions; new Superpowers runs Workflow 4–5. Never remove.
+**3. Write.** Diff targets against assets and skip identical ones. Rebuild `CLAUDE.local.md` in fixed order plus kept sections; copy agents/adapters byte-for-byte; replace only this skill's hook in `.cursor/hooks.json`; re-merge existing sensitive targets. On unparseable config or incompatible policy, skip and report that target.
 
-**4. Confirm.** Diff targets against assets, skip identical, list overwrites, additions and section choices; confirm.
-
-**5. Write.** Rebuild `CLAUDE.local.md` in fixed order plus kept sections; copy agents/adapters byte-for-byte; replace only this skill's hook in `.cursor/hooks.json`; re-merge existing sensitive targets.
-
-**6. Report.** As Workflow 15.
+**4. Report.** As Workflow 15, plus overwritten files, kept unmatched sections, and skipped targets.

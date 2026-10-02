@@ -16,10 +16,17 @@
       "sourceType": "github",
       "computedHash": "e552fc59bb8525a80749c79e67a210b872741cdc9b290ced91f5d5a5a65dffc5"
     },
+    "self-improve": {
+      "source": "jinsyin/skills",
+      "sourceType": "github",
+      "skillPath": "skills/self-improve/SKILL.md",
+      "computedHash": "9edfa95399cb4d850b3feb58544a36bee2bb9f6a4091c313c9e504091e4ea326"
+    },
     "setup-rules": {
       "source": "jinsyin/skills",
       "sourceType": "github",
-      "computedHash": "167eb806e0d9ecd8d8a8b7f96ed50681a401ab8111e965f5200c0a01e0f107a8"
+      "skillPath": "skills/setup-rules/SKILL.md",
+      "computedHash": "f1baf487221e9e187b938b20fbfd1dfd4d58206e9ca3f0d0837da22b6c5e7f15"
     },
     "skill-creator": {
       "source": "anthropics/skills",
