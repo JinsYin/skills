@@ -13,10 +13,8 @@ Convert documents into clean, **faithful, structurally correct** Markdown, saved
 
 The pipeline has two stages:
 
-1. **Deterministic stage (`scripts/convert.sh`)**: `markitdown` (extract) → `postprocess.py` (semantic cleanup) → `markdownlint-cli2 --fix` (lenient formatting rules). **Call the script; never hand-roll markitdown or lint commands.** It handles output paths, directory expansion, overwrite protection, cleanup, and lint config.
+1. **Deterministic stage (`scripts/convert.sh`)**: `markitdown` (extract) → `postprocess.py` (semantic cleanup) → `markdownlint-cli2 --fix` (lenient formatting rules). **Always call the script** for conversion and lint; it handles output paths, directory expansion, overwrite protection, cleanup, and lint config.
 2. **LLM refinement stage (you, on by default)**: markitdown flattens layout into text, losing heading levels, tables, multi-column reading order, and hyphenation/page breaks — the script cannot recover these. After the script runs, **compare against the source** to restore structure and strip extraction noise. See [LLM refinement](#llm-refinement).
-
-> Boundary: **refinement restores layout structure and removes extraction noise; it never rewrites the author's words.** A converter is valuable only if it is faithful. One added word or "polished" sentence silently corrupts a document others will treat as a trustworthy copy.
 
 ## Workflow
 
@@ -52,11 +50,11 @@ Resolve the directory containing this `SKILL.md` as `SKILL_DIR` and call the bun
 "$SKILL_DIR/scripts/convert.sh" --force path/to/report.pdf
 ```
 
-The script derives the output path: `report.pdf` → `report.md` in the same directory. Source files that are already `.md` are skipped.
+The script derives the output path: `report.pdf` → `report.md` in the same directory.
 
 ### 4. LLM refinement (default)
 
-**Refine every `.md` generated in this run** following [LLM refinement](#llm-refinement), then finish with `convert.sh --lint-only <those .md>`.
+**Refine every `.md` generated in this run** following [LLM refinement](#llm-refinement).
 
 Skip refinement when the user asks for raw output / no refinement / speed, or when conversion produced nothing. For a large batch (more than about ten files), first say refinement goes file by file and takes time, then ask: refine all, refine only key files, or keep the raw output. Wait for the answer before refining.
 
@@ -72,7 +70,7 @@ Briefly tell the user:
 
 **Why**: these defects come from extraction, not the document; `postprocess.py` and lint fix only the safe deterministic cases, the rest needs your judgment against the source.
 
-**Hard rule — fix structure, remove noise, never rewrite text:**
+**Hard rule — stay faithful: fix structure, remove noise, keep the author's words verbatim.** Others will treat the output as a trustworthy copy; one "polished" sentence silently corrupts it.
 
 - You are restoring what the author wrote, not creating. The moment you want to "smooth this sentence" or "add a clarifying line", stop — that is content drift.
 - When unsure whether something is noise or content, **keep it**. A stray page number is better than a lost line of body text.
@@ -81,6 +79,7 @@ Briefly tell the user:
 **How:**
 
 1. `Read` the source file first (Read renders PDFs and images; HTML, CSV, JSON, and XML read as text); it is the **only source of truth**. Then `Read` the generated `.md`.
+   When `Read` cannot render the source (Office files, EPUB, audio, huge PDFs), refine from the `.md` alone: fix only structure visible in it (hyphenation, obvious lists/headings), leave unverifiable table content as converted, and tell the user the source was not checked.
 2. Make **targeted `Edit`s** that change only what is wrong. Targeted edits keep changes visible and avoid dropping content. Rewrite fully only when the structure is too broken to patch, then check section count and length against the source to confirm nothing is missing.
 3. Finish with `"$SKILL_DIR/scripts/convert.sh" --lint-only <those .md>` to tidy indentation, blank lines, and trailing spaces from manual edits. It does **not** reconvert or overwrite your work.
 
@@ -93,7 +92,7 @@ Structural fixes (against the source layout):
 - **Lists**: turn items rendered as plain paragraphs into `-` / `1.` lists; fix nesting.
 - **Reading order**: multi-column PDFs are often interleaved; reorder to the source's natural flow.
 - **Hyphenation and line wraps**: rejoin words split at line ends (`infor-\nmation` → `information`); merge hard-wrapped lines back into full paragraphs.
-- **Code / formulas**: fence code blocks; keep formulas as they are (keep LaTeX that is clearly LaTeX) — never compute or rewrite them.
+- **Code / formulas**: fence code blocks; keep formulas verbatim (keep LaTeX that is clearly LaTeX).
 
 Noise removal (confirm in the source that it is layout decoration, not body text):
 
@@ -108,9 +107,7 @@ Noise removal (confirm in the source that it is layout decoration, not body text
 ## Edge cases and fallbacks
 
 - **Conversion fails** (markitdown exits non-zero, e.g., encrypted PDF, corrupt file): the script deletes the partial output, reports exit code 2, and continues with other inputs. Report the failed files truthfully.
-- **Unsupported format**: directory expansion picks only markitdown-supported extensions; explicitly passed unsupported files are left to markitdown to reject.
 - **No npx**: lint is skipped; the conversion is saved.
-- **Source `Read` cannot render** (Office files, EPUB, audio, huge PDFs): refine using only the `.md` — fix structure visible in the output itself (hyphenation, obvious lists/headings), never guess table content you cannot check, and state that the source was not checked.
 - Exit codes: `0` success / `2` conversion failed / `3` overwrite needs confirmation / `4` no input to process; `--lint-only` follows the same codes (no `.md` input → 4).
 
 ## Reference: deterministic stage
