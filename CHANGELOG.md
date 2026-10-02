@@ -15,10 +15,6 @@
 - **design-to-code 可接线产出**：页面经 `src/api/` 取数、可用 mock 替身，并提供视觉冻结检查。
 - **前端分流约定**：`setup-rules` 明确 design-to-code 之后的改动路径，plan 须通过视觉冻结检查。
 
-### 变更 (Changed)
-
-- **superpowers 约定**：写计划时只定向读取路线图、规格章节、上游接口与相关代码，每份计划分派独立 subagent 起草，避免上下文溢出。
-
 ### 修复 (Fixed)
 
 - **Claude 文件跟踪补齐**：移除 Claude 目录忽略规则，纳入 setup-rules update 的 Claude eval fixtures。
@@ -26,6 +22,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **superpowers 约定**：写计划时只定向读取路线图、规格章节、上游接口与相关代码，每份计划分派独立 subagent 起草，避免上下文溢出。
 - **doc-to-md 补齐 eval fixtures 并校正精修范围**：新增全部评测样例文件，Office/EPUB 源按无法渲染处理，evals 改为斜杠命令触发。
 - **doc-to-md 改写为英文**：SKILL.md 全文译为英文并精简重复说明，改为手动调用；行为不变。
 - **ideate 改为手动调用并精简指令**：统一缺失值写法（`> 无` / `待定：`），规则单点定义，校验项可逐条核对。
