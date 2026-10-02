@@ -43,6 +43,12 @@
       "skillPath": "skills/skill-optimizer/SKILL.md",
       "computedHash": "17611b4b906ceabd9ae386350450e676d0692341d90af4468b00c0b7c9ed0a95"
     },
+    "version-release": {
+      "source": "jinsyin/skills",
+      "sourceType": "github",
+      "skillPath": "skills/version-release/SKILL.md",
+      "computedHash": "a77f835b81c1ee3b206ebc64260c038b694215d4b7e9ad7d421eda81d35341b9"
+    },
     "writing-for-agents": {
       "source": "mattpocock/skills",
       "sourceType": "github",
