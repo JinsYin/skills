@@ -23,7 +23,8 @@
         "Classifies the missing change list as a gap and the invented Starter/Redis as a rule that exists but did not fire (rewords the existing passage, adds no second no-guessing rule); lists the `git rm` pathspec error as below the gate",
         "Retrospects the self-improve run itself (step 6) before wrap-up",
         "Ends with a skill · lesson · Issue · PR table and asks whether to sync changed skills into the project",
-        "Runs the skills the upstream `CLAUDE.md` workflow names by reading their `SKILL.md` from the clone's `.claude/skills/` or `.agents/skills/`, without skipping any as unavailable"
+        "Runs the skills the upstream `CLAUDE.md` workflow names by reading their `SKILL.md` from the clone's `.claude/skills/` or `.agents/skills/`, without skipping any as unavailable",
+        "Opens no `no-improvement` record Issue, since the run filed an Issue + PR"
       ]
     },
     {
@@ -88,7 +89,8 @@
         "Notices the installed `self-improve` differs from the clone and follows the clone's `SKILL.md` for the remaining steps",
         "Drops the `--head` lesson as already covered upstream and notes the installed copy needs sync",
         "Adds the truncated skill-run evidence as a (stubbed) `gh issue comment` on #99",
-        "Opens no new Issue or PR for either lesson"
+        "Opens no new Issue or PR for either lesson",
+        "Opens no `no-improvement` record Issue, since the run already commented on #99"
       ]
     },
     {
@@ -118,6 +120,36 @@
         "Proposes a new skill under `skills/<name>/` with frontmatter `name` and `description`",
         "Issue `Skill:` field marks the skill as new",
         "Issue headings and field keys stay English while prose is Chinese"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "no-improvement-record-issue",
+      "prompt": "帮我复盘一下刚才这次会话，看看有没有什么值得改进 skill 的地方",
+      "expected_output": "Fixture `no-improvement`: a smooth /ideate update with one wrong-path Read ERROR (weak, single) and no user correction. Nothing clears the gate, so no branch or PR; still opens one record Issue labelled `self-improve` + `no-improvement` listing the observation below the gate, then closes it immediately as not planned with a Chinese reason comment.",
+      "files": [
+        "evals/files/no-improvement/"
+      ],
+      "expectations": [
+        "Loads the self-improve skill from the natural-language request",
+        "Classifies the wrong-path Read error as weak with one occurrence, below the gate",
+        "Creates no `self-improve/*` branch, runs no `git push` and no `gh pr create`",
+        "Runs exactly one (stubbed) `gh issue create` with labels `self-improve` and `no-improvement`",
+        "Record Issue body keeps English headings `## Context` and `## Below the gate`, with the observation and why it fell short written in Chinese",
+        "Right after creating it, runs (stubbed) `gh issue close` on that Issue with `--reason \"not planned\"` and a Chinese `--comment` stating why nothing qualified"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "no-improvement-dry-run",
+      "prompt": "/self-improve --dry-run",
+      "expected_output": "Same fixture as eval 7. Prints the would-be record Issue body and close reason without creating, labelling or closing anything.",
+      "files": [
+        "evals/files/no-improvement/"
+      ],
+      "expectations": [
+        "Runs no `gh issue create`, `gh issue close`, `gh label create`, `gh pr create` or `git push` (not even stubbed)",
+        "Prints the would-be record Issue (labels `self-improve` + `no-improvement`, `## Context` and `## Below the gate`) and its Chinese close reason"
       ]
     }
   ]
