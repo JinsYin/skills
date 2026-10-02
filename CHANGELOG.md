@@ -18,6 +18,7 @@
 
 ### Changed
 
+- **self-improve 无改进也留档**：复盘无可改进项时仍提一个 `no-improvement` 记录 Issue（不提 PR）并立即附理由关闭。
 - **github-pr-merge 评审 effort**：Reviewer 行的 effort 从 Claude Code 的 `$CLAUDE_EFFORT` 读取，不再写成 `unknown`。
 - **self-improve 从克隆执行贡献流程**：上游 `CLAUDE.md` 点名的 skill 从克隆的 `.claude/skills/` 读取执行，不再因发起项目看不到而跳过。
 - **self-improve 跟随上游自身规则**：安装副本与上游不一致时，后续步骤改按上游 `SKILL.md` 执行，避免旧副本漏掉 Issue 语言等规则。

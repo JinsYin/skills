@@ -1,6 +1,6 @@
 ---
 name: self-improve
-description: Retrospect agent sessions (failures, user corrections, detours, token-heavy or slow turns) into lessons, shipped as minimal edits to jinsyin/skills skills — or a new skill, or a `setup-rules` convention for a heavy manually-invoked third-party skill — each as GitHub Issue + PR. Args `[--sessions] [--dry-run] [focus]`. Invoke only when the user, a rule, or another skill calls for it.
+description: Retrospect agent sessions (failures, user corrections, detours, token-heavy or slow turns) into lessons, shipped as minimal edits to jinsyin/skills skills — or a new skill, or a `setup-rules` convention for a heavy manually-invoked third-party skill — each as GitHub Issue + PR; nothing qualifies → closed `no-improvement` record Issue. Args `[--sessions] [--dry-run] [focus]`. Invoke only when the user, a rule, or another skill calls for it.
 ---
 
 # self-improve
@@ -72,5 +72,7 @@ Group all lessons for same skill into one pair; heavy third-party lessons join `
 Last, retrospect this `self-improve` run: ambiguous/missing instructions you guessed at, `transcript.py` errors or noisy output, wasted calls, this run's own cost in digest, any user correction to this run. Same gate, root-cause, dedupe; ship survivors as own `self-improve` Issue + PR (`--dry-run`: add to report). Judge only this skill's instructions, not lessons it produced.
 
 ## 7. Wrap up
+
+**Record Issue**: run filed no Issue, PR or comment (every lesson below gate, covered or dropped) → still open one so every retrospective leaves a trace: title `retro(<source project>): <summary>`, labels `self-improve` + `no-improvement` (create if missing), body = template's `## Context` + `## Below the gate`, each observation with why it fell short (step 5 language split). No branch, no PR. Close it at once — nothing to act on: `gh issue close <#> -R jinsyin/skills --reason "not planned" --comment "<reason>"`, Chinese reason naming why nothing qualified. `--dry-run`: print body + reason instead.
 
 Print short table: skill · lesson · Issue · PR, plus skipped/below-gate items. Then ask whether to sync changed skills into this project. On yes, copy changed files from local PR branch (shallow clone has no `origin/<branch>` refs) over each installed copy (`.claude/skills/<name>`, `.agents/skills/<name>`, …; resolve symlinks, write real target once). Note re-running `npx skills@latest add jinsyin/skills` after merge makes it official. If convention changed, tell user run `setup-rules update` to refresh `CLAUDE.local.md` (explicit-invocation only).
