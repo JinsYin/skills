@@ -3,10 +3,15 @@
 # =============================================================================
 .agent/
 .agents/
+!/.agents/
+/.agents/*
+!/.agents/skills/
 .claude/
+!/.claude/
+/.claude/*
+!/.claude/skills/
 .claude-rules/
 .superpowers/
-skills-lock.json
 
 # =============================================================================
 # Operating System / 操作系统
@@ -107,4 +112,3 @@ logs/
 *.temp
 .tmp/
 .temp/
-

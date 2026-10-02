@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "caveman-commit": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "b416cf134b0f33ddadeca7977aebdbb2d3db79a166d0fce2e1aabeec98132766"
+    },
+    "caveman-compress": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "771c3407d970fff5df512abb5026402d2431abecdd3e8f264f9142fec8198674"
+    },
+    "github-pr-merge": {
+      "source": "jinsyin/skills",
+      "sourceType": "github",
+      "computedHash": "e552fc59bb8525a80749c79e67a210b872741cdc9b290ced91f5d5a5a65dffc5"
+    },
+    "setup-rules": {
+      "source": "jinsyin/skills",
+      "sourceType": "github",
+      "computedHash": "167eb806e0d9ecd8d8a8b7f96ed50681a401ab8111e965f5200c0a01e0f107a8"
+    },
+    "skill-optimizer": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "computedHash": "17611b4b906ceabd9ae386350450e676d0692341d90af4468b00c0b7c9ed0a95"
+    },
+    "writing-for-agents": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "computedHash": "95da47fc97af998e85b7d7e6d57b3ac76727c1e290cfe9ea09005aacb826959f"
+    }
+  }
+}

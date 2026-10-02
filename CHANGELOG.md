@@ -21,6 +21,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **已安装 Agent skills 纳入版本管理**：保存 skills、Claude 入口与安装锁文件，排除 Antigravity 安装入口。
 - **setup-rules update 自动执行**：不再逐项确认，直接刷新已安装项，保留未识别段落，异常目标跳过并在报告中列出；补齐 evals。
 - **github-pr-merge**：明确 fork PR 冲突与打回的处理、推送后刷新 merge SHA 校验，无 PR 时也执行收尾同步，并补齐 evals。
 - **github-pr-merge 收尾同步本地**：处理完所有 PR 后，本地无新提交则 `pull --ff-only`，有新提交则 rebase 到远端默认分支后自动 push。
