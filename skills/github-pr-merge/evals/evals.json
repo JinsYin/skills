@@ -47,6 +47,8 @@
         "Every `gh` call passes `-R acme/tools`",
         "Reads Issue #7 and #9 with `gh issue view --comments`",
         "Posts the review via `gh pr comment` before asking the user",
+        "Review comment starts with a `## Review` header followed by a `Reviewer: <model>/<effort>` line naming this session's model ID",
+        "Message to the user ends with the full review comment URL printed by `gh pr comment`",
         "Runs `gh pr merge` only after the user picks Merge",
         "Merge command uses `--squash` and `--match-head-commit` with the reviewed headRefOid",
         "Closes #7 with \"Fixed by #12\" only if it is still open",
@@ -113,13 +115,16 @@
       "id": 8,
       "name": "request-changes-same-repo-loop",
       "prompt": "/github-pr-merge 20",
-      "expected_output": "Same-repo PR #20 has a small bug; user picks Request changes and consents to fixing: applies the fix in a worktree on the head branch, commits per repo conventions, pushes, and re-reads the PR from step 2 to review again with the new head SHA.",
+      "expected_output": "Same-repo PR #20 has a small bug; user picks Request changes and consents to fixing: applies the fix in a worktree on the head branch, commits per repo conventions, pushes, and re-reads the PR from step 2 to review again with the new head SHA. The second review is posted as a `## Re-review` comment with the Reviewer line, marking the earlier bug finding resolved; the user gets a brief conclusion plus the full Re-review comment URL.",
       "files": [],
       "expectations": [
         "Lists concrete edits before changing anything",
         "Asks for consent before committing to the head branch",
         "Commit message follows the repo's CLAUDE.md conventions",
-        "Re-reads the PR (`gh pr view`) and re-runs the review after pushing, using the new headRefOid for any later merge"
+        "Re-reads the PR (`gh pr view`) and re-runs the review after pushing, using the new headRefOid for any later merge",
+        "Posts a second PR comment headed `## Re-review` with a `Reviewer: <model>/<effort>` line",
+        "Re-review comment marks the earlier bug finding as resolved",
+        "Tells the user the Re-review conclusion briefly and gives the full Re-review comment URL"
       ]
     },
     {
@@ -155,6 +160,19 @@
       "expectations": [
         "Runs no `git pull`, `git rebase` or `git push`",
         "Notes that local sync was skipped and gives the reason"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "review-comment-model-effort-summary-url",
+      "prompt": "帮我 review 下 acme/tools 的 #31，看完把意见贴到 PR 上",
+      "expected_output": "Same-repo PR #31 has a missing null check and an out-of-scope file: posts a `## Review` comment whose next line is `Reviewer: <model>/<effort>` (effort `unknown` if not known), then tells the user the core findings and suggested fixes in a few lines, ending with the full comment URL, before asking Merge / Request changes / Reject.",
+      "files": [],
+      "expectations": [
+        "Review comment's second line is `Reviewer: <model>/<effort>`, with `unknown` for any part it cannot determine rather than omitting the line",
+        "Message to the user briefly lists the core findings (null check, out-of-scope file) and a suggested fix for each",
+        "Message to the user includes the full `https://github.com/acme/tools/pull/31#issuecomment-...` URL, not just `#31`",
+        "Asks the user to decide only after posting the comment and giving the URL"
       ]
     }
   ]

@@ -43,11 +43,17 @@ Every layer gets a verdict: pass, or findings. A failed check is a finding; user
 
 **Conflicts**: merge needs a conflict-free branch, so resolve before deciding via a head-branch edit: rebase onto `origin/<base>`; `CHANGELOG.md` → keep both sides' entries in their sections; ask user about other conflicts.
 
-**Head-branch edit** (conflict fix or requested change): same-repo only; `isCrossRepository` → report, put fixes in a PR comment, user picks request changes or reject. In scratchpad `git worktree` of head branch, edit, commit per repo conventions, `git push --force-with-lease`, remove worktree, back to step 2 (new `headRefOid`).
+**Head-branch edit** (conflict fix or requested change): same-repo only; `isCrossRepository` → report, put fixes in a PR comment, user picks request changes or reject. In scratchpad `git worktree` of head branch, edit, commit per repo conventions, `git push --force-with-lease`, remove worktree, back to step 2 (new `headRefOid`); its review is a Re-review.
 
 ## 4. Decide
 
-Post review as PR comment (`gh pr comment <n> --body-file <f>`) — authors can't approve own PRs, so comment = review record. Then ask user, recommend one; act only on user's pick:
+Post review as PR comment — authors can't approve own PRs, so comment = review record:
+
+- Header: `## Review`, or `## Re-review` after a head-branch edit (mark each earlier finding resolved or open). Next line `Reviewer: <model>/<effort>` (e.g. `Reviewer: claude-opus-5-5/high`) — this session's model ID and effort level, unknown → `unknown` — so readers can weigh the verdict.
+- Body: verdict per layer, findings, suggested fixes.
+- `gh pr comment <n> -R <repo> --body-file <f>` prints the comment URL; keep it.
+
+Tell user briefly — Review: core findings + suggested fixes; Re-review: conclusion — ending with the full comment URL, so the record is one click away. Then ask user, recommend one; act only on user's pick:
 
 - **Merge** — `gh pr merge <n> -R <repo> --squash --match-head-commit <reviewed-sha>`. `<reviewed-sha>` = `headRefOid` from latest step 2, so the guard refuses unreviewed commits.
 - **Request changes** — list concrete edits; with user consent, apply as head-branch edit. Cross-repo → edits stay in the PR comment; next PR.

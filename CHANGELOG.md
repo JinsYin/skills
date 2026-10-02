@@ -22,6 +22,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **github-pr-merge 评审记录**：Review/Re-review comment 标注 `Reviewer: <model>/<effort>`，并向用户简报核心问题与建议（Re-review 为结论）及 comment 完整链接。
 - **self-improve 单次调用开销**：digest 为每次 skill 调用输出 Token、调用数、压缩次数、峰值上下文与子 Agent 数，开销类 Issue 按调用列表作证据。
 - **superpowers 约定**：写计划时只定向读取路线图、规格章节、上游接口与相关代码，每份计划分派独立 subagent 起草，避免上下文溢出。
 - **doc-to-md 补齐 eval fixtures 并校正精修范围**：新增全部评测样例文件，Office/EPUB 源按无法渲染处理，evals 改为斜杠命令触发。
