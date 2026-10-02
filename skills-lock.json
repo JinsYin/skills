@@ -4,43 +4,49 @@
     "caveman-commit": {
       "source": "JuliusBrussee/caveman",
       "sourceType": "github",
+      "skillPath": "skills/caveman-commit/SKILL.md",
       "computedHash": "b416cf134b0f33ddadeca7977aebdbb2d3db79a166d0fce2e1aabeec98132766"
     },
     "caveman-compress": {
       "source": "JuliusBrussee/caveman",
       "sourceType": "github",
-      "computedHash": "771c3407d970fff5df512abb5026402d2431abecdd3e8f264f9142fec8198674"
+      "skillPath": "skills/caveman-compress/SKILL.md",
+      "computedHash": "a4034fd0765c04493691b4d85656f31cf22f46e807980f8d6be4b47a4df0b050"
     },
     "github-pr-merge": {
       "source": "jinsyin/skills",
       "sourceType": "github",
-      "computedHash": "e552fc59bb8525a80749c79e67a210b872741cdc9b290ced91f5d5a5a65dffc5"
+      "skillPath": "skills/github-pr-merge/SKILL.md",
+      "computedHash": "f2d08a890f48b79bfab45425c4f70cec0374ca0873d9fea525af30aa6813aee3"
     },
     "self-improve": {
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/self-improve/SKILL.md",
-      "computedHash": "a26928b0fc7cd1a4a9aa5bdf9049d025ee44db3328107017d5e5077e7209f0eb"
+      "computedHash": "7fba6b565e484ef2d985a6da071b1d95d75f858887cadb139509ff415487ae13"
     },
     "setup-rules": {
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/setup-rules/SKILL.md",
-      "computedHash": "f1baf487221e9e187b938b20fbfd1dfd4d58206e9ca3f0d0837da22b6c5e7f15"
+      "computedHash": "728c5bbd196225a4904d413689811453ec041cff00e8c0c628590c52632eca25"
     },
     "skill-creator": {
       "source": "anthropics/skills",
       "sourceType": "github",
+      "skillPath": "skills/skill-creator/SKILL.md",
       "computedHash": "5ea13a6d9f0d4bb694405d79acd00cadec0d21bb138c4dd10fcf3c500cb835c2"
     },
     "skill-optimizer": {
       "source": "mcollina/skills",
       "sourceType": "github",
+      "skillPath": "skills/skill-optimizer/SKILL.md",
       "computedHash": "17611b4b906ceabd9ae386350450e676d0692341d90af4468b00c0b7c9ed0a95"
     },
     "writing-for-agents": {
       "source": "mattpocock/skills",
       "sourceType": "github",
+      "skillPath": "skills/productivity/writing-for-agents/SKILL.md",
       "computedHash": "95da47fc97af998e85b7d7e6d57b3ac76727c1e290cfe9ea09005aacb826959f"
     }
   }
