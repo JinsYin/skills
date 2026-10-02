@@ -17,6 +17,7 @@
 
 ### 修复 (Fixed)
 
+- **Claude 文件跟踪补齐**：移除 Claude 目录忽略规则，纳入 setup-rules update 的 Claude eval fixtures。
 - **self-improve 发 PR 与同步更稳**：显式取默认分支、push 失败不再被吞、`gh pr create` 带 `--head`，同步改从本地 PR 分支取文件；不再默认派生子 Agent。
 
 ### 变更与重构 (Changed & Refactored)

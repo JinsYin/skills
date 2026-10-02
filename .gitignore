@@ -2,15 +2,6 @@
 # AI Agent & Skill Tooling / 本地 Agent 运行时与技能安装
 # =============================================================================
 .agent/
-.agents/
-!/.agents/
-/.agents/*
-!/.agents/skills/
-.claude/
-!/.claude/
-/.claude/*
-!/.claude/skills/
-.claude-rules/
 .superpowers/
 
 # =============================================================================
