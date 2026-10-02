@@ -18,6 +18,7 @@
 
 ### Changed
 
+- **self-improve 跟随上游自身规则**：安装副本与上游不一致时，后续步骤改按上游 `SKILL.md` 执行，避免旧副本漏掉 Issue 语言等规则。
 - **github-pr-merge 评审记录**：Review/Re-review comment 标注 `Reviewer: <model>/<effort>`，并向用户简报核心问题与建议（Re-review 为结论）及 comment 完整链接。
 - **self-improve 单次调用开销**：digest 为每次 skill 调用输出 Token、调用数、压缩次数、峰值上下文与子 Agent 数，开销类 Issue 按调用列表作证据。
 - **superpowers 约定**：写计划时只定向读取路线图、规格章节、上游接口与相关代码，每份计划分派独立 subagent 起草，避免上下文溢出。

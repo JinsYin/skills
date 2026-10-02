@@ -84,6 +84,7 @@
       ],
       "expectations": [
         "Searches existing Issues and PRs (`gh issue list --search`, `gh pr list`) before writing anything",
+        "Notices the installed `self-improve` differs from the clone and follows the clone's `SKILL.md` for the remaining steps",
         "Drops the `--head` lesson as already covered upstream and notes the installed copy needs sync",
         "Adds the truncated skill-run evidence as a (stubbed) `gh issue comment` on #99",
         "Opens no new Issue or PR for either lesson"
