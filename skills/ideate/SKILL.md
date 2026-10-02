@@ -1,49 +1,33 @@
 ---
 name: ideate
-description: Turn a user's product ideas, conversations, and referenced context into a clarified product concept under the project root at docs/ideas/idea.md. Separate confirmed direction, constraints, research targets, and implementation references; ask about missing, ambiguous, or conflicting facts before writing. Use for product ideation, concept capture, updates, and migration of legacy docs/requirements/raw.md or REQUIREMENTS.md.
+description: Clarify product ideas into docs/ideas/idea.md, migrating legacy requirement docs.
+disable-model-invocation: true
 ---
 
 # ideate
 
-Turn product ideas and context into a traceable product concept document.
+Turn product ideas and context into a traceable product concept: every fact traces to a source. Read [references/idea-structure.md](references/idea-structure.md) before working; it defines the four sections, required fields, and template.
 
 ## Rules
 
-- Treat user statements, the current conversation, explicitly named local materials, and existing concept documents as sources of truth.
-- Separate confirmed product intent from context proposals, research targets, and technical references. Do not invent features, choices, deliverables, competitors, or links.
-- Preserve qualifiers and surface missing, ambiguous, or conflicting facts. Never guess.
-- Do not perform unsolicited competitor research or technical selection.
-
-Read [references/idea-structure.md](references/idea-structure.md) before working.
+- Sources: user statements, the current conversation, explicitly named local materials, and existing concept documents. Record only facts from these; ask about anything else instead of guessing features, choices, deliverables, competitors, or links.
+- Carry over the user's qualifiers, constraints, exclusions, and reference-only wording with their meaning intact.
+- Keep product intent, delivery forms, research targets, and technical references in their own sections: internal modules are not deliverables, references are not selected technology, and 待调研 is not 已支持.
+- Research competitors or select technology only when the user asks.
+- Missing values: write `> 无` when the user confirms none or not applicable; write `待定：<事项>` when the user confirms it is undecided. Every heading carries content or one of these markers.
 
 ## Workflow
 
-1. Use the triggering message and explicitly referenced context as input.
-2. Find the project root: prefer the Git root; otherwise use the current directory.
-3. Use `<project-root>/docs/ideas/idea.md` as the target. Create only `docs/ideas/` when needed.
-4. Check for legacy sources at `<project-root>/docs/requirements/raw.md` and `<project-root>/REQUIREMENTS.md`. Read every source that exists and migrate all confirmed content into the target. If multiple sources conflict, preserve both positions as items to confirm; never choose silently.
-5. If the target already exists, read it fully and determine whether the user wants an update, restructure, replacement, or migration. Do not overwrite it when intent is unclear.
-6. Classify input as confirmed product intent, context proposals, external research, or open questions before writing.
-7. Map the input to the four sections defined in the reference. Keep each fact in its best section; do not present internal modules as deliverables or references as selected technology.
-8. Audit every required field in the reference. Ask no more than four related questions per round, then wait. Proceed only after required fields are answered or explicitly marked none, not applicable, or undecided.
-
-## Output
-
-Write `docs/ideas/idea.md` using the reference template:
-
-- Use `# <项目名称> - 产品构想` as the title.
-- Use the reference note explaining that this is an early product exploration record and that unresolved items are marked for later conversion into a formal product specification.
-- Keep all four numbered sections and their required subsections.
-- Mark confirmed undecided items as `待定：...`; do not leave empty headings, `TODO`, or placeholders.
-- Use readable Markdown link text and only user-provided or explicitly requested URLs.
-- Preserve existing confirmed content unless the user supersedes it.
-
-After writing, reread and validate the target. Remove each legacy source only after its content has been successfully migrated and the target passes validation. If removal would discard unrelated uncommitted edits, stop and ask the user. Report the target path, migrated legacy paths, and remaining `无` / `不适用` / `待定` items. Do not commit unless the user explicitly asks.
+1. Project root: the Git root, else the current directory. Target: `<project-root>/docs/ideas/idea.md`; create only `docs/ideas/` when needed.
+2. Legacy sources: read every existing `<project-root>/docs/requirements/raw.md` and `<project-root>/REQUIREMENTS.md` and migrate all confirmed content. When sources conflict, record both positions as questions for the user.
+3. Existing target: read it fully and decide whether the user wants an update, restructure, replacement, or migration; when unclear, ask before writing. Keep its confirmed content unless the user supersedes it.
+4. Sort each input fact as confirmed, proposal, or open question, then place it in its single best section.
+5. Audit every required field in the reference. Ask at most four related questions per round, then wait. Write only after every required field is answered or carries a missing-value marker.
+6. Write the target with the reference title, note, and all four numbered sections. Use readable link text and only user-provided or explicitly requested URLs.
+7. Reread the target against Validation. Only then delete each migrated legacy source; if deletion would discard unrelated uncommitted edits, stop and ask.
+8. Report the target path, removed legacy paths, and remaining `> 无` / `待定` items. Commit only when asked.
 
 ## Validation
 
-- All four numbered sections and the required heading hierarchy are present.
-- No empty sections, placeholders, unshown inferences, duplicated facts, or unresolved silent conflicts remain.
-- Product intent, delivery form, research, and technical references stay separate.
-- User constraints, exclusions, and reference-only wording are preserved.
-- The target path is correct and legacy files were removed only after successful migration.
+- Title, note, four numbered sections, and required subsections match the reference.
+- Every Rule holds; every fact appears once, traces to a source, and every conflict is resolved by the user or listed as a question.

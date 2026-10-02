@@ -22,6 +22,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **ideate 改为手动调用并精简指令**：统一缺失值写法（`> 无` / `待定：`），规则单点定义，校验项可逐条核对。
 - **self-improve Issue/PR 正文改用中文**：模板标题、字段键、表头、`model/effort` 与 Signal 保持英文；`--dry-run` 输出完整 Issue 正文；补齐 evals 与会话 fixtures。
 - **已安装 Agent skills 纳入版本管理**：保存 skills、Claude 入口与安装锁文件，排除 Antigravity 安装入口。
 - **setup-rules update 自动执行**：不再逐项确认，直接刷新已安装项，保留未识别段落，异常目标跳过并在报告中列出；补齐 evals。
