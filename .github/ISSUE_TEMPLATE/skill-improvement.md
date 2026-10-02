@@ -21,7 +21,7 @@ labels: self-improve
 
 ## Evidence
 
-<!-- Quote the session turns that show the problem. Mark strong (user correction / rework / skill-caused cost hotspot) or weak (detour, retry, error; needs ≥2). For cost, add one row per run from the digest's `[heavy-turn]`/`[skill-run]` lines: tokens, calls, compactions, peak-ctx, subagents, wall. -->
+<!-- Quote the session turns that show the problem. Mark strong (user correction / rework / skill-caused cost hotspot) or weak (detour, retry, error; needs ≥2). For cost, add one row per run with its digest `[heavy-turn]`/`[skill-run]` fields. -->
 
 | # | Step where it went wrong | What happened | Signal |
 |---|---|---|---|
