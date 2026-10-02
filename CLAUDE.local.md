@@ -30,3 +30,11 @@
 - MUST follow the rules matched by `*-best-practices` skills.
 - MUST add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
 
+### Skills
+
+- `skills-lock.json` is source of truth for installed skills, which may be gitignored. If it exists but `.agents/skills/` is missing (fresh clone, new worktree), restore before relying on skills:
+
+  ```bash
+  sh -c "$(jq -r '.skills|to_entries|group_by(.value.source)[]|"npx skills@latest add \(.[0].value.source) --agent universal claude-code --skill \(map(.key)|join(" ")) -y"' skills-lock.json)"
+  ```
+
