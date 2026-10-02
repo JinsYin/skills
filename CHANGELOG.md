@@ -18,6 +18,7 @@
 
 ### Changed
 
+- **已安装 skills 不再入库**：`.agents/skills/`、`.claude/skills/` 改为忽略，`npx skills add jinsyin/skills` 只列出本仓库自己的 skills；新 worktree 经 `.worktreeinclude` 复制。
 - **self-improve 无改进也留档**：复盘无可改进项时仍提一个 `no-improvement` 记录 Issue（不提 PR）并立即附理由关闭。
 - **github-pr-merge 评审 effort**：Reviewer 行的 effort 从 Claude Code 的 `$CLAUDE_EFFORT` 读取，不再写成 `unknown`。
 - **self-improve 从克隆执行贡献流程**：上游 `CLAUDE.md` 点名的 skill 从克隆的 `.claude/skills/` 读取执行，不再因发起项目看不到而跳过。
