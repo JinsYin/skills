@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "demo": {
+      "source": "example/skills",
+      "sourceType": "github",
+      "computedHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  }
+}

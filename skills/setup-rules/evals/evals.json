@@ -21,8 +21,8 @@
     {
       "id": 1,
       "name": "update-never-offers-new-items",
-      "prompt": "/setup-rules update，顺便看看有没有新的约定可以加",
-      "expected_output": "Same fixture as eval 0. Refreshes installed items only; tells the user that adding conventions needs a full `/setup-rules` run instead of offering or installing Design, GSD, etc.",
+      "prompt": "/setup-rules update",
+      "expected_output": "Same fixture as eval 0. Scripted follow-up after the update report: \"顺便看看有没有新的约定可以加\". Refreshes installed items only; answers the follow-up by saying adding conventions needs a full `/setup-rules` run instead of offering or installing Design, GSD, etc.",
       "files": ["evals/files/update-project/"],
       "expectations": [
         "Does not add any convention section absent from the original `CLAUDE.local.md`",
@@ -81,14 +81,29 @@
     {
       "id": 6,
       "name": "workflow-sensitive-and-git-choices",
-      "prompt": "/setup-rules，只要 core，其他都不要",
-      "expected_output": "Fresh project with `.env.prod`: preselects `.env.prod` as sensitive and asks for extras, offers the four Git tracking options without choosing, then shows the full manifest and waits for confirmation.",
+      "prompt": "/setup-rules",
+      "expected_output": "Fresh project with `.env.prod`. Scripted user replies, fed in order whenever the skill waits: (1) \"只要 core，其他可选约定都不要\" (2) every adapter/subagent question → \"不要\" (3) sensitive files → \"没有额外的\" (4) Git tracking → \"都选 1\". Preselects `.env.prod` as sensitive and asks for extras, offers the four Git tracking options without choosing, then shows the full manifest and waits for confirmation.",
       "files": ["evals/files/fresh-project/"],
       "expectations": [
         "Preselects `.env.prod` as a sensitive target without reading its contents",
         "Asks for extra sensitive paths instead of inferring them",
         "Offers the four Git tracking options and does not pick one itself",
         "Shows a manifest listing outputs, sensitive targets and Git choices and waits for confirmation before writing"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "workflow-ignore-skills-keeps-lock",
+      "prompt": "/setup-rules",
+      "expected_output": "Fixture `skills-project` is `git init`-ed with every file committed: tracked `.agents/skills/demo`, a `.claude/skills/demo` symlink, `skills-lock.json`, and `.cursor/worktrees.json` with `npm ci`. Scripted user replies, fed in order whenever the skill waits: (1) \"只要 core\" (2) every adapter/subagent question → \"不要\" (3) sensitive files → \"没有额外的\" (4) Git tracking → \".agents/、.claude/、.cursor/ 都选 3\" (5) manifest → \"确认\". Ignores and untracks both `skills/` subtrees, keeps `skills-lock.json` tracked and staged, writes `.agents/skills/` to `.worktreeinclude`, merges the copy command into `.cursor/worktrees.json` beside `npm ci`, does not commit, and points to Core's restore command.",
+      "files": ["evals/files/skills-project/"],
+      "expectations": [
+        "`.gitignore` gains `.agents/skills/` and `.claude/skills/`, and `git rm -r --cached` untracks them while the local files remain",
+        "`skills-lock.json` is neither ignored nor untracked and is staged with `git add`",
+        "`.worktreeinclude` contains `.agents/skills/` but not `.claude/skills/`, citing the main-checkout read-through",
+        "`.cursor/worktrees.json` `setup-worktree-unix` keeps `npm ci` and adds a command copying `$ROOT_WORKTREE_PATH/.agents/skills` into the worktree",
+        "Creates no git commit",
+        "Final report points to the Core `### Skills` restore command for fresh clones"
       ]
     }
   ]
