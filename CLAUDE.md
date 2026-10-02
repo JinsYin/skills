@@ -4,6 +4,7 @@
 
 - MUST write skills in English.
 - MUST keep skill instructions/rules concise.
+- MUST keep `SKILL.md` frontmatter valid YAML: double-quote values containing `: `, else `skills` CLI silently skips skill. Verify `npx skills@latest add . --list` lists every `skills/*/SKILL.md`.
 
 ## Skill Evals
 

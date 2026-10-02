@@ -1,6 +1,6 @@
 ---
 name: design-to-code
-description: Rebuild high-fidelity design or prototype (HTML, React JSX, Figma export, screenshots) as production React code. Stack/engineering rules → frontend-ui-best-practices; design system → products/design/DESIGN.md (restyle mode: one authored from style brief); structure/interaction → products/prototype/.
+description: "Rebuild high-fidelity design or prototype (HTML, React JSX, Figma export, screenshots) as production React code. Stack/engineering rules → frontend-ui-best-practices; design system → products/design/DESIGN.md (restyle mode: one authored from style brief); structure/interaction → products/prototype/."
 argument-hint: "[full | lite | restyle [style brief]]"
 disable-model-invocation: true
 ---

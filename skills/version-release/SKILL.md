@@ -1,6 +1,6 @@
 ---
 name: version-release
-description: Cut a SemVer release — bump every module's version in lockstep, promote CHANGELOG.md, commit, tag, push to origin. Args `major|minor|patch|<x.y.z>`, default `patch`. Invoke only on explicit request: the user, another skill, or a project convention asking for a release.
+description: "Cut a SemVer release — bump every module's version in lockstep, promote CHANGELOG.md, commit, tag, push to origin. Args `major|minor|patch|<x.y.z>`, default `patch`. Invoke only on explicit request: the user, another skill, or a project convention asking for a release."
 ---
 # version-release
 
