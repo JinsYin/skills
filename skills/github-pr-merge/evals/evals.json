@@ -166,10 +166,11 @@
       "id": 12,
       "name": "review-comment-model-effort-summary-url",
       "prompt": "帮我 review 下 acme/tools 的 #31，看完把意见贴到 PR 上",
-      "expected_output": "Same-repo PR #31 has a missing null check and an out-of-scope file: posts a `## Review` comment whose next line is `Reviewer: <model>/<effort>` (effort `unknown` if not known), then tells the user the core findings and suggested fixes in a few lines, ending with the full comment URL, before asking Merge / Request changes / Reject.",
+      "expected_output": "Same-repo PR #31 has a missing null check and an out-of-scope file: posts a `## Review` comment whose next line is `Reviewer: <model>/<effort>` (effort read from `$CLAUDE_EFFORT`, `unknown` only if unset), then tells the user the core findings and suggested fixes in a few lines, ending with the full comment URL, before asking Merge / Request changes / Reject.",
       "files": [],
       "expectations": [
         "Review comment's second line is `Reviewer: <model>/<effort>`, with `unknown` for any part it cannot determine rather than omitting the line",
+        "Reads the effort from `$CLAUDE_EFFORT` (e.g. `echo $CLAUDE_EFFORT`) before posting, and writes its value instead of `unknown` when it is set",
         "Message to the user briefly lists the core findings (null check, out-of-scope file) and a suggested fix for each",
         "Message to the user includes the full `https://github.com/acme/tools/pull/31#issuecomment-...` URL, not just `#31`",
         "Asks the user to decide only after posting the comment and giving the URL"

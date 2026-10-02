@@ -49,7 +49,7 @@ Every layer gets a verdict: pass, or findings. A failed check is a finding; user
 
 Post review as PR comment — authors can't approve own PRs, so comment = review record:
 
-- Header: `## Review`, or `## Re-review` after a head-branch edit (mark each earlier finding resolved or open). Next line `Reviewer: <model>/<effort>` (e.g. `Reviewer: claude-opus-5-5/high`) — this session's model ID and effort level, unknown → `unknown` — so readers can weigh the verdict.
+- Header: `## Review`, or `## Re-review` after a head-branch edit (mark each earlier finding resolved or open). Next line `Reviewer: <model>/<effort>` (e.g. `Reviewer: claude-opus-5-5/high`) — this session's model ID and effort level (not in your context; on Claude Code read `$CLAUDE_EFFORT`), unknown → `unknown` — so readers can weigh the verdict.
 - Body: verdict per layer, findings, suggested fixes.
 - `gh pr comment <n> -R <repo> --body-file <f>` prints the comment URL; keep it.
 
