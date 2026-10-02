@@ -23,8 +23,8 @@
 - The approved spec is truth; the roadmap's scope and phase boundaries are fixed up front.
 - On a `design-to-code` frontend, write into the global constraints of the spec, the roadmap and every plan that tasks only swap data, wire APIs and add guards, gated by `scripts/visual-freeze.sh`; `brainstorming` never designs UI, and any visual need leaves the milestone for the prototype chain.
 - No roadmap yet → write it this run and stop; otherwise plan exactly one phase, and only after the previous phase has executed.
-- Draft against the code that phase landed, never an earlier plan's text. Read only the roadmap's decisions, global constraints and this phase's rows, the spec chapters those rows name, upstream plans' `Interfaces · Produces`, and code by symbol — via grep or line range, never whole files, since whole reads are redone after every compaction.
-- Write `<phase-num>-00.PATTERN.md` first, then draft each plan in its own fresh subagent, in checklist order, handing over paths rather than contents; the main session keeps only each plan's `Interfaces · Produces` and runs the checks below, since even a 3-plan phase drafted inline overflowed context twice.
+- Draft against the code that phase landed, never an earlier plan's text. Read by grep or line range: the roadmap's decisions, global constraints and this phase's rows, the spec chapters those rows name, upstream plans' `Interfaces · Produces`, and the code symbols tasks touch — every whole-file read is paid again after each compaction.
+- Write `<phase-num>-00.PATTERN.md` first, then draft each plan in its own fresh subagent in checklist order, handing it paths; each returns its plan path and `Interfaces · Produces`, all the main session keeps before the checks below, so no single context holds the whole phase.
 - 2–5 tasks per plan, each a vertical slice, splitting any task that spans two subsystems, or mixes discovery with implementation.
 - End the run by flipping that phase's entries `pending` → `planned`, then fixing — not reporting — every check below.
 - Require `grep -nE '^[[:space:]]*(package|import) ' <file>` to print nothing for every file the run wrote.
