@@ -22,6 +22,7 @@
 
 ### 变更与重构 (Changed & Refactored)
 
+- **doc-to-md 补齐 eval fixtures 并校正精修范围**：新增全部评测样例文件，Office/EPUB 源按无法渲染处理，evals 改为斜杠命令触发。
 - **doc-to-md 改写为英文**：SKILL.md 全文译为英文并精简重复说明，改为手动调用；行为不变。
 - **ideate 改为手动调用并精简指令**：统一缺失值写法（`> 无` / `待定：`），规则单点定义，校验项可逐条核对。
 - **self-improve Issue/PR 正文改用中文**：模板标题、字段键、表头、`model/effort` 与 Signal 保持英文；`--dry-run` 输出完整 Issue 正文；补齐 evals 与会话 fixtures。

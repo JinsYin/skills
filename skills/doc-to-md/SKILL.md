@@ -1,20 +1,9 @@
 ---
 name: doc-to-md
 description: >-
-  Convert documents to Markdown using Microsoft's markitdown, auto-clean the
-  result with markdownlint, then LLM-refine it against the source to fix
-  structure (heading levels, broken tables, multi-column reading order,
-  hyphenation) and strip extraction noise (repeated headers/footers, page
-  numbers, watermarks) while preserving the original wording verbatim, and save
-  it next to the source file with the same base name and a .md extension. Use
-  this WHENEVER the user wants a document
-  turned into Markdown — PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx),
-  HTML, CSV, JSON, XML, EPUB, RTF, .txt, images, or audio. Trigger on phrases
-  like "convert this to markdown", "turn this PDF/doc/deck into md", "extract
-  the text of this file as markdown", "markitdown this", "make a .md from this",
-  or when the user drops a document path and asks for its markdown version —
-  even if they don't name markitdown or markdownlint explicitly. Handles a
-  single file or a batch (multiple files / a directory).
+  Convert documents (PDF, Office, HTML, EPUB, images, audio, etc.) to faithful
+  Markdown saved beside the source: markitdown and markdownlint, then refine
+  structure and strip extraction noise against the source without rewriting text.
 disable-model-invocation: true
 ---
 
@@ -79,20 +68,6 @@ Briefly tell the user:
 - **What refinement changed**, in one sentence (e.g., "fixed 3 heading levels, rebuilt the broken table on page 2, removed repeated headers"), so they can tell structural fixes from content changes.
 - Any **non-auto-fixable** lint warnings the script printed, summarized, noting they usually stem from the source structure and do not mean the conversion failed.
 
-## Semantic cleanup (postprocess.py)
-
-`scripts/postprocess.py` runs before lint and fixes structure lint cannot. Rules are conservative — anything unmatched passes through untouched:
-
-- **TOC block** → list: consecutive entries after a `目录` / `Table of Contents` / `Contents` heading become `- ` items, dot leaders (`......`) collapse to one space, page numbers stay; existing list items are left alone.
-- **Bare JSON** → fenced: a paragraph that `json.loads` parses is wrapped in ` ```json `; already-fenced blocks and non-JSON like `{placeholder}` are untouched.
-- **Empty table rows** → removed: rows with only empty cells (e.g., `|  |  |`) go; separator rows `| --- |` and data rows stay.
-
-Pure Python with no dependencies; always runs, even with `--no-lint`, because it shapes output structure rather than formatting.
-
-## Lint rules
-
-`assets/markdownlint.jsonc` is a lenient ruleset for converted output: rules meaningless for extracted text (line length, inline HTML, first-line heading, multiple H1s, list renumbering, etc.) are off; the rest stay default so `--fix` cleans what it can.
-
 ## LLM refinement
 
 **Why**: these defects come from extraction, not the document; `postprocess.py` and lint fix only the safe deterministic cases, the rest needs your judgment against the source.
@@ -105,7 +80,7 @@ Pure Python with no dependencies; always runs, even with `--no-lint`, because it
 
 **How:**
 
-1. `Read` the source file first (Read renders PDFs, images, docx, etc.); it is the **only source of truth**. Then `Read` the generated `.md`.
+1. `Read` the source file first (Read renders PDFs and images; HTML, CSV, JSON, and XML read as text); it is the **only source of truth**. Then `Read` the generated `.md`.
 2. Make **targeted `Edit`s** that change only what is wrong. Targeted edits keep changes visible and avoid dropping content. Rewrite fully only when the structure is too broken to patch, then check section count and length against the source to confirm nothing is missing.
 3. Finish with `"$SKILL_DIR/scripts/convert.sh" --lint-only <those .md>` to tidy indentation, blank lines, and trailing spaces from manual edits. It does **not** reconvert or overwrite your work.
 
@@ -135,5 +110,21 @@ Noise removal (confirm in the source that it is layout decoration, not body text
 - **Conversion fails** (markitdown exits non-zero, e.g., encrypted PDF, corrupt file): the script deletes the partial output, reports exit code 2, and continues with other inputs. Report the failed files truthfully.
 - **Unsupported format**: directory expansion picks only markitdown-supported extensions; explicitly passed unsupported files are left to markitdown to reject.
 - **No npx**: lint is skipped; the conversion is saved.
-- **Source `Read` cannot render** (audio transcripts, huge PDFs): refine using only the `.md` — fix structure visible in the output itself (hyphenation, obvious lists/headings), never guess table content you cannot check, and state that the source was not checked.
+- **Source `Read` cannot render** (Office files, EPUB, audio, huge PDFs): refine using only the `.md` — fix structure visible in the output itself (hyphenation, obvious lists/headings), never guess table content you cannot check, and state that the source was not checked.
 - Exit codes: `0` success / `2` conversion failed / `3` overwrite needs confirmation / `4` no input to process; `--lint-only` follows the same codes (no `.md` input → 4).
+
+## Reference: deterministic stage
+
+### postprocess.py
+
+`scripts/postprocess.py` runs before lint and fixes structure lint cannot. Rules are conservative — anything unmatched passes through untouched:
+
+- **TOC block** → list: consecutive entries after a `目录` / `Table of Contents` / `Contents` heading become `- ` items, dot leaders (`......`) collapse to one space, page numbers stay; existing list items are left alone.
+- **Bare JSON** → fenced: a paragraph that `json.loads` parses is wrapped in ` ```json `; already-fenced blocks and non-JSON like `{placeholder}` are untouched.
+- **Empty table rows** → removed: rows with only empty cells (e.g., `|  |  |`) go; separator rows `| --- |` and data rows stay.
+
+Pure Python with no dependencies; always runs, even with `--no-lint`, because it shapes output structure rather than formatting.
+
+### Lint rules
+
+`assets/markdownlint.jsonc` is a lenient ruleset for converted output: rules meaningless for extracted text (line length, inline HTML, first-line heading, multiple H1s, list renumbering, etc.) are off; the rest stay default so `--fix` cleans what it can.
