@@ -13,6 +13,7 @@
 
 ### Changed
 
+- **setup-rules Core 按 zsh 语义写 Shell 命令**：glob 加引号、`[` 前写 `${var}`、`[ ]` 内用 `=`、不以 `path` 作变量名，避免 macOS 上命令报错或检查脚本静默空跑。
 - **self-improve 记录 Issue 改用 `no-pr` 标签**：无 PR 的复盘记录 Issue 标签由 `no-improvement` 改为 `no-pr`；去重改按 `rejected` 标签识别被拒的 Issue/PR。
 - **github-pr-merge 拒绝时打 `rejected` 标签**：Reject 关闭 PR 及其关联 Issue 前均打上 `rejected` 标签（缺失则创建）。
 - **self-improve 支持多 Agent Runtime 取证**：`transcript.py` 新增 `--runtime claude|codex|cursor|agy`，可读取 Codex、Cursor IDE / `cursor-agent`、Antigravity `agy` 会话的报错、纠正、skill 加载与成本；Cursor 无 Token 记录时标注 unavailable。
