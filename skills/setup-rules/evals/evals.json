@@ -102,7 +102,8 @@
       "expectations": [
         "`.gitignore` gains `.agents/skills/` and `.claude/skills/`, and `git rm -r --cached` untracks them while the local files remain",
         "`skills-lock.json` is neither ignored nor untracked and is staged with `git add`",
-        "`.worktreeinclude` contains `.agents/skills/` but not `.claude/skills/`, citing the main-checkout read-through",
+        "`.worktreeinclude` contains `.agents/skills/` but not `.claude/skills/` as an entry",
+        "`.worktreeinclude` has a single English comment line above the entry stating the copy purpose and that `.claude/skills/` is omitted so Claude Code reads the main checkout's",
         "`.cursor/worktrees.json` `setup-worktree-unix` keeps `npm ci` and adds a command copying `$ROOT_WORKTREE_PATH/.agents/skills` into the worktree",
         "Creates no git commit",
         "Copies `assets/skillsw` to project-root `skillsw` and makes it executable",

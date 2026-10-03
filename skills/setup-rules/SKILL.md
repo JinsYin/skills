@@ -75,7 +75,12 @@ The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the pr
 
 **9. Ask about Git tracking.** Default for each applicable `.<tool>/`, `.agent/` (Antigravity) and `.agents/`: track all except its `skills/` subtree—add those exact directories to `.gitignore`, untrack their tracked files. Ask only: keep default, or custom per directory; use custom only when user asks. If `skills-lock.json` exists and skills end up ignored, also plan these skills-lock entries:
    - Keep `skills-lock.json` tracked and `git add` it; restores rebuild skills from it.
-   - Add `.agents/skills/` to `.worktreeinclude` so Claude Code/Codex copy it into new worktrees. Leave `.claude/skills/` out: worktree lacking it reads main checkout's Claude skills; copy disables that read-through.
+   - Add this block to `.worktreeinclude` so Claude Code/Codex copy skills into new worktrees; copying `.claude/skills/` too would stop Claude Code reading main checkout's. Entry exists uncommented → add comment:
+
+     ```gitignore
+     # Copy installed skills to new worktrees; omit .claude/skills/ so Claude Code reads the main checkout's
+     /.agents/skills/
+     ```
    - `.cursor/` in scope → add `mkdir -p .agents && cp -R "$ROOT_WORKTREE_PATH/.agents/skills" .agents/` to `.cursor/worktrees.json` `setup-worktree-unix`.
 
 **10. Confirm the manifest.** List outputs, sensitive targets, external settings, per-directory Git choices, exact ignore entries, tracked removals, and step 9 skills-lock entries. Confirm before writing.

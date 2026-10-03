@@ -1,3 +1,2 @@
-# 新 worktree 从主 checkout 复制已安装 skills（gitignored）
-# 不含 /.claude/skills/：worktree 根无 .claude/skills 时 Claude Code 回读主 checkout 的 skills；复制反而关闭回读
+# Copy installed skills to new worktrees; omit .claude/skills/ so Claude Code reads the main checkout's
 /.agents/skills/
