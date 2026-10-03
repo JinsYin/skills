@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "github-pr-merge": {
+      "source": "jinsyin/skills",
+      "sourceType": "github",
+      "computedHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  }
+}

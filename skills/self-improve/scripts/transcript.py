@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
-"""Compact Claude Code session transcripts into retrospective evidence.
+"""Compact agent session transcripts into retrospective evidence.
 
-  transcript.py digest [--cwd DIR] [ID|PATH ...]  # signal digest; default = newest session
-  transcript.py meta   [--cwd DIR] [ID|PATH ...]  # session id/name, runtime, most-used and last model/effort
+  transcript.py digest [--runtime RT] [--cwd DIR] [ID|PATH ...]  # signal digest; default = newest session
+  transcript.py meta   [--runtime RT] [--cwd DIR] [ID|PATH ...]  # session id/name, runtime, most-used and last model/effort
 
-Transcripts live at ~/.claude/projects/<slug>/<session-id>.jsonl, where slug is
-the project path with every non-alphanumeric char replaced by '-'.
+RT = claude | codex | cursor | agy | auto (default: Claude Code if detected, else the
+newest session of cwd across runtimes). Each runtime's storage is read by an adapter
+in runtimes/; see their docstrings for paths.
 Output is deliberately small: raw transcripts are huge, the digest keeps only
 what a retrospective needs (prompts, skill loads, errors, corrections, retries).
 """
 import argparse
 import collections
-import json
 import os
 import re
 import sys
-from datetime import datetime
 
-ROOT = os.path.expanduser("~/.claude/projects")
-CLIP = 280
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from runtimes import RUNTIMES, sessions  # noqa: E402
+from runtimes.common import clip  # noqa: E402
+
 BIG_RESULT = 20_000  # 单个工具结果字符数阈值，超过视为可能浪费上下文
 HEAVY_AGENT = 200_000  # 子 Agent Token 阈值
 HEAVY_SKILL = 0.25  # skill 占全会话 Token 或耗时的比例阈值
@@ -29,179 +30,79 @@ CORRECTION = re.compile(
     r"|不对|不是|错了|应该|别|不要|重新|又|还是|怎么没|没有按|回滚|撤销",
     re.I,
 )
-NOISE = ("<local-command", "<command-name>", "<command-message>", "<system-reminder>", "Caveat:")
-BUILTIN = {"clear", "compact", "resume", "model", "config", "cost", "exit", "help", "init", "status"}
-INTERRUPT = ("[Request interrupted", "doesn't want to proceed", "user rejected", "was rejected")
 
 
-def project_dir(cwd):
-    return os.path.join(ROOT, re.sub(r"[^A-Za-z0-9]", "-", os.path.abspath(cwd)))
+def skill_name(path):
+    p = path.rstrip("/")
+    return os.path.basename(os.path.dirname(p) if p.endswith("SKILL.md") else p).split(":")[-1]
 
 
-def clip(s, n=CLIP):
-    s = re.sub(r"\s+", " ", s or "").strip()
-    return s if len(s) <= n else s[: n - 1] + "…"
+def meta_line(s):
+    m = s.meta()
+    most = m["pairs"].most_common(1)[0][0] if m["pairs"] else "unknown"
+    return (f"session={s.id} name={m['name'] or '-'} "
+            f"runtime={m['runtime']} most={most} last={m['last'] or 'unknown'}")
 
 
-def text_of(content):
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        return " ".join(
-            b.get("text", "") if b.get("type") == "text" else text_of(b.get("content"))
-            for b in content
-            if isinstance(b, dict)
-        )
-    return ""
-
-
-def records(path):
-    # 逐行流式读取，避免一次性载入大文件
-    with open(path, encoding="utf-8", errors="replace") as f:
-        for line in f:
-            try:
-                yield json.loads(line)
-            except ValueError:
-                continue
-
-
-def human_prompt(d):
-    """Return the text of a genuine user-typed message, else None."""
-    if d.get("type") != "user" or d.get("isMeta") or d.get("isSidechain"):
-        return None
-    c = (d.get("message") or {}).get("content")
-    if isinstance(c, list) and any(b.get("type") == "tool_result" for b in c if isinstance(b, dict)):
-        return None
-    # IDE 附带的选区/打开文件提示不是用户意图，剔除以省 Token
-    t = re.sub(r"<ide_\w+>.*?</ide_\w+>|</?pasted_content[^>]*>", "", text_of(c), flags=re.S).strip()
-    m = re.search(r"<command-name>/?([^<]+)</command-name>(?:.*?<command-args>(.*?)</command-args>)?", t, re.S)
-    if m:
-        # 斜杠命令：保留命令名与参数（无参数时没有 command-args 标签），内置的清屏等命令无复盘价值
-        return None if m.group(1) in BUILTIN else f"/{m.group(1)} {(m.group(2) or '').strip()}".rstrip()
-    if not t or t.startswith(NOISE) or t.startswith("Base directory for this skill"):
-        return None
-    return t
-
-
-def skill_loaded(d):
-    """Path of a skill whose body was injected into this user record, if any."""
-    if d.get("type") != "user":
-        return None
-    m = re.match(r"\s*Base directory for this skill: (\S+)", text_of((d.get("message") or {}).get("content")))
-    return m and m.group(1)
-
-
-def resolve(ids, cwd):
-    pdir = project_dir(cwd)
-    if not ids:
-        files = [os.path.join(pdir, f) for f in os.listdir(pdir) if f.endswith(".jsonl")]
-        return [max(files, key=os.path.getmtime)]
-    out = []
-    for s in ids:
-        if os.path.isfile(s):
-            out.append(s)
-            continue
-        hit = [f for f in os.listdir(pdir) if f.startswith(s) and f.endswith(".jsonl")]
-        if len(hit) != 1:
-            sys.exit(f"session '{s}' matched {len(hit)} files in {pdir}")
-        out.append(os.path.join(pdir, hit[0]))
-    return out
-
-
-def meta(path):
-    """One-line provenance: id, name, runtime, most-used and last model/effort."""
-    name, ai, ver, entry, last = "", "", "", "", ""
-    # model 与 effort 会话中途都可能被切换：按对计数，最后一对才是当前档位
-    pairs = collections.Counter()
-    for d in records(path):
-        # 手动 /rename 的 customTitle 优先于自动生成的 aiTitle，取最后一次
-        name = d.get("customTitle") or name
-        ai = d.get("aiTitle") or ai
-        ver, entry = d.get("version") or ver, d.get("entrypoint") or entry
-        m = (d.get("message") or {}).get("model")
-        if m and not m.startswith("<"):
-            last = f"{m}/{d.get('effort') or 'unknown'}"
-            pairs[last] += 1
-    most = pairs.most_common(1)[0][0] if pairs else "unknown"
-    runtime = f"Claude Code {ver} ({entry})".replace(" ()", "") if ver else "Claude Code"
-    return (f"session={os.path.basename(path)[:-6]} name={name or ai or '-'} "
-            f"runtime={runtime} most={most} last={last or 'unknown'}")
-
-
-def digest(path):
-    print(f"## {meta(path)}")
-    tools = {}  # tool_use_id -> (name, short input)
+def digest(s):
+    print(f"## {meta_line(s)}")
+    tools = {}  # tool call id -> (name, short input)
     calls = collections.Counter()
     errors = collections.Counter()
     turn = 0
-    # 按用户轮次累计开销；同一 message.id 会拆成多条记录，usage 只计一次
+    # 按用户轮次累计开销
     cost = collections.defaultdict(lambda: {"in": 0, "out": 0, "calls": 0, "ms": 0, "skills": set(), "manual": set(), "prompt": "",
                                          "compact": 0, "peak": 0, "res": 0})
-    seen, peak, span = set(), 0, {}
-    for d in records(path):
-        ts = stamp(d)
+    peak, span, has_usage = 0, {}, False
+    for e in s.events():
+        k, ts = e["k"], e.get("ts")
         if ts:
-            # 每轮耗时 = 该轮首末记录的时间差（turn_duration 记录并非总存在）
+            # 每轮耗时 = 该轮首末记录的时间差
             a, _ = span.get(turn, (ts, ts))
             span[turn] = (a, ts)
-        u = (d.get("message") or {}).get("usage")
-        mid = (d.get("message") or {}).get("id")
-        if u and mid not in seen and not d.get("isSidechain"):
-            seen.add(mid)
-            ctx = sum(u.get(k) or 0 for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
-            cost[turn]["in"] += ctx
-            cost[turn]["out"] += u.get("output_tokens") or 0
-            cost[turn]["peak"] = max(cost[turn]["peak"], ctx)
-            peak = max(peak, ctx)
-        if d.get("isCompactSummary"):
+        if k == "usage":
+            has_usage = True
+            cost[turn]["in"] += e["ctx"]
+            cost[turn]["out"] += e["out"]
+            cost[turn]["peak"] = max(cost[turn]["peak"], e["ctx"])
+            peak = max(peak, e["ctx"])
+        elif k == "compact":
             cost[turn]["compact"] += 1
-            print(f"[compact-summary] {clip(text_of((d.get('message') or {}).get('content')), 600)}")
-            continue
-        msg = d.get("message") or {}
-        content = msg.get("content")
-        loaded = skill_loaded(d)
-        if loaded:
-            print(f"[{turn}] SKILL-LOADED: {loaded}")
-            cost[turn]["skills"].add(os.path.basename(loaded.rstrip("/")).split(":")[-1])
-            continue
-        t = human_prompt(d)
-        if t:
+            print(f"[compact-summary] {clip(e['text'], 600)}")
+        elif k == "skill_loaded":
+            print(f"[{turn}] SKILL-LOADED: {e['path']}")
+            cost[turn]["skills"].add(skill_name(e["path"]))
+        elif k == "user":
             turn += 1
-            tag = "USER*" if CORRECTION.search(t) else "USER"
+            t = e["text"]
             cost[turn]["prompt"] = t
-            if t.startswith("/"):
-                # 用户手敲的斜杠命令 = 手动触发；Skill 工具调用则是模型或其他 skill 自动触发
-                cost[turn]["manual"].add(t[1:].split()[0].split(":")[-1])
-            print(f"[{turn}] {tag}: {clip(t, 400)}")
-            continue
-        if not isinstance(content, list):
-            continue
-        for b in content:
-            if not isinstance(b, dict):
-                continue
-            if b.get("type") == "tool_use":
-                name, inp = b.get("name", "?"), b.get("input") or {}
-                key = inp.get("skill") or inp.get("command") or inp.get("file_path") or inp.get("description") or ""
-                tools[b.get("id")] = (name, clip(str(key), 120))
-                cost[turn]["calls"] += 1
-                if name == "Skill":
-                    cost[turn]["skills"].add(str(inp.get("skill")).split(":")[-1])
-                    print(f"[{turn}] SKILL: {inp.get('skill')} {clip(str(inp.get('args') or ''), 120)}")
-                elif name in ("Agent", "Task"):
-                    print(f"[{turn}] AGENT: {clip(inp.get('description') or '', 120)}")
-                # 同一文件的不同 Edit、不同段落的 Read 不是重试：签名带上改动内容或偏移
-                calls[(name, key, str(inp.get("old_string") or inp.get("offset") or ""))] += 1
-            elif b.get("type") == "tool_result":
-                name, key = tools.get(b.get("tool_use_id"), ("?", ""))
-                body = text_of(b.get("content"))
-                cost[turn]["res"] += len(body)
-                if any(m in body for m in INTERRUPT):
-                    print(f"[{turn}] REJECTED {name}: {key}")
-                elif b.get("is_error"):
-                    errors[(name, clip(body, 80))] += 1
-                    print(f"[{turn}] ERROR {name}: {key} -> {clip(body, 200)}")
-                if len(body) > BIG_RESULT:
-                    print(f"[{turn}] BIG-RESULT {name}: {key} -> {len(body) // 1000}k chars")
+            # 用户手动点名的 skill（斜杠命令、$skill、附加 skill）= 手动触发；工具调用加载的为自动触发
+            cost[turn]["manual"].update(n.split(":")[-1] for n in e.get("manual") or [])
+            print(f"[{turn}] {'USER*' if CORRECTION.search(t) else 'USER'}: {clip(t, 400)}")
+        elif k == "note":
+            print(f"[{turn}] {e['text']}")
+        elif k == "call":
+            name, key = e["name"], e["key"]
+            tools[e["id"]] = (name, key)
+            cost[turn]["calls"] += 1
+            if e.get("skill"):
+                sk, args = e["skill"]
+                cost[turn]["skills"].add(str(sk).split(":")[-1])
+                print(f"[{turn}] SKILL: {sk} {args}")
+            elif e.get("agent") is not None:
+                print(f"[{turn}] AGENT: {e['agent']}")
+            calls[(name, key, e.get("sig") or "")] += 1
+        elif k == "result":
+            name, key = tools.get(e["id"], ("?", ""))
+            body = e["body"] or ""
+            cost[turn]["res"] += len(body)
+            if e.get("rejected"):
+                print(f"[{turn}] REJECTED {name}: {key}")
+            elif e["error"]:
+                errors[(name, clip(body, 80))] += 1
+                print(f"[{turn}] ERROR {name}: {key} -> {clip(body, 200)}")
+            if len(body) > BIG_RESULT:
+                print(f"[{turn}] BIG-RESULT {name}: {key} -> {len(body) // 1000}k chars")
     # 同一调用重复多次 = 重试/绕路的候选信号
     retries = [(k, n) for k, n in calls.items() if n >= 3 and k[1]]
     for (name, key, _), n in sorted(retries, key=lambda x: -x[1])[:10]:
@@ -211,47 +112,16 @@ def digest(path):
             print(f"[repeat-error x{n}] {name}: {body}")
     for t, (a, b) in span.items():
         cost[t]["ms"] = int((b - a).total_seconds() * 1000)
-    cost_report(cost, peak, subagents(path), span)
+    agents = s.subagents()
+    if has_usage:
+        cost_report(cost, peak, agents, span)
+    else:
+        # 无 token 数据时不臆造成本信号
+        print(f"[cost] unavailable: {s.runtime} transcripts record no token usage; "
+              f"subagents={len(agents)} calls={sum(c['calls'] for c in cost.values())}")
+        for a in agents:
+            print(f"[agent] {a['type']} calls={a['calls']}: {clip(a['desc'], 80)}")
     print()
-
-
-def stamp(d):
-    try:
-        return datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00"))
-    except (KeyError, ValueError, AttributeError):
-        return None
-
-
-def subagents(path):
-    """Per-subagent totals from <session>/subagents/agent-*.jsonl (sync and async alike)."""
-    sdir = os.path.join(path[:-6], "subagents")
-    out = []
-    for f in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
-        if not f.endswith(".jsonl"):
-            continue
-        tok, calls, seen, model, ts = 0, 0, set(), "", []
-        for d in records(os.path.join(sdir, f)):
-            m = d.get("message") or {}
-            t = stamp(d)
-            if t:
-                ts.append(t)
-            if m.get("id") and m.get("usage") and m["id"] not in seen:
-                seen.add(m["id"])
-                u = m["usage"]
-                tok += sum(u.get(k) or 0 for k in ("input_tokens", "cache_creation_input_tokens",
-                                                     "cache_read_input_tokens", "output_tokens"))
-                model = m.get("model") or model
-            if isinstance(m.get("content"), list):
-                calls += sum(1 for b in m["content"] if isinstance(b, dict) and b.get("type") == "tool_use")
-        try:
-            info = json.load(open(os.path.join(sdir, f[:-6] + ".meta.json")))
-        except (OSError, ValueError):
-            info = {}
-        wall = int((max(ts) - min(ts)).total_seconds()) if ts else 0
-        out.append({"desc": info.get("description") or f[:-6], "type": info.get("agentType"),
-                    "start": min(ts) if ts else None,
-                    "model": model, "tokens": tok, "calls": calls, "wall": wall})
-    return out
 
 
 def fmt(n):
@@ -307,15 +177,17 @@ def skill_report(cost, agents, span, ttok, tms):
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    g = sub.add_parser("digest")
-    g.add_argument("--cwd", default=os.getcwd())
-    g.add_argument("ids", nargs="*")
-    m = sub.add_parser("meta")
-    m.add_argument("--cwd", default=os.getcwd())
-    m.add_argument("ids", nargs="*")
+    for cmd in ("digest", "meta"):
+        p = sub.add_parser(cmd)
+        p.add_argument("--runtime", choices=[*RUNTIMES, "auto"], default="auto")
+        p.add_argument("--cwd", default=os.getcwd())
+        p.add_argument("ids", nargs="*")
     a = ap.parse_args()
-    for p in resolve(a.ids, a.cwd):
-        print(meta(p)) if a.cmd == "meta" else digest(p)
+    found = sessions(a.runtime, a.cwd, a.ids)
+    if not found:
+        sys.exit(f"no {a.runtime} session found for {a.cwd}")
+    for s in found:
+        print(meta_line(s)) if a.cmd == "meta" else digest(s)
 
 
 if __name__ == "__main__":

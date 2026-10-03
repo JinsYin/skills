@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-"""Generate synthetic Claude Code transcripts for self-improve evals."""
-import json, os, sys, itertools
+"""Generate synthetic Claude Code, Codex, Cursor and Antigravity transcripts for self-improve evals."""
+import itertools
+import json
+import os
+import shutil
+import sqlite3
+import sys
 from datetime import datetime, timedelta
 
 OUT = sys.argv[1]  # skills/self-improve/evals/files
@@ -181,4 +186,199 @@ s.say("已更新 docs/ideas/idea.md。新增：导出 PDF 账单；修改：无�
 s.user("好的，谢谢")
 s.slash("self-improve")
 s.save(home)
+
+# ---- 其他 Runtime：同一 cwd /work/demo，按各自存储格式落盘 ----
+T0 = datetime(2026, 9, 28, 9, 0, 0)
+
+
+class Codex:
+    """~/.codex/sessions/YYYY/MM/DD/rollout-<ts>-<id>.jsonl（exec_command 调用 + token_usage_record）。"""
+
+    def __init__(self, sid, name):
+        self.sid, self.name, self.t, self.n = sid, name, T0, itertools.count(1)
+        self.recs = []
+        self._rec("session_meta", {"id": sid, "cwd": "/work/demo", "cli_version": "0.130.0", "originator": "codex_cli_rs"})
+        self._rec("turn_context", {"model": "gpt-5.5", "effort": "high", "cwd": "/work/demo"})
+
+    def _rec(self, typ, payload, secs=20):
+        self.t += timedelta(seconds=secs)
+        self.recs.append({"timestamp": self.t.isoformat() + "Z", "type": typ, "payload": payload})
+
+    def _usage(self, tok):
+        self._rec("token_usage_record", {"response_id": f"resp_{next(self.n)}",
+                                         "usage": {"input_tokens": tok, "output_tokens": 400}}, 1)
+
+    def user(self, text, secs=60):
+        self._rec("response_item", {"type": "message", "role": "user",
+                                    "content": [{"type": "input_text", "text": text}]}, secs)
+
+    def skill_body(self, name, path):
+        self.user(f"<skill>\n<name>{name}</name>\n<path>{path}</path>\n# skill body…\n</skill>", 2)
+
+    def say(self, text, tok=20_000):
+        self._rec("response_item", {"type": "message", "role": "assistant",
+                                    "content": [{"type": "output_text", "text": text}]})
+        self._usage(tok)
+
+    def exec(self, cmd, out, code=0, tok=20_000):
+        cid = f"call_{next(self.n)}"
+        self._rec("response_item", {"type": "function_call", "name": "exec_command", "call_id": cid,
+                                    "arguments": json.dumps({"cmd": cmd}, ensure_ascii=False)})
+        self._usage(tok)
+        self._rec("response_item", {"type": "function_call_output", "call_id": cid,
+                                    "output": f"Process exited with code {code}\nOutput:\n{out}"}, 5)
+
+    def save(self, home):
+        d = os.path.join(home, ".codex", "sessions", "2026", "09", "28")
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, f"rollout-2026-09-28T09-00-00-{self.sid}.jsonl"), "w") as f:
+            for r in self.recs:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        with open(os.path.join(home, ".codex", "session_index.jsonl"), "w") as f:
+            f.write(json.dumps({"id": self.sid, "thread_name": self.name}) + "\n")
+
+
+class Cursor:
+    """~/.cursor/projects/work-demo/agent-transcripts/<id>/<id>.jsonl：只有提问与工具调用，无 token、模型、工具结果。"""
+
+    def __init__(self, sid):
+        self.sid, self.t, self.recs = sid, T0, []
+
+    def user(self, text, skills=(), mins=2):
+        self.t += timedelta(minutes=mins)
+        att = "".join(f"Skill Name: {n}\nPath: {p}\n" for n, p in skills)
+        att = f"<manually_attached_skills>\n{att}</manually_attached_skills>\n" if att else ""
+        stamp = self.t.strftime("%A, %b %d, %Y, %I:%M %p").replace(" 0", " ")
+        self.recs.append({"role": "user", "message": {"content": [{"type": "text", "text":
+                          f"<timestamp>{stamp} (UTC+8)</timestamp>\n{att}<user_query>\n{text}\n</user_query>"}]}})
+
+    def tool(self, name, inp):
+        self.recs.append({"role": "assistant", "message": {"content": [{"type": "tool_use", "name": name, "input": inp}]}})
+
+    def say(self, text):
+        self.recs.append({"role": "assistant", "message": {"content": [{"type": "text", "text": text}]}})
+        self.recs.append({"type": "turn_ended", "status": "success"})
+
+    def save(self, home):
+        d = os.path.join(home, ".cursor", "projects", "work-demo", "agent-transcripts", self.sid)
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, self.sid + ".jsonl"), "w") as f:
+            for r in self.recs:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+
+def pb(*fields):
+    """最小 protobuf 编码：int → varint，str/bytes → 定长，tuple → 嵌套消息。"""
+    def var(n):
+        out = b""
+        while True:
+            b, n = n & 0x7F, n >> 7
+            out += bytes([b | (0x80 if n else 0)])
+            if not n:
+                return out
+    out = b""
+    for f, v in fields:
+        if isinstance(v, int):
+            out += var(f << 3) + var(v)
+        else:
+            v = pb(*v) if isinstance(v, tuple) else v.encode() if isinstance(v, str) else v
+            out += var(f << 3 | 2) + var(len(v)) + v
+    return out
+
+
+class Agy:
+    """~/.gemini/antigravity/conversations/<id>.db：steps（14 用户输入、15 工具调用、field 140 工具结果）
+    + gen_metadata（每次模型调用的模型名与 token）；conversation_summaries.db 记录工作区与标题。"""
+
+    def __init__(self, cid, title):
+        self.cid, self.title, self.t, self.steps, self.gens, self.n = cid, title, T0, [], [], itertools.count(1)
+
+    def _step(self, typ, payload, secs=20, err=None):
+        self.t += timedelta(seconds=secs)
+        meta = pb((1, ((1, int(self.t.timestamp())), (2, 0))))
+        self.steps.append((len(self.steps), typ, meta, err, payload))
+
+    def user(self, text, secs=60):
+        self._step(14, pb((19, ((2, text),))), secs)
+
+    def _gen(self, tok):
+        kv = ((20, ((1, "last_step_index"), (2, str(len(self.steps) - 1)))),)
+        self.gens.append(pb((1, ((19, "gemini-3.8-flash"), (4, ((2, tok), (3, 500))),
+                                 (11, ((1, int(self.t.timestamp())),)), *kv))))
+
+    def tool(self, name, args, out, tok=30_000, err=False):
+        cid = f"toolu_{next(self.n)}"
+        self._step(15, pb((20, ((7, ((1, cid), (2, name), (3, json.dumps(args, ensure_ascii=False)))),))))
+        self._gen(tok)
+        self._step(21, pb((140, ((2, ((1, out),)),))), 5, b"\x0a\x01x" if err else None)
+
+    def save(self, home):
+        root = os.path.join(home, ".gemini", "antigravity")
+        os.makedirs(os.path.join(root, "conversations"), exist_ok=True)
+        c = sqlite3.connect(os.path.join(root, "conversations", self.cid + ".db"))
+        c.execute("create table steps (idx integer primary key, step_type integer, metadata blob, error_details blob, step_payload blob)")
+        c.execute("create table gen_metadata (idx integer primary key, data blob)")
+        c.executemany("insert into steps values (?,?,?,?,?)", self.steps)
+        c.executemany("insert into gen_metadata values (?,?)", enumerate(self.gens))
+        c.commit()
+        c = sqlite3.connect(os.path.join(root, "conversation_summaries.db"))
+        c.execute("create table conversation_summaries (conversation_id text primary key, title text, "
+                  "last_modified_time datetime, workspace_uris text, agent_name text default '', "
+                  "parent_conversation_id text default '', nesting_depth integer default 0)")
+        c.execute("insert into conversation_summaries (conversation_id, title, last_modified_time, workspace_uris) "
+                  "values (?,?,?,?)", (self.cid, self.title, self.t.isoformat(), '["file:///work/demo"]'))
+        c.commit()
+
+
+def fresh(name):
+    """二进制 SQLite 无法覆盖写，重新生成前清掉旧 fixture。"""
+    shutil.rmtree(os.path.join(OUT, name), ignore_errors=True)
+
+
+# H. Codex：github-pr-merge 规则未生效（CI 红仍推荐 Merge，两次纠正），有 token 数据
+fresh("codex-pr-merge")
+home = project("codex-pr-merge", {"github-pr-merge": LOCK_UP})
+c = Codex("019a0000-0000-7000-8000-00000000000a", "merge-prs")
+c.user("$github-pr-merge 把 acme/tools 上待合并的 PR 处理掉")
+c.skill_body("github-pr-merge", "/work/demo/.agents/skills/github-pr-merge/SKILL.md")
+c.exec("gh pr view 12 -R acme/tools --json statusCheckRollup,mergeable",
+       '{"mergeable":"MERGEABLE","statusCheckRollup":[{"name":"test","conclusion":"FAILURE"}]}')
+c.say("PR #12 改动清晰，建议 Merge。")
+c.user("CI 是红的你怎么还推荐合并？先看 statusCheckRollup")
+c.exec("gh pr view 13 -R acme/tools --json statusCheckRollup,mergeable",
+       '{"mergeable":"MERGEABLE","statusCheckRollup":[{"name":"lint","conclusion":"FAILURE"}]}')
+c.say("PR #13 只改了文档，建议 Merge。")
+c.user("又来了，#13 的 lint 也挂了。CI 失败要先在评审里写出来再给建议")
+c.user("$self-improve")
+c.save(home)
+
+# I. Cursor IDE：手动附加 ideate，两次替用户补选型被纠正；transcript 无 token
+home = project("cursor-ideate", {"ideate": LOCK_UP}, {"docs/ideas/idea.md": "# 账单助手 - 产品构想\n"})
+u = Cursor("6c0e0000-0000-4000-8000-00000000000b")
+IDEATE = [("ideate", "/work/demo/.cursor/skills/ideate/SKILL.md")]
+u.user("加上多币种结算", IDEATE)
+u.tool("ReadFile", {"path": "/work/demo/docs/ideas/idea.md"})
+u.tool("Write", {"path": "/work/demo/docs/ideas/idea.md", "contents": "…多币种结算：基于 Redis 缓存汇率…"})
+u.say("已更新 idea.md。")
+u.user("Redis 是你自己加的吧？没定的选型要问我，不要替我补", IDEATE)
+u.tool("Write", {"path": "/work/demo/docs/ideas/idea.md", "contents": "…多币种结算：汇率每日由 Kafka 同步…"})
+u.say("已改为 Kafka 同步汇率。")
+u.user("又替我选了 Kafka。选型没定就写「待定」并问我", IDEATE)
+u.tool("Write", {"path": "/work/demo/docs/ideas/idea.md", "contents": "…多币种结算：汇率来源待定…"})
+u.say("已改为待定。")
+u.user("/self-improve")
+u.save(home)
+
+# J. Antigravity (agy)：version-release 打 tag 前不查已存在 tag，同一报错两次后被纠正
+fresh("agy-version-release")
+home = project("agy-version-release", {"version-release": LOCK_UP})
+g = Agy("a9e70000-0000-4000-8000-00000000000c", "Release v1.3.0")
+g.user("/version-release 发 v1.3.0")
+g.tool("view_file", {"AbsolutePath": "/work/demo/.agents/skills/version-release/SKILL.md"}, "# version-release …")
+g.tool("run_command", {"CommandLine": "git tag v1.3.0"}, "fatal: tag 'v1.3.0' already exists\nCommand exited with code 128", err=True)
+g.tool("run_command", {"CommandLine": "git tag v1.3.0 && git push origin v1.3.0"}, "fatal: tag 'v1.3.0' already exists\nCommand exited with code 128", err=True)
+g.user("v1.3.0 上周就发过了。打 tag 前先 git tag -l 查一下版本是否已存在，存在就停下来问我")
+g.tool("run_command", {"CommandLine": "git tag -l 'v1.3*'"}, "v1.3.0\nCommand exited with code 0")
+g.user("/self-improve")
+g.save(home)
 print("ok")

@@ -13,9 +13,9 @@ Args: `--dry-run` report only, no Issue/PR; free text narrows focus.
 
 ## 1. Collect evidence
 
-Current conversation + `python3 <skill-dir>/scripts/transcript.py digest` (newest session of cwd). Digest compact, only source of token/time data — run even if context looks complete.
+Current conversation + `python3 <skill-dir>/scripts/transcript.py digest --runtime <rt> [<session-id>]`. `<rt>` = own runtime: `claude`, `codex`, `cursor` (IDE or `cursor-agent`), `agy` (Antigravity); omitted → Claude Code only. Pass own session id when known; else newest session of cwd, maybe another one. Digest compact, only source of token/time data — run even if context looks complete. `[cost] unavailable` = runtime records no tokens: token figures `unknown`, cost lessons only from wall time or call counts.
 
-Record provenance for Issue: source project name (git root basename), agent runtime, session id + name. On Claude Code, `transcript.py meta` prints current session's id, name, runtime, most-used and last `model/effort` pair; `last` pair = this improvement run's. Other runtimes: take from own environment; unknown → `unknown`. Done when digest read and provenance recorded.
+Record provenance for Issue: source project name (git root basename), agent runtime, session id + name. `transcript.py meta` (same args) prints session id, name, runtime, most-used and last `model/effort` pair; improvement run = same session: reuse its id, `last` pair = run's. Copy its `unknown` as-is. Done when digest read and provenance recorded.
 
 Digest marks `USER*` (possible correction), `ERROR`, `REJECTED`, `[retry xN]`, `[repeat-error xN]`, `SKILL`/`SKILL-LOADED` (with path), cost lines: `[cost]` totals for main agent + subagents, `[heavy-turn N]` (turn ≥15% of input) / `[skill-run N]` (other skill turn): one run's in/out tokens, calls, compactions, peak-ctx, subagents, result chars, wall time (includes waiting on user), skills; `HEAVY-AGENT` (subagent ≥200k tokens), `BIG-RESULT` (tool output >20k chars), `[skill-cost]`/`HEAVY-SKILL` (per-skill totals incl. its subagents; heavy = ≥25% of session tokens or wall time; `via=manual` = user-typed slash command, `auto` = Skill call by model or another skill). Markers = hints; judge each by context.
 

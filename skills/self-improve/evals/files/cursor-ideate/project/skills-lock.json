@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "ideate": {
+      "source": "jinsyin/skills",
+      "sourceType": "github",
+      "computedHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  }
+}

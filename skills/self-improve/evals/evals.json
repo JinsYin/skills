@@ -153,6 +153,51 @@
         "Runs no `gh issue create`, `gh issue close`, `gh label create`, `gh pr create` or `git push` (not even stubbed)",
         "Prints the would-be record Issue (labels `self-improve` + `no-improvement`, `## Context` and `## Below the gate`) and its Chinese close reason"
       ]
+    },
+    {
+      "id": 9,
+      "name": "codex-runtime-digest",
+      "prompt": "（这次会话是在 Codex CLI 里跑的）刚才 github-pr-merge 两次在 CI 挂了的情况下推荐合并，帮我复盘一下这次会话，把经验沉淀回 skill",
+      "expected_output": "Reads the Codex rollout via `transcript.py digest --runtime codex`, finds the rule-not-fired gap in github-pr-merge, and files Issue + PR whose Context carries the Codex provenance and token cost.",
+      "files": [
+        "evals/files/codex-pr-merge/"
+      ],
+      "expectations": [
+        "Runs `transcript.py digest` and `transcript.py meta` with `--runtime codex` (not the default Claude detection)",
+        "Issue `## Context` records runtime `Codex 0.130.0 (codex_cli_rs)`, session `019a0000-0000-7000-8000-00000000000a` (`merge-prs`) and model/effort `gpt-5.5/high` from meta",
+        "Issue `Improvement run` line reuses session `019a0000-0000-7000-8000-00000000000a` with `gpt-5.5/high` (same session as the retrospected one), not `unknown`",
+        "Targets skill `github-pr-merge` with a rule that CI failures must be stated before any Merge recommendation"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "cursor-runtime-no-tokens",
+      "prompt": "/self-improve（当前在 Cursor IDE 里）",
+      "expected_output": "Reads the Cursor transcript via `--runtime cursor`; digest reports `[cost] unavailable`, so the Issue marks token figures unknown and makes no token-cost lesson; the ideate lesson (ask about undecided tech choices) still ships.",
+      "files": [
+        "evals/files/cursor-ideate/"
+      ],
+      "expectations": [
+        "Runs `transcript.py digest` with `--runtime cursor`",
+        "Issue `## Context` records runtime `Cursor IDE` and model/effort `unknown` (copied from meta, not guessed)",
+        "Issue contains no invented token numbers: token figures are `unknown` or absent, and no lesson rests on token cost",
+        "Targets skill `ideate` with a rule to leave undecided tech choices as 待定 and ask the user instead of filling them in"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "agy-runtime-repeat-error",
+      "prompt": "/self-improve —— 这次用的是 Antigravity 的 agy CLI",
+      "expected_output": "Reads the agy SQLite conversation via `--runtime agy`; the repeated `git tag` error plus user correction ship as a version-release lesson (check existing tags before tagging).",
+      "files": [
+        "evals/files/agy-version-release/"
+      ],
+      "expectations": [
+        "Runs `transcript.py digest` with `--runtime agy`",
+        "Issue `## Context` records runtime `Antigravity (agy)`, session `a9e70000-0000-4000-8000-00000000000c` and model/effort `gemini-3.8-flash/unknown`",
+        "Evidence includes the `[repeat-error x2]` git tag failure from the digest",
+        "Targets skill `version-release` with a rule to check `git tag -l` for an existing version before tagging and stop to ask if it exists"
+      ]
     }
   ]
 }
