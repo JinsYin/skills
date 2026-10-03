@@ -55,8 +55,9 @@ Post review as PR comment — authors can't approve own PRs, so comment = review
 
 Tell user briefly — Review: core findings + suggested fixes; Re-review: conclusion — ending with the full comment URL, so the record is one click away. Then ask user, recommend one; act only on user's pick:
 
+- **Apply suggested fixes** — offer, listed first, only while same-repo and suggested fixes unapplied (Re-review, all findings resolved → none). Pick = consent: apply as head-branch edit.
 - **Merge** — `gh pr merge <n> -R <repo> --squash --match-head-commit <reviewed-sha>`. `<reviewed-sha>` = `headRefOid` from latest step 2, so the guard refuses unreviewed commits.
-- **Request changes** — list concrete edits; with user consent, apply as head-branch edit. Cross-repo → edits stay in the PR comment; next PR.
+- **Request changes** — edits beyond suggested fixes: list concretely; with user consent, apply as head-branch edit. Cross-repo → all edits, fixes included, stay in PR comment; next PR.
 - **Reject** — `gh pr close <n> --comment "<reason>"`, then close each linked Issue with `--reason "not planned"` + reason, so `self-improve` dedupe skips it next time.
 
 ## 5. Wrap up
