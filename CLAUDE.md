@@ -25,6 +25,6 @@ Create/edit skill in this order, run every step through final sync without pausi
 4. `/skill-optimizer`: rerun evals with vs without skill on compressed text, fix misses and regressions. Done when no eval regresses.
 5. `/caveman-commit`: write Chinese message, then `git commit`.
 6. Push: `git fetch origin`, `git rebase origin/<branch>` for linear history, then plain `git push`. Rebase conflicts in `CHANGELOG.md`: keep both sides, local entries on top; ask user on any other conflict. Push rejected: fetch, rebase, retry. Done when `HEAD` equals `origin/<branch>`.
-7. Sync: refresh installed copies of added/changed skills, e.g. `npx skills@latest add jinsyin/skills --agent universal claude-code --skill foo bar`; if `setup-rules` changed, also run `/setup-rules update`. Copies are gitignored: commit in batches (`skills-lock.json`, then rules) per step 5, push per step 6. Done when every sync change is committed and `HEAD` equals `origin/<branch>`.
+7. Sync: refresh installed copies of added/changed skills, e.g. `./skillsw add jinsyin/skills --agent universal claude-code --skill foo bar`; if `setup-rules` changed, also run `/setup-rules update`. Copies are gitignored: commit in batches (`skills-lock.json`, then rules) per step 5, push per step 6. Done when every sync change is committed and `HEAD` equals `origin/<branch>`.
 
 Steps 2–4 run only on agent-loaded files (`SKILL.md`, `references/*.md`, `rules/*.md`) added/modified in this change; steps 2 and 4 also need every finding applied or rejected with reason. `AGENTS.md` generated: edit `rules/`, rebuild.
