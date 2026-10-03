@@ -47,7 +47,7 @@
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/version-release/SKILL.md",
-      "computedHash": "a77f835b81c1ee3b206ebc64260c038b694215d4b7e9ad7d421eda81d35341b9"
+      "computedHash": "f92b6640d2164ad77aad73aecaa302f5f26d60ec901e3c2356d6e892571bd41e"
     },
     "writing-for-agents": {
       "source": "mattpocock/skills",
