@@ -1,14 +1,17 @@
 #!/bin/sh
 # skills CLI 包装脚本（由 setup-rules 分发）。
-#   ./skillsw install [--agent <agents...>]  按 skills-lock.json 恢复已安装 skills
-#   ./skillsw <其他参数>                     原样透传给 npx skills@latest
+#   ./skillsw clean install [--agent <agents...>]  清理后按 skills-lock.json 恢复（推荐默认用法）
+#   ./skillsw clean [--agent <agents...>]          仅清理：移除上游已不存在（改名/删除）的 lock 条目，
+#                                                  删除不在 lock 中的旧 skill
+#   ./skillsw install [--agent <agents...>]        仅按 skills-lock.json 恢复，不清理
+#   ./skillsw <其他参数>                            原样透传给 npx skills@latest
 # --agent 用法同 `npx skills add --agent`，缺省为 universal claude-code。
 set -e
 
-if [ "${1:-}" != install ]; then
-  exec npx skills@latest "$@"
-fi
-shift
+clean=0 install=0
+if [ "${1:-}" = clean ]; then clean=1; shift; fi
+if [ "${1:-}" = install ]; then install=1; shift; fi
+[ $clean = 1 ] || [ $install = 1 ] || exec npx skills@latest "$@"
 
 agents=""
 while [ $# -gt 0 ]; do
@@ -20,7 +23,7 @@ while [ $# -gt 0 ]; do
         case $1 in -*) break ;; *) agents="$agents $1"; shift ;; esac
       done
       ;;
-    *) echo "skillsw install: unknown option: $1" >&2; exit 2 ;;
+    *) echo "skillsw: unknown option: $1" >&2; exit 2 ;;
   esac
 done
 [ -n "$agents" ] || agents="universal claude-code"
@@ -29,14 +32,107 @@ done
 cd "$(dirname "$0")"
 [ -f skills-lock.json ] || { echo "skillsw: skills-lock.json not found" >&2; exit 1; }
 
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+# 安装时直接装进项目；仅 clean 时装进临时目录，只为探测失效条目，不动项目内 skills
+if [ $install = 1 ]; then
+  dir=$PWD
+else
+  dir=$tmp/probe
+  mkdir "$dir"
+  agents=universal
+fi
+
 # 用 node 解析 lock（npx 依赖 node，无需额外安装 jq），按 source 分组输出 "source skill..."
 node -e '
 const lock = JSON.parse(require("fs").readFileSync("skills-lock.json", "utf8"));
 const groups = {};
 for (const [name, e] of Object.entries(lock.skills || {})) (groups[e.source] ||= []).push(name);
 for (const [src, names] of Object.entries(groups)) console.log(src + " " + names.join(" "));
-' | while read -r src names; do
-  # </dev/null：防止 npx 读走管道中余下的 source 行
-  # $agents、$names 有意不加引号，按空格拆成多个参数
-  npx skills@latest add "$src" --agent $agents --skill $names -y </dev/null
-done
+' >"$tmp/groups"
+
+# 仅 clean 时先快速预检：并行只拉 GitHub 源的目录树（不下载文件、不安装），
+# 目录名或 skillPath 仍在的视为存在；只有疑似失效的再走下方 add --json 精确确认，避免误删
+if [ $install = 0 ]; then
+  j=0
+  while read -r src names; do
+    j=$((j + 1))
+    case $src in
+      */*/* | *[!A-Za-z0-9._/-]*) ;; # 非 owner/repo 形式：不预检，直接精确确认
+      */*) (git clone -q --depth 1 --filter=blob:none --no-checkout "https://github.com/$src.git" "$tmp/tree.$j" \
+          </dev/null >/dev/null 2>&1 && git -C "$tmp/tree.$j" ls-tree -r --name-only HEAD >"$tmp/paths.$j") & ;;
+    esac
+  done <"$tmp/groups"
+  wait
+  # 输出仍需精确确认的 "source skill..."；预检失败的源整组保留
+  node -e '
+const fs = require("fs"), path = require("path");
+const tmp = process.argv[1];
+const lock = JSON.parse(fs.readFileSync("skills-lock.json", "utf8"));
+fs.readFileSync(path.join(tmp, "groups"), "utf8").trim().split("\n").filter(Boolean).forEach((line, k) => {
+  const [src, ...names] = line.split(" ");
+  let paths;
+  try { paths = new Set(fs.readFileSync(path.join(tmp, "paths." + (k + 1)), "utf8").split("\n")); } catch { return console.log(line); }
+  // 名字归一化与 skills CLI 一致（小写，空格/下划线转 -）
+  const norm = s => s.toLowerCase().replace(/[\s_]+/g, "-");
+  const dirs = new Set([...paths].filter(p => p.endsWith("SKILL.md")).map(p => norm(path.basename(path.dirname(p)))));
+  const left = names.filter(n => !dirs.has(norm(n)) && !paths.has(lock.skills[n].skillPath));
+  if (left.length) console.log(src + " " + left.join(" "));
+});
+' "$tmp" >"$tmp/groups.check"
+  mv "$tmp/groups.check" "$tmp/groups"
+fi
+
+i=0
+while read -r src names; do
+  i=$((i + 1))
+  echo "$src" >"$tmp/src.$i"
+  # --json：源中已不存在的 skill 会标记 skipped（否则被静默跳过且退出码为 0）
+  # </dev/null：防止 npx 读走余下的 source 行；$agents、$names 有意不加引号，按空格拆成多个参数
+  (cd "$dir" && npx skills@latest add "$src" --agent $agents --skill $names -y --json \
+    </dev/null >"$tmp/report.$i" 2>"$tmp/err.$i") || true
+done <"$tmp/groups"
+
+# 汇总结果；clean 时移除 skipped 的 lock 条目及不在 lock 中的旧 skill。有 source 失败则退出码为 1
+node -e '
+const fs = require("fs"), path = require("path");
+const [tmp, clean, install] = process.argv.slice(1);
+const read = f => { try { return fs.readFileSync(path.join(tmp, f), "utf8"); } catch { return ""; } };
+const lst = p => { try { return fs.lstatSync(p); } catch { return null; } };
+const lock = JSON.parse(fs.readFileSync("skills-lock.json", "utf8"));
+const stale = [];
+let failed = false;
+for (const f of fs.readdirSync(tmp).filter(f => f.startsWith("report."))) {
+  const n = f.slice("report.".length), src = read("src." + n).trim();
+  let rows;
+  try { rows = JSON.parse(read(f)); } catch { rows = null; }
+  if (!Array.isArray(rows)) { failed = true; console.error(`skillsw: ${src}: add failed\n${read("err." + n)}`); continue; }
+  for (const r of rows) {
+    if (r.status === "skipped" && /no matching skill/i.test(r.reason || "")) stale.push(r.name);
+    else if (r.status === "failed") { failed = true; console.error(`skillsw: ${src}: ${r.name || ""} failed: ${r.error || r.reason || ""}`); }
+    else if (install === "1") console.log(`${r.status} ${r.name} (${src})`);
+  }
+}
+if (clean === "1") {
+  // source 整体失败（网络、权限）时不清理其条目，避免误删
+  for (const n of stale) { delete lock.skills[n]; console.log(`removed lock entry ${n} (no longer in source)`); }
+  if (stale.length) fs.writeFileSync("skills-lock.json", JSON.stringify(lock, null, 2) + "\n");
+  const keep = new Set(Object.keys(lock.skills || {}));
+  // .agents/skills 由 CLI 统一管理：不在 lock 中即为旧 skill
+  if (lst(".agents/skills")?.isDirectory())
+    for (const n of fs.readdirSync(".agents/skills"))
+      if (!n.startsWith(".") && !keep.has(n)) { fs.rmSync(path.join(".agents/skills", n), { recursive: true, force: true }); console.log(`removed .agents/skills/${n}`); }
+  // 其他 agent 目录（如 .claude/skills）只删不在 lock 中或已断开的符号链接；普通目录可能是手写 skill，不碰
+  for (const d of fs.readdirSync(".")) {
+    if (!d.startsWith(".") || d === ".agents" || d === ".git") continue;
+    const sd = path.join(d, "skills");
+    if (!lst(sd)?.isDirectory()) continue;
+    for (const n of fs.readdirSync(sd)) {
+      const p = path.join(sd, n);
+      if (lst(p).isSymbolicLink() && (!keep.has(n) || !fs.existsSync(p))) { fs.unlinkSync(p); console.log(`removed ${p}`); }
+    }
+  }
+}
+process.exit(failed ? 1 : 0);
+' "$tmp" $clean $install
