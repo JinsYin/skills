@@ -13,6 +13,7 @@
 
 ### Changed
 
+- **self-improve 记录 Issue 改用 `no-pr` 标签**：无 PR 的复盘记录 Issue 标签由 `no-improvement` 改为 `no-pr`；去重改按 `rejected` 标签识别被拒的 Issue/PR。
 - **self-improve 支持多 Agent Runtime 取证**：`transcript.py` 新增 `--runtime claude|codex|cursor|agy`，可读取 Codex、Cursor IDE / `cursor-agent`、Antigravity `agy` 会话的报错、纠正、skill 加载与成本；Cursor 无 Token 记录时标注 unavailable。
 - **self-improve 只复盘当前会话**：移除 `--sessions`，弱信号门槛计入历史复盘 Issue 中未过门槛的同类观察；Superpowers/GSD 约定改为每次运行后都复盘，取消里程碑联合复盘。
 - **setup-rules `.worktreeinclude` 注释**：写入的条目附单行英文注释，说明为何不含 `.claude/skills/`。

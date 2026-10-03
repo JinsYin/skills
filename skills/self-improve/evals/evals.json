@@ -24,7 +24,7 @@
         "Retrospects the self-improve run itself (step 6) before wrap-up",
         "Ends with a skill · lesson · Issue · PR table and asks whether to sync changed skills into the project",
         "Runs `./skillsw install` in the clone before step 5, then runs the skills the upstream `CLAUDE.md` workflow names from the clone's `.agents/skills/`, without skipping any as unavailable",
-        "Opens no `no-improvement` record Issue, since the run filed an Issue + PR"
+        "Opens no `no-pr` record Issue, since the run filed an Issue + PR"
       ]
     },
     {
@@ -90,23 +90,23 @@
         "Drops the `--head` lesson as already covered upstream and notes the installed copy needs sync",
         "Adds the truncated skill-run evidence as a (stubbed) `gh issue comment` on #99",
         "Opens no new Issue or PR for either lesson",
-        "Opens no `no-improvement` record Issue, since the run already commented on #99"
+        "Opens no `no-pr` record Issue, since the run already commented on #99"
       ]
     },
     {
       "id": 5,
       "name": "weak-signal-accumulates-across-issues",
       "prompt": "/self-improve",
-      "expected_output": "Fixture `no-improvement` (same session as eval 7: one wrong-path Read ERROR in an /ideate run, weak, single). Stub `gh issue list` to return closed Issue #120 `retro(demo): ideate 更新顺利，无可改进` with labels `self-improve` + `no-improvement`, whose `## Below the gate` reads: `ideate 先读 docs/idea.md 报不存在，再改读 docs/ideas/idea.md（weak，1 次，未过门槛）`. Counting #120 brings the weak signal to 2 occurrences, so it clears the gate: one ideate Issue + PR citing #120, instead of a record Issue.",
+      "expected_output": "Fixture `no-improvement` (same session as eval 7: one wrong-path Read ERROR in an /ideate run, weak, single). Stub `gh issue list` to return closed Issue #120 `retro(demo): ideate 更新顺利，无可改进` with labels `self-improve` + `no-pr`, whose `## Below the gate` reads: `ideate 先读 docs/idea.md 报不存在，再改读 docs/ideas/idea.md（weak，1 次，未过门槛）`. Counting #120 brings the weak signal to 2 occurrences, so it clears the gate: one ideate Issue + PR citing #120, instead of a record Issue.",
       "files": [
         "evals/files/no-improvement/"
       ],
       "expectations": [
         "Searches earlier `self-improve` Issues with `--state all` (closed included) before deciding the wrong-path Read error is below the gate",
         "Counts the matching `## Below the gate` observation in #120 as a second occurrence and treats the weak signal as clearing the gate",
-        "Does not skip the lesson as a rejected duplicate because #120 is closed `not planned`",
+        "Does not skip the lesson as a rejected duplicate because #120 is closed `not planned`; its `no-pr` label (no `rejected`) marks it a record",
         "Creates one (stubbed) ideate Issue + PR whose Evidence table has a row for this session and a row citing #120, both Signal `weak`",
-        "Opens no `no-improvement` record Issue"
+        "Opens no `no-pr` record Issue"
       ]
     },
     {
@@ -126,9 +126,9 @@
     },
     {
       "id": 7,
-      "name": "no-improvement-record-issue",
+      "name": "no-pr-record-issue",
       "prompt": "帮我复盘一下刚才这次会话，看看有没有什么值得改进 skill 的地方",
-      "expected_output": "Fixture `no-improvement`: a smooth /ideate update with one wrong-path Read ERROR (weak, single) and no user correction. Nothing clears the gate, so no branch or PR; still opens one record Issue labelled `self-improve` + `no-improvement` listing the observation below the gate, then closes it immediately as not planned with a Chinese reason comment.",
+      "expected_output": "Fixture `no-improvement`: a smooth /ideate update with one wrong-path Read ERROR (weak, single) and no user correction. Nothing clears the gate, so no branch or PR; still opens one record Issue labelled `self-improve` + `no-pr` listing the observation below the gate, then closes it immediately as not planned with a Chinese reason comment.",
       "files": [
         "evals/files/no-improvement/"
       ],
@@ -136,14 +136,14 @@
         "Loads the self-improve skill from the natural-language request",
         "Classifies the wrong-path Read error as weak with one occurrence, below the gate",
         "Creates no `self-improve/*` branch, runs no `git push` and no `gh pr create`",
-        "Runs exactly one (stubbed) `gh issue create` with labels `self-improve` and `no-improvement`",
+        "Runs exactly one (stubbed) `gh issue create` with labels `self-improve` and `no-pr`",
         "Record Issue body keeps English headings `## Context` and `## Below the gate`, with the observation and why it fell short written in Chinese",
         "Right after creating it, runs (stubbed) `gh issue close` on that Issue with `--reason \"not planned\"` and a Chinese `--comment` stating why nothing qualified"
       ]
     },
     {
       "id": 8,
-      "name": "no-improvement-dry-run",
+      "name": "no-pr-dry-run",
       "prompt": "/self-improve --dry-run",
       "expected_output": "Same fixture as eval 7. Prints the would-be record Issue body and close reason without creating, labelling or closing anything.",
       "files": [
@@ -151,7 +151,7 @@
       ],
       "expectations": [
         "Runs no `gh issue create`, `gh issue close`, `gh label create`, `gh pr create` or `git push` (not even stubbed)",
-        "Prints the would-be record Issue (labels `self-improve` + `no-improvement`, `## Context` and `## Below the gate`) and its Chinese close reason"
+        "Prints the would-be record Issue (labels `self-improve` + `no-pr`, `## Context` and `## Below the gate`) and its Chinese close reason"
       ]
     },
     {
@@ -197,6 +197,21 @@
         "Issue `## Context` records runtime `Antigravity (agy)`, session `a9e70000-0000-4000-8000-00000000000c` and model/effort `gemini-3.8-flash/unknown`",
         "Evidence includes the `[repeat-error x2]` git tag failure from the digest",
         "Targets skill `version-release` with a rule to check `git tag -l` for an existing version before tagging and stop to ask if it exists"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "rejected-label-dedupe",
+      "prompt": "复盘下刚才 ideate 那次会话，有值得改的就提 PR",
+      "expected_output": "Fixture `ideate-gap` (same session as eval 0). Stub `gh issue list`/`gh pr list` to return closed Issue #130 `feat(ideate): 更新后列出 idea.md 变更项` and its closed PR #131, both labelled `self-improve` + `ideate` + `rejected`, citing the same single correction as lesson (a). Lesson (a) brings no materially new evidence, so it is skipped as a rejected duplicate; lesson (b) (no-guessing rule did not fire) still ships as an ideate Issue + PR.",
+      "files": [
+        "evals/files/ideate-gap/"
+      ],
+      "expectations": [
+        "Searches Issues and PRs with `--state all` before writing",
+        "Identifies #130/#131 as rejected because of the `rejected` label, and skips lesson (a) citing them",
+        "Does not treat #130 as a `no-pr` record or count it toward the weak-signal gate",
+        "Still files one (stubbed) ideate Issue + PR for lesson (b) only"
       ]
     }
   ]

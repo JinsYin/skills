@@ -1,6 +1,6 @@
 ---
 name: self-improve
-description: Retrospect the current agent session (failures, user corrections, detours, token-heavy or slow turns) into lessons, shipped as minimal edits to jinsyin/skills skills — or a new skill, or a `setup-rules` convention for a heavy manually-invoked third-party skill — each as GitHub Issue + PR; nothing qualifies → closed `no-improvement` record Issue. Args `[--dry-run] [focus]`. Invoke only when the user, a rule, or another skill calls for it.
+description: Retrospect the current agent session (failures, user corrections, detours, token-heavy or slow turns) into lessons, shipped as minimal edits to jinsyin/skills skills — or a new skill, or a `setup-rules` convention for a heavy manually-invoked third-party skill — each as GitHub Issue + PR; nothing qualifies → closed `no-pr` record Issue. Args `[--dry-run] [focus]`. Invoke only when the user, a rule, or another skill calls for it.
 ---
 
 # self-improve
@@ -31,7 +31,7 @@ Also waste a skill caused — cutting tokens and flow length is goal equal to co
 
 Gate each lesson:
 - **Strong** (1 occurrence enough): explicit user correction or rework from skill gap or ignored rule; `heavy-turn`, `HEAVY-AGENT` or `BIG-RESULT` clearly caused by skill instruction.
-- **Weak** (needs ≥2 occurrences): detours, retries, tool errors, repeated questions. Each run sees one session, so also count same observation under `## Below the gate` of earlier Issues (`gh issue list -R jinsyin/skills --label self-improve --state all --search "<skill> <keywords>"`, `no-improvement` records included); cite each as evidence row with its Issue #.
+- **Weak** (needs ≥2 occurrences): detours, retries, tool errors, repeated questions. Each run sees one session, so also count same observation under `## Below the gate` of earlier Issues (`gh issue list -R jinsyin/skills --label self-improve --state all --search "<skill> <keywords>"`, `no-pr` records included); cite each as evidence row with its Issue #.
 - Below gate → summary only.
 
 Done when every lesson is Strong, Weak with ≥2 occurrences, or below gate.
@@ -51,7 +51,7 @@ Give every lesson exactly one verdict:
 
 Minimal-diff rules: edit smallest owning passage; prefer rewording over adding, deleting/merging over rewording when step is waste; fewest words that still change behavior — every word paid on every load; no restructuring; keep skill's language + tone; growth per pass ≤ ~20% of file. State target behavior positively and explain *why* in instruction itself; plain reasons steer better than ALL-CAPS MUSTs.
 
-Dedupe before writing: `gh issue list -R jinsyin/skills --state all --search "<skill> <keywords>"`, same for `gh pr list`. Open match → add new evidence as comment, skip; closed-as-rejected match → skip unless evidence materially new; `no-improvement` records feed step 3's weak count, not rejections.
+Dedupe before writing: `gh issue list -R jinsyin/skills --state all --search "<skill> <keywords>"`, same for `gh pr list`. Open match → add new evidence as comment, skip; closed `rejected`-labelled match (older: closed not planned, no `no-pr`) → skip unless evidence materially new; `no-pr` records feed step 3's weak count, not rejections.
 
 `--dry-run`: skip step 5, run step 6, then print each would-be Issue body in full (filled template, step 5 language) so preview matches what would be filed.
 
@@ -72,6 +72,6 @@ Last, retrospect this `self-improve` run: ambiguous/missing instructions you gue
 
 ## 7. Wrap up
 
-**Record Issue**: run filed no Issue, PR or comment (every lesson below gate, covered or dropped) → still open one so every retrospective leaves a trace: title `retro(<source project>): <summary>`, labels `self-improve` + `no-improvement` (create if missing), body = template's `## Context` + `## Below the gate`, each observation with why it fell short (step 5 language split). No branch, no PR. Close it at once — nothing to act on: `gh issue close <#> -R jinsyin/skills --reason "not planned" --comment "<reason>"`, Chinese reason naming why nothing qualified. `--dry-run`: print body + reason instead.
+**Record Issue**: run filed no Issue, PR or comment (every lesson below gate, covered or dropped) → still open one so every retrospective leaves a trace: title `retro(<source project>): <summary>`, labels `self-improve` + `no-pr` (create if missing), body = template's `## Context` + `## Below the gate`, each observation with why it fell short (step 5 language split). No branch, no PR. Close it at once — nothing to act on: `gh issue close <#> -R jinsyin/skills --reason "not planned" --comment "<reason>"`, Chinese reason naming why nothing qualified. `--dry-run`: print body + reason instead.
 
 Print short table: skill · lesson · Issue · PR, plus skipped/below-gate items. Then ask whether to sync changed skills into this project. On yes, copy changed files from local PR branch (shallow clone has no `origin/<branch>` refs) over each installed copy (`.claude/skills/<name>`, `.agents/skills/<name>`, …; resolve symlinks, write real target once). Note re-running `npx skills@latest add jinsyin/skills` after merge makes it official. If convention changed, tell user run `setup-rules update` to refresh `CLAUDE.local.md` (explicit-invocation only).
