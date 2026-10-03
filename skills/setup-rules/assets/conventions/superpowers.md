@@ -49,6 +49,7 @@
 ### Execution
 
 - Execute with `subagent-driven-development` or `executing-plans`, over one plan or a whole phase, on one branch in checklist order, each plan verified and closed before the next starts, with a single whole-branch review at the end.
+- As controller, read the plan by grep or line range — preamble, Global Constraints, each task's `**Files:**`/`**Interfaces:**`/`**Done:**`, and the PATTERN sections they cite; `task-brief` carries task bodies to implementers, and a whole-plan read is re-paid on every later turn.
 - Never fall back to `subagent-driven-development` when `executing-plans` was invoked by hand.
 - Always take a worktree via `using-git-worktrees` first, never asking whether to.
 - Close each plan the moment its verification pass is green: synthesize — never copy — `.superpowers/sdd/<plan-basename>/` into `<plan-basename>.SUMMARY.md`, one per executed plan.
