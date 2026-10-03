@@ -13,10 +13,11 @@ Args: `--sessions` retrospect user-picked sessions of this project, not just cur
 
 ## 1. Collect evidence
 
-- Default: current conversation + `python3 <skill-dir>/scripts/transcript.py digest` (newest session of cwd). Digest compact, only source of token/time data — run even if context looks complete.
-- `--sessions`: run `transcript.py list`, show numbered list, user picks any N (numbers or id prefixes), then `transcript.py digest <id-prefix> ...`.
+- Pin current or user-picked session id, cwd and runtime before collecting evidence; newest in another runtime is another conversation.
+- Claude Code: `python3 <skill-dir>/scripts/transcript.py digest` for current session; `--sessions` uses `list` → user picks → `digest <id-prefix> ...`. A selection already supplied goes straight to digest. Run even if context looks complete.
+- Other runtimes: the helper parses Claude Code only. Read selected native log into compact signals; quote native usage/time with scope and timestamp. Use the latest cumulative snapshot, never sum snapshots or mix with per-response counters; unknown child/round/skill breakdowns stay `unknown`. Missing native evidence → report gap, continue qualitative lessons.
 
-Record provenance for Issue: source project name (git root basename), agent runtime, each retrospected session's id + name. On Claude Code, `transcript.py meta [<id-prefix> ...]` prints id, name, runtime, most-used and last `model/effort` pair; bare `meta` = current session, its `last` pair = this improvement run's. Other runtimes: take from own environment; unknown → `unknown`. Done when digest read and provenance recorded for every session.
+Record provenance for Issue: source project name (git root basename), agent runtime, each retrospected session's id + name. On Claude Code, `transcript.py meta [<id-prefix> ...]` prints id, name, runtime, most-used and last `model/effort` pair; bare `meta` = current session, its `last` pair = this improvement run's. Other runtimes: take from own environment; unknown → `unknown`. Done when selected evidence read (or gap noted) and provenance recorded for every session.
 
 Digest marks `USER*` (possible correction), `ERROR`, `REJECTED`, `[retry xN]`, `[repeat-error xN]`, `SKILL`/`SKILL-LOADED` (with path), cost lines: `[cost]` totals for main agent + subagents, `[heavy-turn N]` (turn ≥15% of input) / `[skill-run N]` (other skill turn): one run's in/out tokens, calls, compactions, peak-ctx, subagents, result chars, wall time (includes waiting on user), skills; `HEAVY-AGENT` (subagent ≥200k tokens), `BIG-RESULT` (tool output >20k chars), `[skill-cost]`/`HEAVY-SKILL` (per-skill totals incl. its subagents; heavy = ≥25% of session tokens or wall time; `via=manual` = user-typed slash command, `auto` = Skill call by model or another skill). Markers = hints; judge each by context.
 

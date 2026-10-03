@@ -12,6 +12,7 @@
 
 ### Changed
 
+- **self-improve 会话取证**：固定 session 与 runtime，其他 runtime 使用选定原生日志，缺失计数记为 unknown。
 - **setup-rules `.worktreeinclude` 注释**：写入的条目附单行英文注释，说明为何不含 `.claude/skills/`。
 - **version-release 无参数自动推断级别**：按 `[Unreleased]`（为空则按提交）推断 `minor`/`patch`，`major` 须显式指定，执行前先请用户确认。
 

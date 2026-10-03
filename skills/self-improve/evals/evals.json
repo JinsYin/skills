@@ -151,6 +151,49 @@
         "Runs no `gh issue create`, `gh issue close`, `gh label create`, `gh pr create` or `git push` (not even stubbed)",
         "Prints the would-be record Issue (labels `self-improve` + `no-improvement`, `## Context` and `## Below the gate`) and its Chinese close reason"
       ]
+    },
+    {
+      "id": 9,
+      "name": "native-codex",
+      "prompt": "复盘本会话，dry-run。runtime是Codex，当前id cx-current，cwd /tmp/example-project。native日志元数据匹配该id/cwd；两个同格式累计快照：input1000/cache800/output100，随后input1500/cache1200/output150；无child、round或skill分摊数据。transcript.py仅读Claude Code，目录里另有最新Claude会话cc-other，cwd相同。给出取证路径、计数和缺失项处理；不要创建Issue/PR。",
+      "expected_output": "Use cx-current native evidence and latest cumulative input1500/cache1200/output150; missing breakdowns unknown; dry-run creates nothing.",
+      "files": [],
+      "expectations": [
+        "pin cx-current runtime and cwd",
+        "use selected native evidence not cc-other",
+        "latest native cumulative input1500 output150",
+        "do not sum cumulative snapshots to2500/250",
+        "cached subset not added to input",
+        "unknown child/round/skill metrics",
+        "dry-run no external publication"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "native-missing",
+      "prompt": "只复盘当前Codex会话cx-current，dry-run。其native日志暂不可读，但上下文有一次可复现的scope错误及纠正；Claude目录里有另一会话。如何继续？不要创造计数，不执行外部发布。",
+      "expected_output": "Report the native evidence gap, never substitute another conversation, keep absent metrics unknown and continue qualitative lessons without publication.",
+      "files": [],
+      "expectations": [
+        "report native evidence gap",
+        "do not substitute other runtime session",
+        "keep absent token/time metrics unknown",
+        "continue qualitative lesson gate",
+        "no Issue/PR created"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "already-selected-claude-sessions",
+      "prompt": "模拟self-improve --sessions --dry-run：runtime Claude Code，用户已经明确选了会话a1、b2，cwd /tmp/example-project。说明取证命令与发布边界，不再询问选择。",
+      "expected_output": "Digest and meta only a1 and b2 without another selection interview; dry-run publishes nothing.",
+      "files": [],
+      "expectations": [
+        "digest only a1 b2",
+        "collect provenance/meta",
+        "no re-interview selection",
+        "no publication dry-run"
+      ]
     }
   ]
 }
