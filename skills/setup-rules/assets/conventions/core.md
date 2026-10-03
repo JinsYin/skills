@@ -29,6 +29,7 @@
 
 - MUST follow the rules matched by `*-best-practices` skills.
 - MUST add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
+- Shell commands run in the user's login shell, zsh on macOS: quote globs (`--include='*.java'`), write `${var}` before `[`, use `=` inside `[ ]`, and never name a variable `path` — zsh ties it to `PATH`, so later commands vanish and checks pass empty.
 
 ### Skills
 
