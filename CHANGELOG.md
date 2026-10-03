@@ -17,6 +17,7 @@
 
 ### Changed
 
+- **self-improve 合并后步骤留待人工合并**：上游工作流中同步安装副本等合并后步骤不在 PR 阶段执行，PR 写明跳过了哪些。
 - **setup-rules Changelog 约定简化**：移除逐条记录位置与条目长度要求，保留重要变更使用中文。
 - **self-improve 记录 Issue 改用 `no-pr` 标签**：无 PR 的复盘记录 Issue 标签由 `no-improvement` 改为 `no-pr`；去重改按 `rejected` 标签识别被拒的 Issue/PR。
 - **github-pr-merge 拒绝时打 `rejected` 标签**：Reject 关闭 PR 及其关联 Issue 前均打上 `rejected` 标签（缺失则创建）。
