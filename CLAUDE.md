@@ -5,6 +5,7 @@
 - MUST write skills in English.
 - MUST keep skill instructions/rules concise.
 - MUST keep `SKILL.md` frontmatter valid YAML: double-quote values containing `: `, else `skills` CLI silently skips skill. Verify `npx skills@latest add . --list` lists every `skills/*/SKILL.md`.
+- MUST interview user on anything unclear in attended sessions: ask focused questions (prefer agent's built-in question tool, if any) before acting on guess. Unattended runs follow Skill Workflow gates.
 
 ## Skill Evals
 
