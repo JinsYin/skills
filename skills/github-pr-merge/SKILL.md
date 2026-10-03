@@ -43,7 +43,7 @@ Every layer gets a verdict: pass, or findings. A failed check is a finding; user
 
 **Conflicts**: merge needs a conflict-free branch, so resolve before deciding via a head-branch edit: rebase onto `origin/<base>`; `CHANGELOG.md` → keep both sides' entries in their sections; ask user about other conflicts.
 
-**Head-branch edit** (conflict fix or requested change): same-repo only; `isCrossRepository` → report, put fixes in a PR comment, user picks request changes or reject. In scratchpad `git worktree` of head branch, edit, commit per repo conventions, `git push --force-with-lease`, remove worktree, back to step 2 (new `headRefOid`); its review is a Re-review.
+**Head-branch edit** (conflict fix or requested change): same-repo only; `isCrossRepository` → report, put fixes in a PR comment, user picks other changes or reject. In scratchpad `git worktree` of head branch, edit, commit per repo conventions, `git push --force-with-lease`, remove worktree, back to step 2 (new `headRefOid`); its review is a Re-review.
 
 ## 4. Decide
 
@@ -53,11 +53,11 @@ Post review as PR comment — authors can't approve own PRs, so comment = review
 - Body: verdict per layer, findings, suggested fixes.
 - `gh pr comment <n> -R <repo> --body-file <f>` prints the comment URL; keep it.
 
-Tell user briefly — Review: core findings + suggested fixes; Re-review: conclusion — ending with the full comment URL, so the record is one click away. Then ask user, recommend one; act only on user's pick:
+Tell user briefly — Review: core findings + suggested fixes; Re-review: conclusion — ending with the full comment URL, so the record is one click away. Then ask user, options always in order Apply suggestions → Other changes → Merge → Reject (recommended one keeps its slot, not moved first); act only on user's pick:
 
-- **Apply suggested fixes** — offer, listed first, only while same-repo and suggested fixes unapplied (Re-review, all findings resolved → none). Pick = consent: apply as head-branch edit.
+- **Apply suggestions** — offer only while same-repo and suggested fixes unapplied (Re-review, all findings resolved → none). Pick = consent: apply as head-branch edit.
+- **Other changes** — edits beyond suggested fixes: list concretely; with user consent, apply as head-branch edit. Cross-repo → all edits, fixes included, stay in PR comment; next PR.
 - **Merge** — `gh pr merge <n> -R <repo> --squash --match-head-commit <reviewed-sha>`. `<reviewed-sha>` = `headRefOid` from latest step 2, so the guard refuses unreviewed commits.
-- **Request changes** — edits beyond suggested fixes: list concretely; with user consent, apply as head-branch edit. Cross-repo → all edits, fixes included, stay in PR comment; next PR.
 - **Reject** — `gh pr close <n> --comment "<reason>"`, then close each linked Issue with `--reason "not planned"` + reason, so `self-improve` dedupe skips it next time.
 
 ## 5. Wrap up

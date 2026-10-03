@@ -9,7 +9,7 @@
 ### Added
 
 - **skillsw clean**：`./skillsw clean` 移除上游已改名/删除的 lock 条目及不在 lock 中的旧 skill，`./skillsw clean install` 清理后恢复，Core 规则改用后者。
-- **github-pr-merge 按建议修改 PR**：决策首项新增「Apply suggested fixes」，选中即把评审建议推到 head 分支并 Re-review；建议已应用、无建议或 fork PR 时不显示，Request changes 改为处理建议之外的修改。
+- **github-pr-merge 按建议修改 PR**：决策新增「Apply suggestions」，选中即把评审建议推到 head 分支并 Re-review；建议已应用、无建议或 fork PR 时不显示。「Request changes」更名「Other changes」，处理建议之外的修改；选项固定按 Apply suggestions → Other changes → Merge → Reject 排列。
 
 ### Changed
 
