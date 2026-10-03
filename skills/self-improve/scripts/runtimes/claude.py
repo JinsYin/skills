@@ -9,7 +9,7 @@ import sys
 from .common import Session, clip, iso, records
 
 ROOT = os.path.expanduser("~/.claude/projects")
-NOISE = ("<local-command", "<command-name>", "<command-message>", "<system-reminder>", "Caveat:")
+NOISE = ("<local-command", "<command-name>", "<command-message>", "<system-reminder>", "<task-notification>", "Caveat:")
 INTERRUPT = ("[Request interrupted", "doesn't want to proceed", "user rejected", "was rejected")
 BUILTIN = {"clear", "compact", "resume", "model", "config", "cost", "exit", "help", "init", "status"}
 
@@ -32,7 +32,8 @@ def text_of(content):
 
 def human_prompt(d):
     """Return the text of a genuine user-typed message, else None."""
-    if d.get("type") != "user" or d.get("isMeta") or d.get("isSidechain"):
+    # promptSource=system：后台任务完成通知等由 harness 注入的消息，不是用户提问，计成新一轮会把同一 skill 的开销拆走
+    if d.get("type") != "user" or d.get("isMeta") or d.get("isSidechain") or d.get("promptSource") == "system":
         return None
     c = (d.get("message") or {}).get("content")
     if isinstance(c, list) and any(b.get("type") == "tool_result" for b in c if isinstance(b, dict)):

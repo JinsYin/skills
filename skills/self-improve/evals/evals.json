@@ -62,7 +62,7 @@
       "id": 3,
       "name": "heavy-manual-third-party-to-setup-rules",
       "prompt": "/self-improve",
-      "expected_output": "Fixture `heavy-third-party`: manually invoked third-party `brainstorming` is HEAVY-SKILL (98% tokens, 55m) asking 8 questions with industry defaults, and the user objected. Lesson becomes a steering rule in `setup-rules/assets/conventions/superpowers.md`, shipped in a setup-rules Issue + PR with extra `brainstorming` label; auto-invoked light `caveman-commit` stays summary-only.",
+      "expected_output": "Fixture `heavy-third-party`: manually invoked third-party `brainstorming` is HEAVY-SKILL (98% tokens, 55m) asking 8 questions with industry defaults, and the user objected; a background `<task-notification>` arriving mid-turn must not split that turn. Lesson becomes a steering rule in `setup-rules/assets/conventions/superpowers.md`, shipped in a setup-rules Issue + PR with extra `brainstorming` label; auto-invoked light `caveman-commit` stays summary-only.",
       "files": [
         "evals/files/heavy-third-party/"
       ],
