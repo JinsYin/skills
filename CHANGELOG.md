@@ -22,6 +22,7 @@
 
 ### Fixed
 
+- **self-improve 轮次耗时**：digest 的 wall 不再把两轮之间等待用户的空闲算进上一轮，`HEAVY-SKILL` 按耗时判定恢复可信。
 - **version-release 发布范围**：按构建关系统一发布成员版本，保留图外冻结原型、fixture 和 vendored 项目。
 
 ## [v0.10.0] - 2026-10-02
