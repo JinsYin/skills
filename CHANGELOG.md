@@ -13,6 +13,7 @@
 
 ### Changed
 
+- **setup-rules Superpowers 约定验 README 命令**：计划给 README 里的 shell 片段写验收时，直接跑 README 原文，不再另抄一份到计划里。
 - **self-improve 记录 Issue 改用 `no-pr` 标签**：无 PR 的复盘记录 Issue 标签由 `no-improvement` 改为 `no-pr`；去重改按 `rejected` 标签识别被拒的 Issue/PR。
 - **github-pr-merge 拒绝时打 `rejected` 标签**：Reject 关闭 PR 及其关联 Issue 前均打上 `rejected` 标签（缺失则创建）。
 - **self-improve 支持多 Agent Runtime 取证**：`transcript.py` 新增 `--runtime claude|codex|cursor|agy`，可读取 Codex、Cursor IDE / `cursor-agent`、Antigravity `agy` 会话的报错、纠正、skill 加载与成本；Cursor 无 Token 记录时标注 unavailable。
