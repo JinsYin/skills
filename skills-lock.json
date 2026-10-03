@@ -23,13 +23,13 @@
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/self-improve/SKILL.md",
-      "computedHash": "7fba6b565e484ef2d985a6da071b1d95d75f858887cadb139509ff415487ae13"
+      "computedHash": "69b9970882d34db27d377cd215ac0ce60aad17fc80860b08d1b488418c786c42"
     },
     "setup-rules": {
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/setup-rules/SKILL.md",
-      "computedHash": "728c5bbd196225a4904d413689811453ec041cff00e8c0c628590c52632eca25"
+      "computedHash": "1eb138e0e33350b409898d477f03de02f09ba5be6bf960daafc429944a5a14ab"
     },
     "skill-creator": {
       "source": "anthropics/skills",
