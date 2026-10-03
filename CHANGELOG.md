@@ -22,6 +22,7 @@
 
 ### Fixed
 
+- **self-improve digest 不再把后台任务通知计为用户提问**：Claude Code 的 `<task-notification>` 不再另起一轮，同一 skill 的开销不再被拆走，HEAVY-SKILL 判定恢复准确。
 - **version-release 发布范围**：按构建关系统一发布成员版本，保留图外冻结原型、fixture 和 vendored 项目。
 
 ## [v0.10.0] - 2026-10-02
