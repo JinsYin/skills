@@ -1,0 +1,3 @@
+#!/bin/sh
+# stale skillsw for update eval
+exec npx skills "$@"

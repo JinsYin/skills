@@ -8,6 +8,7 @@
 
 ### Added
 
+- **skillsw 包装脚本**：setup-rules 单独询问安装 `skillsw`，`./skillsw install [--agent …]` 按 `skills-lock.json` 恢复 skills，其余命令透传 `npx skills`。
 - **github-pr-merge**：交互式评审 open PR，发布评审 comment，按用户选择 squash 合并或打回。
 - **self-improve**：复盘会话提炼经验，经 Issue + PR 改进相关 skill。
 - **version-release**：统一升级各模块版本，收起 `[Unreleased]` 并打 tag。
@@ -18,6 +19,7 @@
 
 ### Changed
 
+- **setup-rules Git tracking 默认忽略 skills**：只保留默认（忽略各 agent 目录的 `skills/` 子目录）与自定义，去掉全部跟踪、全部忽略。
 - **已安装 skills 不再入库**：`.agents/skills/`、`.claude/skills/` 改为忽略，`npx skills add jinsyin/skills` 只列出本仓库自己的 skills；新 worktree 经 `.worktreeinclude` 复制。
 - **setup-rules 排除 skills 时保留 lock**：Git tracking 忽略已安装 skills 时保留并暂存 `skills-lock.json`，配置 worktree 复制，Core 约定新增按 lock 恢复 skills 的命令。
 - **self-improve 克隆内恢复流程 skills**：执行上游流程前先在克隆中 `npx skills experimental_install`，不再依赖入库的安装副本。

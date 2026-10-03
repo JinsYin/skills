@@ -1,6 +1,6 @@
 ---
 name: setup-rules
-description: Conduct an interactive interview, then install selected agent conventions, adapters, and sensitive-file read restrictions into a project; `update` refreshes installed items without prompting. Explicit invocation only.
+description: Conduct an interactive interview, then install selected agent conventions, adapters, `skillsw`, and sensitive-file read restrictions into a project; `update` refreshes installed items without prompting. Explicit invocation only.
 disable-model-invocation: true
 ---
 
@@ -18,6 +18,7 @@ Workflow requires an interactive interview: ask, wait, clarify, and confirm the 
 | Subagents | `assets/adapters/<tool>/agents/` | `.<tool>/agents/` | per tool/workflow |
 | Cursor adapter | `assets/adapters/cursor/rules/`, `assets/adapters/cursor/hooks/`, `assets/adapters/cursor/hooks.json` | `.cursor/rules/`, `.cursor/hooks/`, `.cursor/hooks.json` | independently selectable |
 | Antigravity adapter | `assets/adapters/antigravity/gemini.md` | `GEMINI.md` | independently selectable |
+| skillsw | `assets/skillsw` | `skillsw` (project root, executable) | independently selectable |
 | Sensitive-file restrictions | `references/sensitive-file-access.md` | native Agent configuration | default set plus optional extras |
 
 Convention order is fixed: core → design → vibecoding → ponytail → karpathy → gsd → matt → superpowers. Skip unselected files.
@@ -52,6 +53,8 @@ The Cursor adapter constrains Cursor subagent `model` and `effort` only. It is n
 
 The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. The file contains general, composable rules.
 
+`skillsw` wraps `npx skills`: `./skillsw install` restores skills from `skills-lock.json`; other args pass through.
+
 ## Workflow
 
 **1. Locate project root.** Git root, else working directory; user-given path wins.
@@ -66,40 +69,42 @@ The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the pr
 
 **6. Ask about the Antigravity adapter.** Ask whether to install `assets/adapters/antigravity/gemini.md` as the project-root `GEMINI.md`.
 
-**7. Collect sensitive files.** Preselect every project file named `.env`, `.env.dev`, `.env.test`, or `.env.prod`. Ask for extra project-relative files or directories. Empty means only this set; remove it only by explicit opt-out. Never infer beyond it or read protected contents. Follow [sensitive-file access controls](references/sensitive-file-access.md).
+**7. Ask about skillsw.** Independently ask whether to install `assets/skillsw` as project-root `skillsw`.
 
-**8. Ask about Git tracking.** For applicable `.<tool>/`, `.agent/` (Antigravity) and `.agents/`, offer: (1) track all; (2) ignore all and untrack with `git rm -r --cached`, preserving local files; (3) track all except each `skills/` subtree—add those exact directories to `.gitignore` and untrack their tracked files; (4) custom. Never infer a choice. If `skills-lock.json` exists and any choice ignores installed skills, also plan these skills-lock entries:
+**8. Collect sensitive files.** Preselect every project file named `.env`, `.env.dev`, `.env.test`, or `.env.prod`. Ask for extra project-relative files or directories. Empty means only this set; remove it only by explicit opt-out. Never infer beyond it or read protected contents. Follow [sensitive-file access controls](references/sensitive-file-access.md).
+
+**9. Ask about Git tracking.** Default for each applicable `.<tool>/`, `.agent/` (Antigravity) and `.agents/`: track all except its `skills/` subtree—add those exact directories to `.gitignore`, untrack their tracked files. Ask only: keep default, or custom per directory; use custom only when user asks. If `skills-lock.json` exists and skills end up ignored, also plan these skills-lock entries:
    - Keep `skills-lock.json` tracked and `git add` it; restores rebuild skills from it.
    - Add `.agents/skills/` to `.worktreeinclude` so Claude Code/Codex copy it into new worktrees. Leave `.claude/skills/` out: worktree lacking it reads main checkout's Claude skills; copy disables that read-through.
    - `.cursor/` in scope → add `mkdir -p .agents && cp -R "$ROOT_WORKTREE_PATH/.agents/skills" .agents/` to `.cursor/worktrees.json` `setup-worktree-unix`.
 
-**9. Confirm the manifest.** List outputs, sensitive targets, external settings, per-directory Git choices, exact ignore entries, tracked removals, and step 8 skills-lock entries. Confirm before writing.
+**10. Confirm the manifest.** List outputs, sensitive targets, external settings, per-directory Git choices, exact ignore entries, tracked removals, and step 9 skills-lock entries. Confirm before writing.
 
-**10. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
+**11. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
-**11. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. For the Antigravity adapter, copy `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
+**12. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. For the Antigravity adapter, copy `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. For skillsw, copy `assets/skillsw` to project-root `skillsw` and `chmod +x` it. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
 
-**12. Apply Git decisions.** Add confirmed ignore entries and run `git rm -r --cached` on declined tracked files, preserving local files and unrelated rules. Apply step 8 skills-lock entries, merging into existing `.worktreeinclude`/`.cursor/worktrees.json` without dropping lines or commands. Stop for unmanaged active files; never rewrite history, delete worktree files, or commit/push without authorization.
+**13. Apply Git decisions.** Add confirmed ignore entries and run `git rm -r --cached` on declined tracked files, preserving local files and unrelated rules. Apply step 9 skills-lock entries, merging into existing `.worktreeinclude`/`.cursor/worktrees.json` without dropping lines or commands. Stop for unmanaged active files; never rewrite history, delete worktree files, or commit/push without authorization.
 
-**13. Install sensitive-file restrictions.** Merge the confirmed denies per the reference. Preserve unrelated or stricter settings; stop on incompatible policy. Report unenforced Antigravity UI and Cursor terminal/MCP paths.
+**14. Install sensitive-file restrictions.** Merge the confirmed denies per the reference. Preserve unrelated or stricter settings; stop on incompatible policy. Report unenforced Antigravity UI and Cursor terminal/MCP paths.
 
-**14. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Project Conventions`, and `AGENTS.md` with exactly:
+**15. Ensure `CLAUDE.md` and `AGENTS.md`.** Leave existing files unchanged. Otherwise create `CLAUDE.md` with only `# Project Conventions`, and `AGENTS.md` with exactly:
 
 ```text
 @CLAUDE.local.md
 @CLAUDE.md
 ```
 
-**15. Validate and report.** Parse changed JSON/TOML, run available offline config-load checks, and test ignore matching without reading secrets. Report selections, changes, protected paths, limitations, Git decisions, and conflicts; if skills are ignored, point to Core's `### Skills` restore command for fresh clones.
+**16. Validate and report.** Parse changed JSON/TOML, run available offline config-load checks, and test ignore matching without reading secrets. Report selections, changes, protected paths, limitations, Git decisions, and conflicts; if skills are ignored, point to Core's `### Skills` restore command for fresh clones.
 
 ## Update
 
-Refresh only installed items from current assets, without asking: invoking `update` pre-authorizes every overwrite, overriding every ask, confirm, or stop-and-ask step in Workflow and the reference. New selections need full `setup-rules`. Skip Workflow steps 2–9, 12, 14.
+Refresh only installed items from current assets, without asking: invoking `update` pre-authorizes every overwrite, overriding every ask, confirm, or stop-and-ask step in Workflow and the reference. New selections need full `setup-rules`. Skip Workflow steps 2–10, 13, 15.
 
 **1. Root.** As Workflow 1; stop if `CLAUDE.local.md` is missing.
 
-**2. Detect.** Match `CLAUDE.local.md` H2s to convention first H2s; existing targets mark installed subagents/adapters; existing denies mark sensitive targets. Keep every unmatched H2 section, appended last in original order, so no user content is lost.
+**2. Detect.** Match `CLAUDE.local.md` H2s to convention first H2s; existing targets mark installed subagents/adapters/`skillsw`; existing denies mark sensitive targets. Keep every unmatched H2 section, appended last in original order, so no user content is lost.
 
-**3. Write.** Diff targets against assets and skip identical ones. Rebuild `CLAUDE.local.md` in fixed order plus kept sections; copy agents/adapters byte-for-byte; replace only this skill's hook in `.cursor/hooks.json`; re-merge existing sensitive targets. On unparseable config or incompatible policy, skip and report that target.
+**3. Write.** Diff targets against assets and skip identical ones. Rebuild `CLAUDE.local.md` in fixed order plus kept sections; copy agents/adapters/`skillsw` byte-for-byte, keeping `skillsw` executable; replace only this skill's hook in `.cursor/hooks.json`; re-merge existing sensitive targets. On unparseable config or incompatible policy, skip and report that target.
 
-**4. Report.** As Workflow 15, plus overwritten files, kept unmatched sections, and skipped targets.
+**4. Report.** As Workflow 16, plus overwritten files, kept unmatched sections, and skipped targets.

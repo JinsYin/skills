@@ -1,0 +1,42 @@
+#!/bin/sh
+# skills CLI 包装脚本（由 setup-rules 分发）。
+#   ./skillsw install [--agent <agents...>]  按 skills-lock.json 恢复已安装 skills
+#   ./skillsw <其他参数>                     原样透传给 npx skills@latest
+# --agent 用法同 `npx skills add --agent`，缺省为 universal claude-code。
+set -e
+
+if [ "${1:-}" != install ]; then
+  exec npx skills@latest "$@"
+fi
+shift
+
+agents=""
+while [ $# -gt 0 ]; do
+  case $1 in
+    -a | --agent)
+      shift
+      # 收集到下一个选项为止，与 skills CLI 的多值写法一致
+      while [ $# -gt 0 ]; do
+        case $1 in -*) break ;; *) agents="$agents $1"; shift ;; esac
+      done
+      ;;
+    *) echo "skillsw install: unknown option: $1" >&2; exit 2 ;;
+  esac
+done
+[ -n "$agents" ] || agents="universal claude-code"
+
+# lock 文件路径相对脚本所在目录（项目根），子目录中调用也能找到
+cd "$(dirname "$0")"
+[ -f skills-lock.json ] || { echo "skillsw: skills-lock.json not found" >&2; exit 1; }
+
+# 用 node 解析 lock（npx 依赖 node，无需额外安装 jq），按 source 分组输出 "source skill..."
+node -e '
+const lock = JSON.parse(require("fs").readFileSync("skills-lock.json", "utf8"));
+const groups = {};
+for (const [name, e] of Object.entries(lock.skills || {})) (groups[e.source] ||= []).push(name);
+for (const [src, names] of Object.entries(groups)) console.log(src + " " + names.join(" "));
+' | while read -r src names; do
+  # </dev/null：防止 npx 读走管道中余下的 source 行
+  # $agents、$names 有意不加引号，按空格拆成多个参数
+  npx skills@latest add "$src" --agent $agents --skill $names -y </dev/null
+done
