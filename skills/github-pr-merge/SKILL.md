@@ -58,7 +58,7 @@ Tell user briefly — Review: core findings + suggested fixes; Re-review: conclu
 - **Apply suggestions** — offer only while same-repo and suggested fixes unapplied (Re-review, all findings resolved → none). Pick = consent: apply as head-branch edit.
 - **Other changes** — edits beyond suggested fixes: list concretely; with user consent, apply as head-branch edit. Cross-repo → all edits, fixes included, stay in PR comment; next PR.
 - **Merge** — `gh pr merge <n> -R <repo> --squash --match-head-commit <reviewed-sha>`. `<reviewed-sha>` = `headRefOid` from latest step 2, so the guard refuses unreviewed commits.
-- **Reject** — `gh pr close <n> --comment "<reason>"`, then close each linked Issue with `--reason "not planned"` + reason, so `self-improve` dedupe skips it next time.
+- **Reject** — `gh pr edit <n> --add-label rejected`, `gh pr close <n> --comment "<reason>"`; each linked Issue: `gh issue edit <i> --add-label rejected`, close with `--reason "not planned"` + reason. Create `rejected` if missing; lets `self-improve` dedupe skip it — `no-pr` records also close not planned.
 
 ## 5. Wrap up
 

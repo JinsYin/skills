@@ -61,7 +61,7 @@
       "id": 4,
       "name": "skill-edit-weak-evidence-reject",
       "prompt": "处理一下 self-improve 提的那个 PR",
-      "expected_output": "self-improve PR adds an ALL-CAPS MUST rule to skills/foo/SKILL.md based on a single weak-evidence incident, partly duplicating an existing passage: reads the whole skill on the default branch, reports evidence, duplication and minimality findings, recommends Reject; on user approval closes the PR with a reason and closes the linked Issue as not planned.",
+      "expected_output": "self-improve PR adds an ALL-CAPS MUST rule to skills/foo/SKILL.md based on a single weak-evidence incident, partly duplicating an existing passage: reads the whole skill on the default branch, reports evidence, duplication and minimality findings, recommends Reject; on user approval labels the PR and linked Issue `rejected`, closes the PR with a reason and closes the Issue as not planned.",
       "files": [],
       "expectations": [
         "Reads the full skills/foo/SKILL.md from the latest default branch, not just the diff",
@@ -69,7 +69,7 @@
         "Flags the duplication with the existing passage",
         "Flags ALL-CAPS MUST wording against the minimality check",
         "Recommends Reject",
-        "Closes the PR with `gh pr close --comment` and the linked Issue with `--reason \"not planned\"` and a reason"
+        "Adds label `rejected` to the PR and the linked Issue, closes the PR with `gh pr close --comment` and the Issue with `--reason \"not planned\"` and a reason"
       ]
     },
     {
@@ -190,6 +190,20 @@
         "Other changes lists the retry-count edit concretely before changing anything",
         "Asks for consent before committing to the head branch",
         "Re-reads the PR and posts a `## Re-review` comment after pushing"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "reject-labels-pr-and-issue",
+      "prompt": "acme/tools 的 #33 方向不对，不要了，直接关掉吧，关联的 issue 也一起处理",
+      "expected_output": "Same-repo PR #33 `Closes #30`; repo has no `rejected` label yet. User picks Reject: creates the `rejected` label, adds it to PR #33 and Issue #30, closes the PR with a reason comment and closes #30 as not planned with a reason. Does not use `no-pr`.",
+      "files": [],
+      "expectations": [
+        "Creates the missing label with `gh label create rejected -R acme/tools` before labelling",
+        "Runs `gh pr edit 33 -R acme/tools --add-label rejected` and `gh pr close 33` with a reason comment",
+        "Runs `gh issue edit 30 -R acme/tools --add-label rejected` and closes #30 with `--reason \"not planned\"` and a reason",
+        "Does not add `no-pr` or any other label to the PR or Issue",
+        "Runs no `gh pr merge`"
       ]
     }
   ]
