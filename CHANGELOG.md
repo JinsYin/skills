@@ -6,6 +6,8 @@
 
 ## [Unreleased]
 
+## [v0.10.0] - 2026-10-02
+
 ### Added
 
 - **skillsw 包装脚本**：setup-rules 单独询问安装 `skillsw`，`./skillsw install [--agent …]` 按 `skills-lock.json` 恢复 skills，其余命令透传 `npx skills`。
@@ -185,7 +187,8 @@
 - **GSX Thin Front-Door (20 个 skills)**：包含 `gsx-*` 全套技能，包裹 GSD 命令并接入 Context7 文档核对校验门禁。
 - **通用工具**：`doc-to-md` Markdown 内容转换技能。
 
-[Unreleased]: https://github.com/JinsYin/skills/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/JinsYin/skills/compare/v0.10.0...HEAD
+[v0.10.0]: https://github.com/JinsYin/skills/compare/v0.9.0...v0.10.0
 [v0.9.0]: https://github.com/JinsYin/skills/compare/v0.8.0...v0.9.0
 [v0.8.0]: https://github.com/JinsYin/skills/compare/v0.7.0...v0.8.0
 [v0.7.0]: https://github.com/JinsYin/skills/compare/v0.6.0...v0.7.0
