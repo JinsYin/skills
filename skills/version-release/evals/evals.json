@@ -239,10 +239,10 @@
       "id": 19,
       "name": "reference-name-release-member",
       "prompt": "模拟发 minor：pnpm workspace 明确包含 packages/prototype 和 packages/fixture，均是实际发布组件；root 与两组件当前1.2.3，最新tag v1.2.3。没有冻结路径。名称含 prototype 或 fixture 会影响升级范围吗？只推演。",
-      "expected_output": "Bump root and both workspace members to1.3.0; membership, not directory names, defines release scope.",
+      "expected_output": "Bump root and both workspace members to 1.3.0; membership, not directory names, defines release scope.",
       "files": [],
       "expectations": [
-        "Both workspace members and root receive1.3.0",
+        "Both workspace members and root receive 1.3.0",
         "Does not exclude a release member solely because its name is prototype or fixture"
       ]
     }

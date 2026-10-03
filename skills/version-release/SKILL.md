@@ -27,7 +27,7 @@ No argument, tag exists → infer level:
 
 ## 3. Bump every module in lockstep
 
-One release graph, one version: bump its modules, untouched ones included, so released artifacts agree. Inventory manifests, then select members from reactor/workspace config or build references; frozen prototypes, fixtures and vendored projects outside that graph keep their versions. Find member version declarations (`git ls-files` for `package.json`, `pom.xml`, `build.gradle*`, `gradle.properties`, `pyproject.toml`, `Cargo.toml`, `VERSION`, ...), then:
+One release graph, one version: bump its modules, untouched ones included, so released artifacts agree. Inventory manifests (`git ls-files` for `package.json`, `pom.xml`, `build.gradle*`, `gradle.properties`, `pyproject.toml`, `Cargo.toml`, `VERSION`, ...), then keep members selected by reactor/workspace config or build references; frozen prototypes, fixtures and vendored projects outside that graph keep their versions. Bump members:
 
 | Stack | How |
 |---|---|
