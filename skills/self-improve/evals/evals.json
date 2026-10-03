@@ -5,7 +5,7 @@
       "id": 0,
       "name": "gap-issue-pr-chinese-body",
       "prompt": "/self-improve",
-      "expected_output": "Fixture `ideate-gap`: in one /ideate update run the user corrected (a) no list of what changed in `idea.md` — a gap, step 8 reports only paths — and (b) a Spring Boot Starter + Redis delivery the user never stated, despite the existing no-guessing rule; plus one `git rm` pathspec ERROR (weak, single). Restores the upstream workflow skills with `npx skills experimental_install` in the clone and runs them from its `.agents/skills/`, then opens one ideate Issue + PR whose authored prose is Chinese while the template skeleton stays English, lists the weak error as below the gate, retrospects itself, then asks whether to sync.",
+      "expected_output": "Fixture `ideate-gap`: in one /ideate update run the user corrected (a) no list of what changed in `idea.md` — a gap, step 8 reports only paths — and (b) a Spring Boot Starter + Redis delivery the user never stated, despite the existing no-guessing rule; plus one `git rm` pathspec ERROR (weak, single). Restores the upstream workflow skills with `./skillsw install` in the clone and runs them from its `.agents/skills/`, then opens one ideate Issue + PR whose authored prose is Chinese while the template skeleton stays English, lists the weak error as below the gate, retrospects itself, then asks whether to sync.",
       "files": [
         "evals/files/ideate-gap/"
       ],
@@ -23,7 +23,7 @@
         "Classifies the missing change list as a gap and the invented Starter/Redis as a rule that exists but did not fire (rewords the existing passage, adds no second no-guessing rule); lists the `git rm` pathspec error as below the gate",
         "Retrospects the self-improve run itself (step 6) before wrap-up",
         "Ends with a skill · lesson · Issue · PR table and asks whether to sync changed skills into the project",
-        "Runs `npx skills experimental_install` in the clone before step 5, then runs the skills the upstream `CLAUDE.md` workflow names from the clone's `.agents/skills/`, without skipping any as unavailable",
+        "Runs `./skillsw install` in the clone before step 5, then runs the skills the upstream `CLAUDE.md` workflow names from the clone's `.agents/skills/`, without skipping any as unavailable",
         "Opens no `no-improvement` record Issue, since the run filed an Issue + PR"
       ]
     },
