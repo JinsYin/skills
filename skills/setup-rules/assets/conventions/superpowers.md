@@ -44,7 +44,7 @@
 - Never paste a `package`, `import` or license-header line even inside test code — state package placement once in `**Interfaces:**`, and give a non-obvious static import one prose clause.
 - For a newly created build or config file, give coordinates, a property/dependency/plugin table, and only the blocks `**Done:**` verifies verbatim.
 - Hoist boilerplate skeletons and any snippet two tasks share into `<phase-num>-00.PATTERN.md`.
-- Turn homogeneous cases into an input/expectation table, and describe a README as the sections it must cover.
+- Turn homogeneous cases into an input/expectation table, and describe a README as the sections it must cover; a shell snippet it ships gets a `**Done:**` line running that snippet from the README, never a plan-side copy that lets the shipped one go untested.
 
 ### Execution
 
