@@ -5,7 +5,7 @@
 ## 功能
 
 - 显式调用，即手动或由其他 skill / 约定调用；
-- 按参数 `major|minor|patch|x.y.z` 升版，默认 `patch`；
+- 按参数 `major|minor|patch|x.y.z` 升版；无参数时按 `[Unreleased]`（为空则按提交）推断：有 Added/Changed/Removed/feat/breaking 为 `minor`，否则 `patch`，`major` 只能显式指定，推断后先确认；
 - 所有模块（npm / Maven / Gradle 等）统一版本；
 - 提升 `CHANGELOG.md` 的 `[Unreleased]`，提交并打 tag；
 - 自动 push 当前分支与本次 tag 到 `origin`；无 remote 或无 `origin` 时先询问。

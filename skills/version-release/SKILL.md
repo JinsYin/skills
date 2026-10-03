@@ -1,6 +1,6 @@
 ---
 name: version-release
-description: "Cut a SemVer release — bump every module's version in lockstep, promote CHANGELOG.md, commit, tag, push to origin. Args `major|minor|patch|<x.y.z>`, default `patch`. Invoke only on explicit request: the user, another skill, or a project convention asking for a release."
+description: "Cut a SemVer release — bump every module's version in lockstep, promote CHANGELOG.md, commit, tag, push to origin. Args `major|minor|patch|<x.y.z>`; none → level inferred from `[Unreleased]`, confirmed with user. Invoke only on explicit request: the user, another skill, or a project convention asking for a release."
 ---
 # version-release
 
@@ -16,7 +16,14 @@ Uncommitted changes from the just-finished work → commit them on their own fir
 
 ## 2. Version
 
-Bump the last tag by the argument; no argument → `patch`. Explicit `x.y.z` is used as-is. No tag yet → no argument releases the current project version minus `-SNAPSHOT` as-is; an argument bumps it. Follow the existing tag style (`v1.2.3` vs `1.2.3`); default `v`. Tag already exists → stop.
+Explicit `x.y.z` used as-is; `major|minor|patch` bumps last tag. No tag yet → no argument releases current project version minus `-SNAPSHOT` as-is; argument bumps it. Follow the existing tag style (`v1.2.3` vs `1.2.3`); default `v`. Tag already exists → stop.
+
+No argument, tag exists → infer level:
+
+- Evidence: `[Unreleased]` in root `CHANGELOG.md`, plus user-facing commits since last tag missing from it (Conventional Commits type).
+- `minor`: any `Added`, `Changed`, `Removed`, `feat`, or breaking change. Else `patch` (`Fixed`, `Security`, `Deprecated`, `fix`, `perf`, ...).
+- `major` needs explicit argument: 1.0+ major is a deliberate call; 0.x breaks stay `minor`. Breaking change on ≥1.0.0 → note `major` may fit.
+- Ask user to confirm level, next version, and the entries behind it; change nothing until answered. Answer names another level → use it.
 
 ## 3. Bump every module in lockstep
 

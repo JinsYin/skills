@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **version-release 无参数自动推断级别**：按 `[Unreleased]`（为空则按提交）推断 `minor`/`patch`，`major` 须显式指定，执行前先请用户确认。
+
 ## [v0.10.0] - 2026-10-02
 
 ### Added

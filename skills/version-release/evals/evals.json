@@ -18,9 +18,9 @@
     },
     {
       "id": 1,
-      "name": "maven-default-patch-asks-remote",
-      "prompt": "发个版本",
-      "expected_output": "Maven multi-module project (parent pom + 2 child modules at 0.4.1-SNAPSHOT; latest tag 0.4.0; only remote is named github, no origin): no argument defaults to patch, so every module goes to 0.4.1 with -SNAPSHOT dropped; the tag keeps the unprefixed style as 0.4.1; after commit and tag, asks which remote to push to and holds the push until answered.",
+      "name": "maven-patch-asks-remote",
+      "prompt": "发个 patch 版本",
+      "expected_output": "Maven multi-module project (parent pom + 2 child modules at 0.4.1-SNAPSHOT; latest tag 0.4.0; only remote is named github, no origin): the patch argument releases 0.4.1, so every module goes to 0.4.1 with -SNAPSHOT dropped; the tag keeps the unprefixed style as 0.4.1; after commit and tag, asks which remote to push to and holds the push until answered.",
       "files": [],
       "expectations": [
         "Parent pom and both child modules have version 0.4.1, with no -SNAPSHOT left",
@@ -158,6 +158,66 @@
         "Reports the push rejection and stops",
         "Local release commit and tag v2.1.1 remain in place",
         "No force push, pull, rebase, or tag deletion is attempted"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "infer-minor-from-added-asks-confirm",
+      "prompt": "差不多可以发版了，帮我发一下",
+      "expected_output": "npm package at 1.2.0 (tag v1.2.0, new feat and fix commits since, origin present); [Unreleased] has `### Added` (CSV export) and `### Fixed` entries. No level given, so infers minor from Added, shows minor → v1.3.0 with the Added entry as evidence, and asks for confirmation before touching anything.",
+      "files": [],
+      "expectations": [
+        "Infers minor and names v1.3.0 as the next version",
+        "Cites the `Added` entry as the reason for minor",
+        "Asks the user to confirm before bumping",
+        "package.json stays 1.2.0, and no release commit, tag, or push happens before the answer"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "infer-minor-from-changed-only",
+      "prompt": "/version-release",
+      "expected_output": "npm package at 2.0.3 (tag v2.0.3, new commits since); [Unreleased] has only `### Changed` (refactored config loading, now reads .env.local) and `### Fixed` entries. Infers minor (Changed counts as minor), proposes v2.1.0, and asks for confirmation.",
+      "files": [],
+      "expectations": [
+        "Infers minor, not patch, and proposes v2.1.0",
+        "Cites the `Changed` entry as the reason",
+        "Asks for confirmation and makes no version change, commit, or tag before the answer"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "infer-patch-from-fixed-security",
+      "prompt": "/version-release",
+      "expected_output": "npm package at 1.5.2 (tag v1.5.2, new fix commits since); [Unreleased] has only `### Fixed` and `### Security` entries. Infers patch, proposes v1.5.3, and asks for confirmation.",
+      "files": [],
+      "expectations": [
+        "Infers patch and proposes v1.5.3",
+        "Asks for confirmation and makes no version change, commit, or tag before the answer"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "breaking-never-auto-major",
+      "prompt": "/version-release",
+      "expected_output": "npm package at 2.3.0 (tag v2.3.0, new commits including `feat!: drop Node 16`); [Unreleased] has `### Removed` (Node 16 support) marked BREAKING. Infers minor rather than major, proposes v2.4.0, notes major may fit given the breaking change and needs an explicit argument, and asks for confirmation.",
+      "files": [],
+      "expectations": [
+        "Proposes minor → v2.4.0, not v3.0.0",
+        "Mentions the breaking change and that major needs an explicit choice",
+        "Asks for confirmation and makes no version change, commit, or tag before the answer"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "empty-unreleased-infer-from-commits",
+      "prompt": "/version-release",
+      "expected_output": "npm package at 0.7.1 (tag v0.7.1); [Unreleased] is empty but commits since the tag are `feat(cli): add --json output` and `fix: handle empty input`. Infers minor from the feat commit, proposes v0.8.0, and asks for confirmation.",
+      "files": [],
+      "expectations": [
+        "Reads commits since v0.7.1 because [Unreleased] is empty",
+        "Infers minor from the feat commit and proposes v0.8.0",
+        "Asks for confirmation and makes no version change, commit, or tag before the answer"
       ]
     }
   ]
