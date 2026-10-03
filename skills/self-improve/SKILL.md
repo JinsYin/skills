@@ -1,22 +1,21 @@
 ---
 name: self-improve
-description: Retrospect agent sessions (failures, user corrections, detours, token-heavy or slow turns) into lessons, shipped as minimal edits to jinsyin/skills skills — or a new skill, or a `setup-rules` convention for a heavy manually-invoked third-party skill — each as GitHub Issue + PR; nothing qualifies → closed `no-improvement` record Issue. Args `[--sessions] [--dry-run] [focus]`. Invoke only when the user, a rule, or another skill calls for it.
+description: Retrospect the current agent session (failures, user corrections, detours, token-heavy or slow turns) into lessons, shipped as minimal edits to jinsyin/skills skills — or a new skill, or a `setup-rules` convention for a heavy manually-invoked third-party skill — each as GitHub Issue + PR; nothing qualifies → closed `no-improvement` record Issue. Args `[--dry-run] [focus]`. Invoke only when the user, a rule, or another skill calls for it.
 ---
 
 # self-improve
 
 Session evidence → lessons → minimal skill diffs → Issue + PR. PR = human review gate: open Issue + PR without asking approval; push only to `self-improve/*` branches, human merges.
 
-Upstream: `jinsyin/skills` (skills in `skills/<name>/`). Keep main context lean: work from digest, open raw transcript only for specific turns. Subagents only for many `--sessions`; inline is cheaper otherwise.
+Upstream: `jinsyin/skills` (skills in `skills/<name>/`). Keep main context lean: work from digest, open raw transcript only for specific turns.
 
-Args: `--sessions` retrospect user-picked sessions of this project, not just current; `--dry-run` report only, no Issue/PR; free text narrows focus.
+Args: `--dry-run` report only, no Issue/PR; free text narrows focus.
 
 ## 1. Collect evidence
 
-- Default: current conversation + `python3 <skill-dir>/scripts/transcript.py digest` (newest session of cwd). Digest compact, only source of token/time data — run even if context looks complete.
-- `--sessions`: run `transcript.py list`, show numbered list, user picks any N (numbers or id prefixes), then `transcript.py digest <id-prefix> ...`.
+Current conversation + `python3 <skill-dir>/scripts/transcript.py digest` (newest session of cwd). Digest compact, only source of token/time data — run even if context looks complete.
 
-Record provenance for Issue: source project name (git root basename), agent runtime, each retrospected session's id + name. On Claude Code, `transcript.py meta [<id-prefix> ...]` prints id, name, runtime, most-used and last `model/effort` pair; bare `meta` = current session, its `last` pair = this improvement run's. Other runtimes: take from own environment; unknown → `unknown`. Done when digest read and provenance recorded for every session.
+Record provenance for Issue: source project name (git root basename), agent runtime, session id + name. On Claude Code, `transcript.py meta` prints current session's id, name, runtime, most-used and last `model/effort` pair; `last` pair = this improvement run's. Other runtimes: take from own environment; unknown → `unknown`. Done when digest read and provenance recorded.
 
 Digest marks `USER*` (possible correction), `ERROR`, `REJECTED`, `[retry xN]`, `[repeat-error xN]`, `SKILL`/`SKILL-LOADED` (with path), cost lines: `[cost]` totals for main agent + subagents, `[heavy-turn N]` (turn ≥15% of input) / `[skill-run N]` (other skill turn): one run's in/out tokens, calls, compactions, peak-ctx, subagents, result chars, wall time (includes waiting on user), skills; `HEAVY-AGENT` (subagent ≥200k tokens), `BIG-RESULT` (tool output >20k chars), `[skill-cost]`/`HEAVY-SKILL` (per-skill totals incl. its subagents; heavy = ≥25% of session tokens or wall time; `via=manual` = user-typed slash command, `auto` = Skill call by model or another skill). Markers = hints; judge each by context.
 
@@ -32,7 +31,7 @@ Also waste a skill caused — cutting tokens and flow length is goal equal to co
 
 Gate each lesson:
 - **Strong** (1 occurrence enough): explicit user correction or rework from skill gap or ignored rule; `heavy-turn`, `HEAVY-AGENT` or `BIG-RESULT` clearly caused by skill instruction.
-- **Weak** (needs ≥2 occurrences, across one or more sessions): detours, retries, tool errors, repeated questions.
+- **Weak** (needs ≥2 occurrences): detours, retries, tool errors, repeated questions. Each run sees one session, so also count same observation under `## Below the gate` of earlier Issues (`gh issue list -R jinsyin/skills --label self-improve --state all --search "<skill> <keywords>"`, `no-improvement` records included); cite each as evidence row with its Issue #.
 - Below gate → summary only.
 
 Done when every lesson is Strong, Weak with ≥2 occurrences, or below gate.
@@ -52,7 +51,7 @@ Give every lesson exactly one verdict:
 
 Minimal-diff rules: edit smallest owning passage; prefer rewording over adding, deleting/merging over rewording when step is waste; fewest words that still change behavior — every word paid on every load; no restructuring; keep skill's language + tone; growth per pass ≤ ~20% of file. State target behavior positively and explain *why* in instruction itself; plain reasons steer better than ALL-CAPS MUSTs.
 
-Dedupe before writing: `gh issue list -R jinsyin/skills --state all --search "<skill> <keywords>"`, same for `gh pr list`. Open match → add new evidence as comment, skip; closed-as-rejected match → skip unless evidence materially new.
+Dedupe before writing: `gh issue list -R jinsyin/skills --state all --search "<skill> <keywords>"`, same for `gh pr list`. Open match → add new evidence as comment, skip; closed-as-rejected match → skip unless evidence materially new; `no-improvement` records feed step 3's weak count, not rejections.
 
 `--dry-run`: skip step 5, run step 6, then print each would-be Issue body in full (filled template, step 5 language) so preview matches what would be filed.
 

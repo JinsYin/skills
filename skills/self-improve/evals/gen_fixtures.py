@@ -153,16 +153,6 @@ s.tool("Bash", {"command": "gh pr create -R jinsyin/skills --base master --label
 s.user("gh pr create 要显式带 --head <branch>，别让它自己猜")
 s.save(home)
 
-# E. --sessions：同项目三个会话
-home = project("multi-session", {"ideate": LOCK_UP})
-for i, (title, prompt) in enumerate([("idea-billing", "把账单助手的想法整理一下"),
-                                     ("fix-ci", "CI 上 lint 挂了帮我看看"),
-                                     ("idea-export", "idea 里再加一个导出功能")]):
-    s = S(f"e5{i}a6b8c-0000-4000-8000-00000000000{5 + i}", title)
-    s.user(prompt)
-    s.say("好的。")
-    s.save(home, mtime_offset=i * 3600)
-
 # F. 无归属、可跨项目复用的经验 → 新 skill
 home = project("new-skill-no-owner", {"ideate": LOCK_UP})
 s = S("f6e5a7b9-0000-4000-8000-000000000008", "arch-diagrams")

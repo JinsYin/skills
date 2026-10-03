@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Compact Claude Code session transcripts into retrospective evidence.
 
-  transcript.py list   [--cwd DIR] [--limit N]    # sessions of a project, newest first
   transcript.py digest [--cwd DIR] [ID|PATH ...]  # signal digest; default = newest session
   transcript.py meta   [--cwd DIR] [ID|PATH ...]  # session id/name, runtime, most-used and last model/effort
 
@@ -90,29 +89,6 @@ def skill_loaded(d):
         return None
     m = re.match(r"\s*Base directory for this skill: (\S+)", text_of((d.get("message") or {}).get("content")))
     return m and m.group(1)
-
-
-def cmd_list(a):
-    pdir = project_dir(a.cwd)
-    if not os.path.isdir(pdir):
-        sys.exit(f"no transcripts for {a.cwd} ({pdir})")
-    files = sorted(
-        (os.path.join(pdir, f) for f in os.listdir(pdir) if f.endswith(".jsonl")),
-        key=os.path.getmtime,
-        reverse=True,
-    )[: a.limit]
-    for i, p in enumerate(files, 1):
-        title, first, prompts = "", "", 0
-        for d in records(p):
-            if d.get("type") in ("custom-title", "ai-title"):
-                title = d.get("customTitle") or d.get("aiTitle") or d.get("title") or title
-            t = human_prompt(d)
-            if t:
-                prompts += 1
-                first = first or t
-        when = datetime.fromtimestamp(os.path.getmtime(p)).strftime("%Y-%m-%d %H:%M")
-        sid = os.path.basename(p)[:-6]
-        print(f"{i:>2}. {sid[:8]}  {when}  {prompts:>3} prompts  {clip(title or first, 90)}")
 
 
 def resolve(ids, cwd):
@@ -331,9 +307,6 @@ def skill_report(cost, agents, span, ttok, tms):
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    l = sub.add_parser("list")
-    l.add_argument("--cwd", default=os.getcwd())
-    l.add_argument("--limit", type=int, default=20)
     g = sub.add_parser("digest")
     g.add_argument("--cwd", default=os.getcwd())
     g.add_argument("ids", nargs="*")
@@ -341,11 +314,8 @@ def main():
     m.add_argument("--cwd", default=os.getcwd())
     m.add_argument("ids", nargs="*")
     a = ap.parse_args()
-    if a.cmd == "list":
-        cmd_list(a)
-    else:
-        for p in resolve(a.ids, a.cwd):
-            print(meta(p)) if a.cmd == "meta" else digest(p)
+    for p in resolve(a.ids, a.cwd):
+        print(meta(p)) if a.cmd == "meta" else digest(p)
 
 
 if __name__ == "__main__":

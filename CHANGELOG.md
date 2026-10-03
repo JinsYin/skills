@@ -12,6 +12,7 @@
 
 ### Changed
 
+- **self-improve 只复盘当前会话**：移除 `--sessions`，弱信号门槛计入历史复盘 Issue 中未过门槛的同类观察；Superpowers/GSD 约定改为每次运行后都复盘，取消里程碑联合复盘。
 - **setup-rules `.worktreeinclude` 注释**：写入的条目附单行英文注释，说明为何不含 `.claude/skills/`。
 - **version-release 无参数自动推断级别**：按 `[Unreleased]`（为空则按提交）推断 `minor`/`patch`，`major` 须显式指定，执行前先请用户确认。
 

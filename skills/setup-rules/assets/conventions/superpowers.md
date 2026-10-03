@@ -60,5 +60,4 @@
 
 ### Retrospective
 
-- Once `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development` or `systematic-debugging` finishes and commits (after any `version-release`), invoke `self-improve` if the run saw a user correction, rework, or repeated failure; skip it on a clean run.
-- Once a milestone's last phase is `executed`, invoke `self-improve --sessions` to retrospect the milestone's sessions together.
+- Once `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development` or `systematic-debugging` finishes and commits (after any `version-release`), invoke `self-improve`, clean runs too: its record Issue keeps below-gate observations later runs count toward weak gate.

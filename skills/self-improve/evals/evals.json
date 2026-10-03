@@ -95,16 +95,18 @@
     },
     {
       "id": 5,
-      "name": "sessions-user-picks",
-      "prompt": "/self-improve --sessions",
-      "expected_output": "Fixture `multi-session` with three sessions: runs `transcript.py list`, shows a numbered list, waits for the user to pick, then digests only the picked sessions.",
+      "name": "weak-signal-accumulates-across-issues",
+      "prompt": "/self-improve",
+      "expected_output": "Fixture `no-improvement` (same session as eval 7: one wrong-path Read ERROR in an /ideate run, weak, single). Stub `gh issue list` to return closed Issue #120 `retro(demo): ideate 更新顺利，无可改进` with labels `self-improve` + `no-improvement`, whose `## Below the gate` reads: `ideate 先读 docs/idea.md 报不存在，再改读 docs/ideas/idea.md（weak，1 次，未过门槛）`. Counting #120 brings the weak signal to 2 occurrences, so it clears the gate: one ideate Issue + PR citing #120, instead of a record Issue.",
       "files": [
-        "evals/files/multi-session/"
+        "evals/files/no-improvement/"
       ],
       "expectations": [
-        "Runs `transcript.py list` and shows all three sessions numbered",
-        "Asks the user to pick sessions before running any digest",
-        "Runs `transcript.py digest` only with the picked id prefixes"
+        "Searches earlier `self-improve` Issues with `--state all` (closed included) before deciding the wrong-path Read error is below the gate",
+        "Counts the matching `## Below the gate` observation in #120 as a second occurrence and treats the weak signal as clearing the gate",
+        "Does not skip the lesson as a rejected duplicate because #120 is closed `not planned`",
+        "Creates one (stubbed) ideate Issue + PR whose Evidence table has a row for this session and a row citing #120, both Signal `weak`",
+        "Opens no `no-improvement` record Issue"
       ]
     },
     {
