@@ -53,7 +53,7 @@ The Cursor adapter constrains Cursor subagent `model` and `effort` only. It is n
 
 The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. The file contains general, composable rules.
 
-`skillsw` wraps `npx skills`: `./skillsw install` restores skills from `skills-lock.json`; other args pass through.
+`skillsw` wraps `npx skills`: `./skillsw clean install` prunes stale skills, then restores from `skills-lock.json`; `clean`/`install` run either half; other args pass through.
 
 ## Workflow
 

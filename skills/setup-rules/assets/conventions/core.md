@@ -32,4 +32,4 @@
 
 ### Skills
 
-- `skills-lock.json` is source of truth for installed skills, which may be gitignored. If it exists but `.agents/skills/` is missing (fresh clone, new worktree), restore before relying on skills: `./skillsw install`; without `skillsw`, `npx skills@latest experimental_install` (`.agents/skills/` only).
+- `skills-lock.json` is source of truth for installed skills, which may be gitignored. If it exists but `.agents/skills/` is missing (fresh clone, new worktree), restore before relying on skills: `./skillsw clean install`; without `skillsw`, `npx skills@latest experimental_install` (`.agents/skills/` only).

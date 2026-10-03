@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- **skillsw clean**：`./skillsw clean` 移除上游已改名/删除的 lock 条目及不在 lock 中的旧 skill，`./skillsw clean install` 清理后恢复，Core 规则改用后者。
+
 ### Changed
 
 - **setup-rules `.worktreeinclude` 注释**：写入的条目附单行英文注释，说明为何不含 `.claude/skills/`。

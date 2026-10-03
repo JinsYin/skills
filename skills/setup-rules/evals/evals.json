@@ -107,7 +107,7 @@
         "`.cursor/worktrees.json` `setup-worktree-unix` keeps `npm ci` and adds a command copying `$ROOT_WORKTREE_PATH/.agents/skills` into the worktree",
         "Creates no git commit",
         "Copies `assets/skillsw` to project-root `skillsw` and makes it executable",
-        "Final report points to the Core `### Skills` restore command (`./skillsw install`) for fresh clones"
+        "Final report points to the Core `### Skills` restore command (`./skillsw clean install`) for fresh clones"
       ]
     }
   ]
