@@ -16,6 +16,10 @@
 - **setup-rules `.worktreeinclude` 注释**：写入的条目附单行英文注释，说明为何不含 `.claude/skills/`。
 - **version-release 无参数自动推断级别**：按 `[Unreleased]`（为空则按提交）推断 `minor`/`patch`，`major` 须显式指定，执行前先请用户确认。
 
+### Fixed
+
+- **version-release 发布范围**：按构建关系统一发布成员版本，保留图外冻结原型、fixture 和 vendored 项目。
+
 ## [v0.10.0] - 2026-10-02
 
 ### Added

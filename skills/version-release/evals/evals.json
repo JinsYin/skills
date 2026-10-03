@@ -219,6 +219,32 @@
         "Infers minor from the feat commit and proposes v0.8.0",
         "Asks for confirmation and makes no version change, commit, or tag before the answer"
       ]
+    },
+    {
+      "id": 18,
+      "name": "release-graph",
+      "prompt": "模拟发 minor：干净 pnpm monorepo，root、packages/ui、packages/console 均为1.2.3，最新标签v1.2.3，origin存在；pnpm-workspace只列两个packages。仓库还跟踪 products/prototype/package.json及其lock（0.0.0，冻结设计参照），tests/fixtures/demo/package.json（1.2.3，独立fixture，不在workspace）。列出改动、保留文件、完成检查与push范围。只推演，不执行发布。",
+      "expected_output": "Release 1.3.0 across root/ui/console only; excluded prototype and fixture versions do not block completion; push current branch and v1.3.0 only.",
+      "files": [],
+      "expectations": [
+        "release version 1.3.0",
+        "root/ui/console bumped",
+        "prototype json and lock unchanged",
+        "fixture manifest unchanged",
+        "old fixture version does not block completion",
+        "push current branch and tag only"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "reference-name-release-member",
+      "prompt": "模拟发 minor：pnpm workspace 明确包含 packages/prototype 和 packages/fixture，均是实际发布组件；root 与两组件当前1.2.3，最新tag v1.2.3。没有冻结路径。名称含 prototype 或 fixture 会影响升级范围吗？只推演。",
+      "expected_output": "Bump root and both workspace members to 1.3.0; membership, not directory names, defines release scope.",
+      "files": [],
+      "expectations": [
+        "Both workspace members and root receive 1.3.0",
+        "Does not exclude a release member solely because its name is prototype or fixture"
+      ]
     }
   ]
 }

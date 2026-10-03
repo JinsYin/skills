@@ -27,7 +27,7 @@ No argument, tag exists → infer level:
 
 ## 3. Bump every module in lockstep
 
-One project, one version: every module gets the new version, untouched ones included, so artifacts built from one commit always agree. Find every version declaration first (`git ls-files` for `package.json`, `pom.xml`, `build.gradle*`, `gradle.properties`, `pyproject.toml`, `Cargo.toml`, `VERSION`, ...), then:
+One release graph, one version: bump its modules, untouched ones included, so released artifacts agree. Inventory manifests (`git ls-files` for `package.json`, `pom.xml`, `build.gradle*`, `gradle.properties`, `pyproject.toml`, `Cargo.toml`, `VERSION`, ...), then keep members selected by reactor/workspace config or build references; frozen prototypes, fixtures and vendored projects outside that graph keep their versions. Bump members:
 
 | Stack | How |
 |---|---|
@@ -36,7 +36,7 @@ One project, one version: every module gets the new version, untouched ones incl
 | Gradle | Edit `version=` in `gradle.properties`, or `version = "..."` in root `build.gradle(.kts)` / `allprojects {}`; check subprojects that override. |
 | Other | Edit manifest version field; refresh lockfile. |
 
-Release versions drop `-SNAPSHOT`. Done when grepping tracked manifests for the old version finds no hit that is this project's own version.
+Release versions drop `-SNAPSHOT`. Done when release-member manifests have the new version and excluded reference files are unchanged.
 
 ## 4. CHANGELOG.md
 
