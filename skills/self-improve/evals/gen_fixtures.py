@@ -35,6 +35,13 @@ class S:
         tail = f"<command-args>{args}</command-args>" if args else ""
         self.user(f"<command-message>{name}</command-message>\n<command-name>/{name}</command-name>\n{tail}")
 
+    def notify(self, text):
+        # harness 注入的后台任务完成通知：role=user，但 promptSource=system，不是用户提问
+        d = self._base("user", 5)
+        d.update(promptSource="system", origin={"kind": "task-notification"})
+        d["message"] = {"role": "user", "content": text}
+        self.recs.append(d)
+
     def skill_body(self, path):
         d = self._base("user", 2)
         d["isMeta"] = True
@@ -134,8 +141,11 @@ s.skill_body(f"{SK}/brainstorming")
 qs = ["导出编码用 UTF-8 还是 GBK？", "分隔符用逗号吗？", "要不要带表头？", "日期格式用 ISO 8601 吗？",
       "空值写空串还是 NULL？", "文件名要不要带时间戳？", "超过 10 万行要不要分片？", "要不要异步导出？"]
 # brainstorming 在同一轮内逐个用 AskUserQuestion 发问，开销全归入手动触发的第 1 轮
-for q in qs:
+for i, q in enumerate(qs):
     s.tool("AskUserQuestion", {"questions": [{"question": q}]}, "User answered: 按常规来", tok=900_000, secs=400)
+    if i == 0:
+        # 轮中到达的后台任务通知不得另起一轮，否则 brainstorming 的开销被拆走、不再判为 HEAVY-SKILL
+        s.notify("<task-notification>\n<task-id>b1</task-id>\n<status>completed</status>\n</task-notification>")
 s.user("这些有行业默认值的问题你自己定，别一个个问我，整个过程拖了快一个小时")
 s.tool("Write", {"file_path": "/work/demo/docs/specs/csv-export.md", "content": "spec"}, "written", tok=30_000)
 s.tool("Skill", {"skill": "caveman-commit"}, "Launching skill: caveman-commit", tok=30_000)
