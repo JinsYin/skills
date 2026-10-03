@@ -54,12 +54,25 @@ def digest(s):
     cost = collections.defaultdict(lambda: {"in": 0, "out": 0, "calls": 0, "ms": 0, "skills": set(), "manual": set(), "prompt": "",
                                          "compact": 0, "peak": 0, "res": 0})
     peak, span, has_usage = 0, {}, False
+    pend = None  # 记录的 tick 先于其事件发出：暂存，等看清是否新一轮提问再记，免得把两轮间的空闲算进上一轮
+
+    def stamp(t):
+        # 每轮耗时 = 该轮首末记录的时间差
+        if t:
+            a, _ = span.get(turn, (t, t))
+            span[turn] = (a, t)
+
     for e in s.events():
         k, ts = e["k"], e.get("ts")
-        if ts:
-            # 每轮耗时 = 该轮首末记录的时间差
-            a, _ = span.get(turn, (ts, ts))
-            span[turn] = (a, ts)
+        if k == "tick":
+            stamp(pend)
+            pend = ts
+            continue
+        if k == "user":
+            turn += 1
+        stamp(pend)
+        stamp(ts)
+        pend = None
         if k == "usage":
             has_usage = True
             cost[turn]["in"] += e["ctx"]
@@ -73,7 +86,6 @@ def digest(s):
             print(f"[{turn}] SKILL-LOADED: {e['path']}")
             cost[turn]["skills"].add(skill_name(e["path"]))
         elif k == "user":
-            turn += 1
             t = e["text"]
             cost[turn]["prompt"] = t
             # 用户手动点名的 skill（斜杠命令、$skill、附加 skill）= 手动触发；工具调用加载的为自动触发
@@ -110,6 +122,7 @@ def digest(s):
     for (name, body), n in errors.items():
         if n >= 2:
             print(f"[repeat-error x{n}] {name}: {body}")
+    stamp(pend)
     for t, (a, b) in span.items():
         cost[t]["ms"] = int((b - a).total_seconds() * 1000)
     agents = s.subagents()
