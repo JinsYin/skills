@@ -13,6 +13,12 @@
 - The `stitch-extract-design-md` skill MUST extract `DESIGN.md` from `products/prototype/` into `products/design/`, except in a `restyle` app (per `.design-to-code/progress.md`): its `DESIGN.md` is authored, never re-extracted; new looks are designed in it directly, and the prototype carries structure only.
 - MUST record or consolidate every addition or change to the product prototype in `products/prototype/CHANGELOG.md`.
 
+### Images & Brand Assets
+
+- Store product image design drafts in `products/design/drafts/`, English kebab-case `<lowercased-project-name>-<name>.png`; save each revision as new file with `-v2`, `-v3`… suffix, never overwrite earlier versions.
+- Final logo: `assets/logo/logo.png`; other versions: `assets/logo/logo-v2.png`, `-v3`….
+- Final favicon: `assets/icon/favicon.ico`, single 64x64; keep unscaled source as `assets/icon/favicon.png`.
+
 ### Post-Build Changes
 
 - Once `design-to-code` has built the app, record every new feature with `product-spec add` first.
