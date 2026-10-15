@@ -1,0 +1,20 @@
+{
+  "skill_name": "product-spec",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我想给现有后台建立一套能交给 AI 设计工具的产品功能材料。请用简洁清单说明 product-spec 支持的操作、各操作的作用、产品线目录里会有哪些文件，以及维护时不能违反的关键规则。",
+      "expected_output": "A concise Chinese overview of the product-spec structure, commands, generated files, and key guardrails, consistently naming the document 功能规格说明书.",
+      "files": [],
+      "expectations": [
+        "The response explains that versioned V files record changes and CURRENT.md is the generated current snapshot for AI design tools.",
+        "The response names init, add, sync, check, and export and accurately summarizes what each command does.",
+        "The response states that only sync writes CURRENT.md and active V files are immutable.",
+        "The response says unresolved locators must be surfaced to the user instead of guessed.",
+        "The response says product specs describe functionality and interaction, while visual values belong in the design layer.",
+        "The response says outward-facing copy follows the project CLAUDE.md and written changes must be synced.",
+        "The response uses 功能规格说明书 as the exact name of the product documentation."
+      ]
+    }
+  ]
+}

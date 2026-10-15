@@ -1,4 +1,4 @@
-# 规范格式定义
+# 规格格式定义
 
 本文件是格式的权威定义。骨架见 `templates.md`，合成算法见 `synthesis.md`。
 
@@ -82,7 +82,7 @@ includes_draft: false            # 若纳入了 draft 版本则为 true
 | `global.<约定名>` | 全局约定章节里的一条 |
 | `donts.<条目>` | 「明确不做」里的一条 |
 
-**页面 id 必须与原型/前端代码里的 id 一致**（如 `apps`、`complianceStats`），别自创。这是规范和实现之间唯一的硬锚点，断了之后 `check` 就查不出漂移。
+**页面 id 必须与原型/前端代码里的 id 一致**（如 `apps`、`complianceStats`），别自创。这是规格和实现之间唯一的硬锚点，断了之后 `check` 就查不出漂移。
 
 ## 变更操作
 

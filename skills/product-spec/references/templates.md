@@ -223,7 +223,7 @@ generator: product-spec skill
 includes_draft: false
 ---
 
-# <产品线中文名> 产品功能规范（当前态）
+# <产品线中文名> 功能规格说明书（当前态）
 
 ## 给 AI 设计工具的上下文
 
@@ -231,7 +231,7 @@ includes_draft: false
 - **用户**：<角色，及他们的使用场景>
 - **形态**：<Web 后台管理系统 / 面向开发者的门户站>
 - **技术栈约束**：<React + TypeScript + Tailwind CSS + shadcn/ui，图标 lucide-react>
-- **视觉规范**：色彩、字体、间距、圆角一律取自 `<products/design/css/tokens.css>`，本文件不定义任何视觉值
+- **视觉规格**：色彩、字体、间距、圆角一律取自 `<products/design/css/tokens.css>`，本文件不定义任何视觉值
 - **本文件是当前态的唯一事实来源。** 只画本文件描述的内容；同目录下的 `V*.md` 是历史变更记录，**不要**据其作图
 - **第七章「明确不做」是硬约束**，不要补充其中列明不要的元素或功能
 
@@ -248,7 +248,7 @@ includes_draft: false
 ## 四、`products/specs/README.md`
 
 ````markdown
-# 产品功能规范
+# 功能规格说明书
 
 本目录管理产品的功能清单、交互逻辑与版本化变更记录，产出物直接喂给 AI 设计工具
 （Claude Design、v0、Figma Make、Lovable）。

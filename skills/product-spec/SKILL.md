@@ -1,6 +1,6 @@
 ---
 name: product-spec
-description: 管理产品功能规范——功能清单、交互逻辑、以及 Flyway 式版本化的新增与变更记录，产出可直接喂给 Claude Design、v0、Figma Make、Lovable 等 AI 设计工具的规范文件。规范落 products/specs/<产品线>/，V 链（V1__baseline、V2__xxx）记录演进，合成的 CURRENT.md 是喂设计工具的唯一入口。在用户说「建产品功能规范」「写功能规格」「记录这次产品变更」「生成给设计工具的规范」「同步 CURRENT.md」「product-spec」时使用，也用于新产品线初始化规范、或规范与实现漂移需要核对时。
+description: 管理功能规格说明书，维护功能清单、页面交互和版本化变更；生成 AI 设计工具使用的 CURRENT.md。用户要初始化产品线、记录变更、同步 CURRENT.md、导出给设计工具的内容或核对与实现漂移时使用。
 argument-hint: "[init | add <title> | sync | check | export --tool <v0|figma-make|claude-design|lovable>]"
 allowed-tools:
   - Read
@@ -14,7 +14,9 @@ allowed-tools:
 
 # product-spec
 
-管理一份**产品功能规范**：产品有哪些功能、每个页面怎么交互、以及每次演进改了什么。产出物的第一读者是 AI 设计工具（Claude Design / v0 / Figma Make / Lovable），第二读者才是人。Reply in Chinese.
+管理一份**功能规格说明书**：产品有哪些功能、每个页面怎么交互、以及每次演进改了什么。产出物的第一读者是 AI 设计工具（Claude Design / v0 / Figma Make / Lovable），第二读者才是人。Reply in Chinese.
+
+所有产品级文档名称统一为「功能规格说明书」。
 
 ## Codex Adapter
 
@@ -28,7 +30,7 @@ In Codex, translate this wrapper instead of rewriting it:
 
 ## 为什么是「V 链 + 合成快照」双轨
 
-产品规范有两个互相打架的诉求：
+功能规格说明书有两个互相打架的诉求：
 
 - **追溯**——「关联应用这列什么时候改叫关联空间的、为什么」，要的是**增量链**
 - **喂设计工具**——要的是**当前全量态**
@@ -67,8 +69,8 @@ products/specs/
 1. **`CURRENT.md` 只能由 `sync` 写。** 手改它等于让两轨脱钩，下次 `sync` 会静默覆盖掉你的修改。要改内容就发新 V 文件。
 2. **`status: active` 的 V 文件不回改。** 改了等于改历史，追溯就废了。改需求就发下一个 V。只有 `draft` 可以随便改。
 3. **定位符必须能在前序 V 链里解析到。** 解析不到就**报错并停下**问用户，绝不猜。猜错会在 `CURRENT.md` 里留下一个幽灵页面，而且没人会发现。
-4. **只写「是什么 / 怎么交互」，不写像素、色值、字号、间距。** 视觉层归 `products/design/`（若项目有 `tokens.css` / `DESIGN.md` 就指向它）。规范里出现 `#0066FF` 或 `padding: 16px` 一律删掉。
-5. **对外文案以项目 CLAUDE.md 为准。** 内部代号、内部服务名不得出现在规范正文里——它会被设计工具原样画进界面。
+4. **只写「是什么 / 怎么交互」，不写像素、色值、字号、间距。** 视觉层归 `products/design/`（若项目有 `tokens.css` / `DESIGN.md` 就指向它）。规格里出现 `#0066FF` 或 `padding: 16px` 一律删掉。
+5. **对外文案以项目 CLAUDE.md 为准。** 内部代号、内部服务名不得出现在规格正文里——它会被设计工具原样画进界面。
 6. **写完必须 `sync`。** `add` 子命令自带这一步，别跳过。
 
 ## 子命令路由
@@ -77,7 +79,7 @@ products/specs/
 
 | 参数 | 动作 |
 |---|---|
-| `init` | 初始化规范体系 |
+| `init` | 初始化规格体系 |
 | `add <title>` | 新增一个 V 变更文件 |
 | `sync` | 重放 V 链，生成/更新 `CURRENT.md` |
 | `check` | 一致性与漂移检查 |
@@ -146,7 +148,7 @@ products/specs/
 | 快照未被手改 | `CURRENT.md` mtime 晚于最近一次 `generated`，或 generated 注释/frontmatter 缺失 → 疑似手改 |
 | 定位符可解析 | 每个 V 的变更清单定位符在其前序态里存在（`ADD` 反之） |
 | 悬空引用 | 被 `REMOVE` 的目标是否仍被后续 V 或流程/术语章节引用 |
-| 视觉污染 | 规范正文里出现十六进制色值、`px`、字号、`font-family` → 违反纪律 4 |
+| 视觉污染 | 规格正文里出现十六进制色值、`px`、字号、`font-family` → 违反纪律 4 |
 | 文案泄漏 | 出现项目 CLAUDE.md 标记为「不得对外」的内部代号 |
 
 发现问题给出**具体修法**，不要只报「有问题」。用户要求修时才动手。
@@ -160,5 +162,5 @@ products/specs/
 ## 与其他 skill 的关系
 
 - 写出来的 Markdown 走 `doc-writing-best-practices`（中西文混排、标题层级、表格取舍）
-- 页面交互约定要与 `ui-ux-best-practices` 一致——表单校验时机、弹层状态重置、破坏性操作确认、分页与格式。**冲突时以那个 skill 为准**，规范不该自造一套交互通则
+- 页面交互约定要与 `ui-ux-best-practices` 一致——表单校验时机、弹层状态重置、破坏性操作确认、分页与格式。**冲突时以那个 skill 为准**，规格不该自造一套交互通则
 - 视觉层（色值、字体、间距、组件圆角）不归本 skill，归项目的 `DESIGN.md` / `tokens.css`
