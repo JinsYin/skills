@@ -21,7 +21,7 @@
 Create/edit skill, or edit root `CLAUDE.md`/`AGENTS.md`, in this order; finish each step before next. Gate by trigger:
 
 - User triggered step 1: after step 1, show draft and eval results, ask user to confirm, then run steps 2–7 unattended.
-- Skill triggered step 1 (e.g. `self-improve`): run steps 1–7 unattended.
+- Skill triggered step 1 (e.g. `self-improve`): run steps 1–6 unattended; defer step 7 until human merge, name it in PR.
 - Change touches only root `CLAUDE.md`/`AGENTS.md`: after edit, show diff, ask user to confirm, then run steps 2, 3, 5, 6 unattended; skip 4 and 7.
 
 Unattended runs stop only where a step says ask user.
