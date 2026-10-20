@@ -20,15 +20,15 @@
 
 ### Changelog
 
-- Keep root `CHANGELOG.md` in Chinese per [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-- Log each notable change under `[Unreleased]` in the same commit; refactors go under `Changed`.
-- Keep entries terse: one line each, what changed and its user-facing effect; omit implementation details, file lists and rationale.
+- Keep root `CHANGELOG.md` using [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+- Log each notable change in Chinese.
 - Cut versions only via `version-release`, which closes `[Unreleased]`.
 
 ### Development
 
 - MUST follow the rules matched by `*-best-practices` skills.
 - MUST add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
+- Shell commands run in the login shell (zsh on macOS): quote globs and `=`-leading words (`--include='*.java'`, `'====='`; `[ ]` takes `=`, not `==`), write `${var}` before `[`, never name a variable `path` — zsh ties it to `PATH`, so later commands vanish and checks pass empty.
 
 ### Skills
 
