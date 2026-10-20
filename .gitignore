@@ -3,6 +3,7 @@
 # =============================================================================
 .agent/
 .superpowers/
+/.drafts/
 # 已安装 skills 由 skills-lock.json 恢复，不入库
 /.agents/skills/
 /.claude/skills/
