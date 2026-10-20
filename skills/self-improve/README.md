@@ -13,6 +13,7 @@
 
 ## 参考
 
+- [mattpocock/skills · retro](https://github.com/mattpocock/skills/blob/main/skills/engineering/retro/SKILL.md) - 按改进类别复盘会话并按严重度呈现候选项，强调用自动化检查捕获机械规则
 - [zhaono1/agent-playbook · self-improving-agent](https://github.com/zhaono1/agent-playbook/blob/main/skills/self-improving-agent/SKILL.md) - 只沉淀面向未来行为的可复用经验，重复次数不等于正确性
 - [eai-org/agent-toolkit · self-improve](https://github.com/eai-org/agent-toolkit/blob/main/skills/self-improve/SKILL.md) - 规则已存在却未生效时修「为什么没生效」，而非重复加规则
 - [Dwsy/agent · improve-skill](https://github.com/Dwsy/agent/blob/main/skills/improve-skill/SKILL.md) - 定位并解析会话 transcript，在全新上下文中分析以避免自我合理化
