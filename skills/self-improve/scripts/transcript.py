@@ -57,16 +57,15 @@ def digest(s):
     pend = None  # 记录的 tick 先于其事件发出：暂存，等看清是否新一轮提问再记，免得把两轮间的空闲算进上一轮
 
     def stamp(t):
-        # 每轮耗时 = 该轮首末记录的时间差
+        # 每轮耗时 = 该轮首末记录的时间差；记录偶有乱序（attachment 可早于前一条），终点取最大值，免得算出负耗时
         if t:
-            a, _ = span.get(turn, (t, t))
-            span[turn] = (a, t)
+            a, b = span.get(turn, (t, t))
+            span[turn] = (a, max(b, t))
 
     for e in s.events():
         k, ts = e["k"], e.get("ts")
         if k == "tick":
-            stamp(pend)
-            pend = ts
+            pend = ts  # 未产生事件的记录（queue-operation、attachment 等）不计时：它们常带着下一条提问的时间
             continue
         if k == "user":
             turn += 1
@@ -122,7 +121,6 @@ def digest(s):
     for (name, body), n in errors.items():
         if n >= 2:
             print(f"[repeat-error x{n}] {name}: {body}")
-    stamp(pend)
     for t, (a, b) in span.items():
         cost[t]["ms"] = int((b - a).total_seconds() * 1000)
     agents = s.subagents()
