@@ -13,6 +13,7 @@
 - **setup-rules 设计图片与品牌资源约定**：Design 约定新增设计稿存放于 `products/design/drafts/`、按 `<小写项目名>-` 前缀与 `-vN` 版本命名，Logo 定稿为 `assets/logo/logo.png`，favicon 为 64x64 的 `assets/icon/favicon.ico` 并保留原图 `favicon.png`。
 - **setup-rules Core 按 zsh 语义写 Shell 命令**：glob 与以 `=` 开头的词加引号、`[` 前写 `${var}`、不以 `path` 作变量名，避免 macOS 上命令报错或检查脚本静默空跑。
 - **setup-rules Superpowers 约定验 README 命令**：计划给 README 里的 shell 片段写验收时，直接跑 README 原文，不再另抄一份到计划里。
+- **setup-rules Superpowers 约定：SDD 控制器按段读计划**：执行计划时控制器只按 grep 或行号读前言、全局约束和各任务的 Files / Interfaces / Done，派发前的冲突扫描交给独立 subagent，不再整份读入。
 
 ### Changed
 
