@@ -12,10 +12,10 @@
 - **github-pr-merge 按建议修改 PR**：决策新增「Apply suggestions」，选中即把评审建议推到 head 分支并 Re-review；建议已应用、无建议或 fork PR 时不显示。「Request changes」更名「Other changes」，处理建议之外的修改；选项固定按 Apply suggestions → Other changes → Merge → Reject 排列。
 - **setup-rules 设计图片与品牌资源约定**：Design 约定新增设计稿存放于 `products/design/drafts/`、按 `<小写项目名>-` 前缀与 `-vN` 版本命名，Logo 定稿为 `assets/logo/logo.png`，favicon 为 64x64 的 `assets/icon/favicon.ico` 并保留原图 `favicon.png`。
 - **setup-rules Core 按 zsh 语义写 Shell 命令**：glob 与以 `=` 开头的词加引号、`[` 前写 `${var}`、不以 `path` 作变量名，避免 macOS 上命令报错或检查脚本静默空跑。
+- **setup-rules Superpowers 约定验 README 命令**：计划给 README 里的 shell 片段写验收时，直接跑 README 原文，不再另抄一份到计划里。
 
 ### Changed
 
-- **setup-rules Superpowers 约定验 README 命令**：计划给 README 里的 shell 片段写验收时，直接跑 README 原文，不再另抄一份到计划里。
 - **setup-rules Changelog 约定简化**：移除逐条记录位置与条目长度要求，保留重要变更使用中文。
 - **self-improve 记录 Issue 改用 `no-pr` 标签**：无 PR 的复盘记录 Issue 标签由 `no-improvement` 改为 `no-pr`；去重改按 `rejected` 标签识别被拒的 Issue/PR。
 - **github-pr-merge 拒绝时打 `rejected` 标签**：Reject 关闭 PR 及其关联 Issue 前均打上 `rejected` 标签（缺失则创建）。
