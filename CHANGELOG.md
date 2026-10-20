@@ -11,6 +11,7 @@
 - **skillsw clean**：`./skillsw clean` 移除上游已改名/删除的 lock 条目及不在 lock 中的旧 skill，`./skillsw clean install` 清理后恢复，Core 规则改用后者。
 - **github-pr-merge 按建议修改 PR**：决策新增「Apply suggestions」，选中即把评审建议推到 head 分支并 Re-review；建议已应用、无建议或 fork PR 时不显示。「Request changes」更名「Other changes」，处理建议之外的修改；选项固定按 Apply suggestions → Other changes → Merge → Reject 排列。
 - **setup-rules 设计图片与品牌资源约定**：Design 约定新增设计稿存放于 `products/design/drafts/`、按 `<小写项目名>-` 前缀与 `-vN` 版本命名，Logo 定稿为 `assets/logo/logo.png`，favicon 为 64x64 的 `assets/icon/favicon.ico` 并保留原图 `favicon.png`。
+- **setup-rules Core 按 zsh 语义写 Shell 命令**：glob 与以 `=` 开头的词加引号、`[` 前写 `${var}`、不以 `path` 作变量名，避免 macOS 上命令报错或检查脚本静默空跑。
 
 ### Changed
 
