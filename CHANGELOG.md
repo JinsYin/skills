@@ -8,6 +8,7 @@
 
 ### Added
 
+- **ideate 构想文档链接改用参考链接**：模板中的文档链接、项目地址改为 `[文本][]`，文末按 HTML 注释分组定义（调研记录在前、URL 在后）；功能调研项新增「调研记录」行，校验引用与定义一一对应，并补充 evals。
 - **doc-writing-best-practices 参考链接规则**：新增 `struct-reference-links`，全文链接超过约 5 个或同一目标被多次引用时改用折叠式参考链接 `[文本][]`，定义集中文末、按 HTML 注释分组（本地文件在前、URL 在后），并补充 evals。
 - **skillsw clean**：`./skillsw clean` 移除上游已改名/删除的 lock 条目及不在 lock 中的旧 skill，`./skillsw clean install` 清理后恢复，Core 规则改用后者。
 - **github-pr-merge 按建议修改 PR**：决策新增「Apply suggestions」，选中即把评审建议推到 head 分支并 Re-review；建议已应用、无建议或 fork PR 时不显示。「Request changes」更名「Other changes」，处理建议之外的修改；选项固定按 Apply suggestions → Other changes → Merge → Reject 排列。
