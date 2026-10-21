@@ -1,0 +1,46 @@
+{
+  "skill_name": "doc-writing-best-practices",
+  "evals": [
+    {
+      "id": 0,
+      "name": "many-links-new-doc-uses-reference-links",
+      "prompt": "帮我写一段 docs/references.md 的「参考资料」小节，列出这些：Envoy Gateway 概念 https://gateway.envoyproxy.io/docs/concepts/ 、扩展 https://gateway.envoyproxy.io/docs/tasks/extensibility/ 、Kong 文档 https://developer.konghq.com/gateway/ 、APISIX https://apisix.apache.org/ 、ShenYu https://shenyu.apache.org/ 、Spring Cloud Gateway https://docs.spring.io/spring-cloud-gateway/reference/ ，每个项目都附上本地调研记录 ../research/gateway-capabilities.md",
+      "expected_output": "Writes the section with 7 distinct link targets, one of them (the local research note) cited 6 times. Uses collapsed reference links `[text][]` in the body and one definition per target at the end of the file, grouped under HTML comments with the local file group before the URL group.",
+      "files": [],
+      "expectations": [
+        "Body links use collapsed reference form `[text][]`, with no inline `[text](url)` links",
+        "The local research note has exactly one definition line although cited 6 times",
+        "Link definitions sit together at the end of the file",
+        "Definitions are grouped under HTML comments, local file group before external URL group",
+        "Every reference in the body has a matching definition and every definition is referenced"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "few-links-stay-inline",
+      "prompt": "在 README 的安装章节加一句话，说明先按 Docker 官方文档 https://docs.docker.com/engine/install/ 安装 Docker",
+      "expected_output": "Adds one sentence with a single inline link; does not introduce reference-style links or a definitions block for one link.",
+      "files": [],
+      "expectations": [
+        "The Docker link is written inline as `[text](https://docs.docker.com/engine/install/)`",
+        "No reference definition line or HTML comment link group is added"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "convert-existing-inline-links",
+      "prompt": "整理一下 evals/files/gateway-notes.md，里面链接太多了，源码看着很乱",
+      "expected_output": "gateway-notes.md has 8 inline links over 6 distinct targets, with ../research/gateway-capabilities.md repeated 3 times. Converts all of them to collapsed reference links, writes 6 definitions at the file end grouped by HTML comments (local files first, then URLs, each in first-appearance order), and keeps the wording unchanged.",
+      "files": [
+        "evals/files/gateway-notes.md"
+      ],
+      "expectations": [
+        "No inline `[text](target)` links remain in gateway-notes.md",
+        "Exactly 6 definition lines exist, `网关能力调研` defined once",
+        "Local file definitions come before URL definitions, each group under an HTML comment",
+        "Within each group, definitions follow first-appearance order in the body",
+        "Body wording other than link syntax is unchanged"
+      ]
+    }
+  ]
+}
