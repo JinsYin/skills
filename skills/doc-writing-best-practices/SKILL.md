@@ -9,7 +9,7 @@ metadata:
 
 # Doc Writing Best Practices
 
-中文技术文档的规范集，8 条规则分 3 类。
+中文技术文档的规范集，9 条规则分 3 类。
 
 ## 如何使用本 skill
 
@@ -18,7 +18,7 @@ metadata:
 | 你在做什么 | 先读 |
 |---|---|
 | 写任何中文文档 | `cjk-*`（3 条，成本最低收益最直接） |
-| 写 README / 设计文档 | `content-*`、`struct-heading-no-skip` |
+| 写 README / 设计文档 | `content-*`、`struct-heading-no-skip`；链接多时 `struct-reference-links` |
 | 写运维手册 / 操作步骤 | `content-example-copy-ready`、`struct-code-fence-language` |
 | 整理已有文档 | 全部 |
 
@@ -33,7 +33,7 @@ metadata:
 | 优先级 | 分类 | 影响 | 前缀 | 条数 |
 |---|---|---|---|---|
 | 1 | 内容质量 | HIGH | `content-` | 2 |
-| 2 | 文档结构 | MEDIUM | `struct-` | 3 |
+| 2 | 文档结构 | MEDIUM | `struct-` | 4 |
 | 3 | 中文排版 | MEDIUM | `cjk-` | 3 |
 
 排序按影响，不按阅读顺序——`cjk-*` 最常用但后果最轻。
@@ -49,6 +49,7 @@ metadata:
 
 - `struct-code-fence-language` — 代码块必须标语言；标错比不标更糟，纯输出显式标 `text`
 - `struct-heading-no-skip` — 层级不跳级、一篇一个 H1、深度控制在 H4 内
+- `struct-reference-links` — 链接超过约 5 个或有重复目标时用参考链接，定义集中文末分组
 - `struct-table-vs-list` — 有共同维度用表格、无共同维度用列表；表格里不放长段落
 
 ### 3. 中文排版（MEDIUM）
