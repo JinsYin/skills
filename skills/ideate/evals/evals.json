@@ -5,16 +5,17 @@
       "id": 0,
       "name": "links-written-as-reference-links",
       "prompt": "/ideate 根据 docs/requirements/raw.md 整理产品构想",
-      "expected_output": "raw.md confirms every required field and gives 4 URLs plus one local research note cited by both research targets. Writes docs/ideas/idea.md where every link is a collapsed reference link `[text][]`, the research note is defined once, definitions sit at the file end after `---` grouped under HTML comments (local file group first, then URL groups), and each research item carries a 调研记录 line. Deletes raw.md after migration.",
+      "expected_output": "raw.md confirms every required field and gives 4 URLs plus one local research note cited by both research targets. Writes docs/ideas/idea.md where every link is a reference link (collapsed `[text][]` unless link texts collide), no label is defined twice, the research note is defined once, definitions sit at the file end after `---` grouped under HTML comments (local file group first, then URL groups), and each research item carries a 调研记录 line. Deletes raw.md after migration.",
       "files": [
-        "evals/files/with-links/raw.md"
+        "evals/files/with-links/"
       ],
       "expectations": [
         "idea.md contains no inline `[text](target)` links",
         "Both research items have a `调研记录：` line pointing to the same reference",
         "`../research/webhook-services.md` has exactly one definition line",
         "Definitions are at the end of idea.md, local file group before URL groups, each under an HTML comment",
-        "Every `[text][]` reference has exactly one definition and every definition is referenced",
+        "Every reference link has exactly one definition and every definition is referenced",
+        "No label is defined twice, and every link resolves to its URL from raw.md",
         "Only the URLs from raw.md appear; no searched or guessed links are added"
       ]
     },
@@ -24,7 +25,7 @@
       "prompt": "/ideate 根据 docs/requirements/raw.md 整理产品构想",
       "expected_output": "raw.md confirms every required field, no research and no technical references. Writes idea.md with `> 无` under sections 3 and 4 and leaves out the link definitions block entirely.",
       "files": [
-        "evals/files/no-links/raw.md"
+        "evals/files/no-links/"
       ],
       "expectations": [
         "Sections 3 and 4 each contain `> 无`",
