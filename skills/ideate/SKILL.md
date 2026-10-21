@@ -30,4 +30,5 @@ Turn product ideas and context into a traceable product concept: every fact trac
 ## Validation
 
 - Title, note, four numbered sections, and required subsections match the reference.
+- Every reference link has exactly one definition and every definition is referenced; an undefined one renders as literal text.
 - Every Rule holds; every fact appears once, traces to a source, and every conflict is resolved by the user or listed as a question.

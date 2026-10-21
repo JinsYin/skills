@@ -18,6 +18,7 @@
 
 ### Changed
 
+- **ideate 构想文档链接改用参考链接**：模板中的文档链接、项目地址改为 `[文本][]`，文末按 HTML 注释分组定义（调研记录在前、URL 在后）；功能调研项新增「调研记录」行，校验引用与定义一一对应，并补充 evals。
 - **product-spec 文档名称统一**：产品级文档统一称为“功能规格说明书”。
 - **setup-rules Changelog 约定简化**：移除逐条记录位置与条目长度要求，保留重要变更使用中文。
 - **self-improve 记录 Issue 改用 `no-pr` 标签**：无 PR 的复盘记录 Issue 标签由 `no-improvement` 改为 `no-pr`；去重改按 `rejected` 标签识别被拒的 Issue/PR。
