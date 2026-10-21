@@ -41,6 +41,21 @@
         "Within each group, definitions follow first-appearance order in the body",
         "Body wording other than link syntax is unchanged"
       ]
+    },
+    {
+      "id": 3,
+      "name": "full-form-when-text-and-target-differ",
+      "prompt": "把这段 README 改成参考链接：\n\n- 安装：见 [官方文档](https://docs.docker.com/engine/install/)\n- Compose：见 [官方文档](https://docs.docker.com/compose/)\n- 镜像：见 [Docker Hub](https://hub.docker.com/)\n- 排错：先看 [安装指南](https://docs.docker.com/engine/install/)，再查 [Docker 安装说明](https://docs.docker.com/engine/install/)",
+      "expected_output": "5 inline links over 3 targets: the text 官方文档 points to two different targets, and the install URL is cited under three different texts. Uses full form `[text][label]` so the install URL is defined once and both 官方文档 links keep distinct targets; Docker Hub, unique in text and target, uses collapsed `[Docker Hub][]`. Writes 3 definitions at the end under an HTML comment and keeps link texts unchanged.",
+      "files": [],
+      "expectations": [
+        "No inline `[text](url)` links remain",
+        "Exactly 3 definition lines; `https://docs.docker.com/engine/install/` defined once and shared by `官方文档`, `安装指南` and `Docker 安装说明` through full form `[text][label]`",
+        "The two `官方文档` links resolve to different targets",
+        "`Docker Hub` uses collapsed form `[Docker Hub][]`",
+        "Definitions sit at the end under an HTML comment, and every reference has a matching definition and vice versa",
+        "Link texts are unchanged"
+      ]
     }
   ]
 }
