@@ -1,0 +1,53 @@
+{
+  "skill_name": "backport-prototype",
+  "evals": [
+    {
+      "id": 0,
+      "name": "drift-before-and-after-last-prototype-commit",
+      "prompt": "控制台前端上线后直接改过几处应用管理页，下个大功能开工前，先把这些改动回补到原型里。",
+      "expected_output": "Fixture `drift`: frontend gained 复制 AppKey (commit 2), then a prototype+frontend commit renamed org status (commit 3), then frontend gained a 最近调用时间 column, a canWrite guard hiding 重置密钥, and a live apps API (commit 4). Full structural comparison backports both the action and the column into products/prototype/console/index.html, skips the guard (reported as fspec 前置条件 material), the API switch and the DESIGN.md-sanctioned colour differences, logs 回补 entries under [Unreleased], touches nothing outside the prototype, and names /fspec next.",
+      "files": [
+        "evals/files/drift/"
+      ],
+      "expectations": [
+        "`products/prototype/console/index.html` apps section gains a 复制 AppKey row action, although it landed in a commit before the last prototype commit",
+        "`products/prototype/console/index.html` apps table gains a 最近调用时间 column",
+        "The prototype's 重置密钥 action is still present and no permission-variant of the apps page is drawn; the final reply lists the canWrite guard as fspec 前置条件 material",
+        "The prototype `<style>` block is unchanged: no colour from DESIGN.md or the frontend replaces #1F6FEB or #CF222E",
+        "`products/prototype/CHANGELOG.md` gets new entries under `## [Unreleased]` each starting `回补已上线前端：`, and the `## [V1]` section is unchanged",
+        "No file under `apps/`, `products/design/` changes (git status shows only `products/prototype/` paths)",
+        "Final reply names `/fspec products/prototype/` as the next command"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "multi-line-pending-forward-and-removal-ask",
+      "prompt": "/backport-prototype",
+      "expected_output": "Fixture `multi-line`: console and portal apps. Console frontend added a 所属机构 filter on apps; prototype has an unported 审计日志 page listed under [Unreleased] and gaps (pending forward), and a 批量停用 button the frontend lacks with no changelog entry. Backports the filter to the console prototype with a `**Console**：回补已上线前端：` entry, leaves the audit page alone, asks (does not delete) about 批量停用, leaves portal untouched.",
+      "files": [
+        "evals/files/multi-line/"
+      ],
+      "expectations": [
+        "Console prototype apps filter area gains a 所属机构 / 全部机构 select",
+        "Console prototype still contains the `audits` page section and its nav entry",
+        "Console prototype still contains the 批量停用 button, and the final reply asks whether the code removed it",
+        "`products/prototype/CHANGELOG.md` gains an `[Unreleased]` entry starting `**Console**：回补已上线前端：`, and the existing `**Console**：新增「安全审计 → 审计日志」页面。` entry is kept",
+        "`products/prototype/portal/index.html` is unchanged"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "restyle-app-without-structural-drift",
+      "prompt": "下个迭代要在控制台加新页面了，先帮我看看前端有没有需要回补到原型的东西。",
+      "expected_output": "Fixture `restyle-no-drift`: restyle app whose authored DESIGN.md has different colours and radii, mock sample rows differ from the prototype, and the apps API went live; structure matches the prototype. Reports nothing to backport and edits no file.",
+      "files": [
+        "evals/files/restyle-no-drift/"
+      ],
+      "expectations": [
+        "Working tree stays clean: `git status --porcelain` prints nothing after the run",
+        "Final reply states the prototype already matches the frontend (nothing to backport)",
+        "Final reply does not propose backporting colours, radii, shadows or the mock sample data (车险定损应用)"
+      ]
+    }
+  ]
+}
