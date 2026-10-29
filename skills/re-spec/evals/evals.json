@@ -41,13 +41,13 @@
       "id": 2,
       "name": "draft-v-stops",
       "prompt": "fspec 出了审计日志的 V2，帮我把 .scratch/audit-log/spec.md 对齐一下。",
-      "expected_output": "Fixture `draft-v`: the newest V2 is still `status: draft`. Stops without editing and tells the user to confirm V2 with /fspec first.",
+      "expected_output": "Fixture `draft-v`: the newest V2 is still `status: draft`. Stops without editing and tells the user to confirm V2 with /write-fspec first.",
       "files": [
         "evals/files/draft-v/"
       ],
       "expectations": [
         "`.scratch/audit-log/spec.md` is unchanged after the run",
-        "Final reply says V2 is still draft and must be confirmed with `/fspec` before revising the spec"
+        "Final reply says V2 is still draft and must be confirmed with `/write-fspec` before revising the spec"
       ]
     },
     {

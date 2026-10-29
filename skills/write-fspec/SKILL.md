@@ -1,6 +1,6 @@
 ---
-name: fspec
-description: "Derive the 功能规格说明书 (functional spec) from the product prototype and keep it versioned under products/fspec/: Flyway-style V files plus a merged CURRENT.md. Use when a prototype is finalized, changed or backported, when a draft V is confirmed or CURRENT.md lags, or when the user mentions 功能规格, 功能规格说明书 or fspec. Not for the feature spec (.scratch/*/spec.md) or DESIGN.md."
+name: write-fspec
+description: "Derive the 功能规格说明书 (functional spec) from the product prototype and keep it versioned under products/fspec/: Flyway-style V files plus a merged CURRENT.md. Use when a prototype is finalized, changed or backfilled, when a draft V is confirmed or CURRENT.md lags, or when the user mentions 功能规格, 功能规格说明书 or fspec. Not for the feature spec (.scratch/*/spec.md) or DESIGN.md."
 argument-hint: "[<prototype>]"
 allowed-tools:
   - Read
@@ -12,7 +12,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# fspec
+# write-fspec
 
 Maintain 功能规格说明书: per product line, which pages and features exist, how each behaves, how that evolved. Prototype is structural source of truth; fspec records what it shows plus what it cannot: preconditions, empty/error/no-permission states, extreme values, roles, terms, don'ts. Readers: `design-to-code` (undrawn states), whoever corrects feature spec or writes tickets, humans tracing history. Call document 功能规格说明书; reply in Chinese.
 
@@ -53,7 +53,7 @@ History needs deltas; consumers need full current state. Handing V1 + V2 to buil
 - No `V1__baseline.md` → baseline mode. Latest V `draft` → resume it at step 4. Else change mode, next version N+1.
 
 **2. Gather evidence** before asking anything:
-- Prototype. Baseline: all of `<prototype>`. Change: `git log -1 --format=%H -- products/fspec/<line>/V<N>__*.md`, then `git diff <hash> -- <prototype>` (includes uncommitted work) with this line's `## [Unreleased]` entries in `<prototype>/CHANGELOG.md`. Backported frontend drift in that range belongs to this V. Empty diff → report nothing to record, stop.
+- Prototype. Baseline: all of `<prototype>`. Change: `git log -1 --format=%H -- products/fspec/<line>/V<N>__*.md`, then `git diff <hash> -- <prototype>` (includes uncommitted work) with this line's `## [Unreleased]` entries in `<prototype>/CHANGELOG.md`. Backfilled frontend drift in that range belongs to this V. Empty diff → report nothing to record, stop.
 - `CURRENT.md` (change mode): current state; read it instead of replaying V chain.
 - Feature spec (`.scratch/*/spec.md`), if user names one: 动机 and Out of Scope (→ 明确不做).
 - Project `CLAUDE.md`: outward terms, banned codenames.

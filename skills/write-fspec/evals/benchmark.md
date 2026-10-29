@@ -62,3 +62,7 @@ Eval ids below predate the 2026-10-28 renumbering.
 | 7 legacy-changelog-left-as-is | 3/3 | 2/3 |
 
 - Eval 7 discriminates only on the report: without the skill the model also leaves the legacy CHANGELOG untouched but never says why no prototype version was cut.
+
+## 2026-10-29: rename to write-fspec
+
+- Name, H1 and two trigger words only (`backported` → `backfilled`); evals not rerun. Downstream re-spec eval 2 (draft V) rerun with `/write-fspec`: 2/2.

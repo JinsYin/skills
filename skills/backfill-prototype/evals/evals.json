@@ -1,5 +1,5 @@
 {
-  "skill_name": "backport-prototype",
+  "skill_name": "backfill-prototype",
   "evals": [
     {
       "id": 0,
@@ -16,13 +16,13 @@
         "The prototype `<style>` block is unchanged: no colour from DESIGN.md or the frontend replaces #1F6FEB or #CF222E",
         "`products/prototype/CHANGELOG.md` gets new entries under `## [Unreleased]` each starting `回补已上线前端：`, and the `## [V1]` section is unchanged",
         "No file under `apps/`, `products/design/` changes (git status shows only `products/prototype/` paths)",
-        "Final reply names `/fspec products/prototype/` as the next command"
+        "Final reply names `/write-fspec products/prototype/` as the next command"
       ]
     },
     {
       "id": 1,
       "name": "multi-line-pending-forward-and-removal-ask",
-      "prompt": "/backport-prototype",
+      "prompt": "/backfill-prototype",
       "expected_output": "Fixture `multi-line`: console and portal apps. Console frontend added a 所属机构 filter on apps; prototype has an unported 审计日志 page listed under [Unreleased] and gaps (pending forward), and a 批量停用 button the frontend lacks with no changelog entry. Backports the filter to the console prototype with a `**Console**：回补已上线前端：` entry, leaves the audit page alone, asks (does not delete) about 批量停用, leaves portal untouched.",
       "files": [
         "evals/files/multi-line/"
@@ -45,8 +45,8 @@
       ],
       "expectations": [
         "Working tree stays clean: `git status --porcelain` prints nothing after the run",
-        "Final reply states the prototype already matches the frontend (nothing to backport)",
-        "Final reply does not propose backporting colours, radii, shadows or the mock sample data (车险定损应用)"
+        "Final reply states the prototype already matches the frontend (nothing to backfill)",
+        "Final reply does not propose backfilling colours, radii, shadows, the mock sample data (车险定损应用) or a confirmation dialog for 重置密钥/停用"
       ]
     }
   ]

@@ -1,4 +1,4 @@
-"""生成 backport-prototype eval fixture：evals/files/<fixture>/steps/NN-<slug>/ 叠加目录。"""
+"""生成 backfill-prototype eval fixture：evals/files/<fixture>/steps/NN-<slug>/ 叠加目录。"""
 import os
 import shutil
 import sys

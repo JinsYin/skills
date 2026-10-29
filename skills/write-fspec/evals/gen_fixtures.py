@@ -1,4 +1,4 @@
-"""Generate fspec eval fixtures: evals/files/<fixture>/steps/NN-<slug>/ overlays."""
+"""Generate write-fspec eval fixtures: evals/files/<fixture>/steps/NN-<slug>/ overlays."""
 import os
 import shutil
 import sys

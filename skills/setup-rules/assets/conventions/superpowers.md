@@ -20,7 +20,7 @@
 ### Plan Flow
 
 - After `brainstorming` completes the SPEC, ask me to confirm it has no issues; upon confirmation, mark it `reviewed`, run `writing-plans` in the current session to produce `ROADMAP.md`, and recommend a new session for the phase plans.
-- UI milestone (new page or new look): between `reviewed` and `writing-plans`, run product prototype (1→2: `backport-prototype` first) → `fspec <prototype>` → `re-spec <spec>` → `stitch-extract-design-md` → `design-to-code`, each in fresh session; `re-spec` may instead resume `brainstorming` session. `writing-plans` then starts fresh.
+- UI milestone (new page or new look): between `reviewed` and `writing-plans`, run product prototype (1→2: `backfill-prototype` first) → `write-fspec <prototype>` → `re-spec <spec>` → `stitch-extract-design-md` → `design-to-code`, each in fresh session; `re-spec` may instead resume `brainstorming` session. `writing-plans` then starts fresh.
 - The approved spec is truth; the roadmap's scope and phase boundaries are fixed up front.
 - On a `design-to-code` frontend, write into the global constraints of the spec, the roadmap and every plan that tasks only swap data, wire APIs and add guards, gated by `scripts/visual-freeze.sh`; `brainstorming` never designs UI, and any visual need leaves the milestone for the prototype chain.
 - No roadmap yet → write it this run and stop; otherwise plan exactly one phase, and only after the previous phase has executed.
