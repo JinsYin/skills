@@ -102,6 +102,9 @@ class ClaudeSession(Session):
     def events(self):
         seen = set()  # 同一 message.id 会拆成多条记录，usage 只计一次
         for d in records(self.path):
+            # api-request-blob（Claude Code 2.1.312 起）只是请求内容的副本：再计一次会让每个调用重复、误报重试
+            if d.get("type") == "api-request-blob":
+                continue
             yield {"k": "tick", "ts": iso(d.get("timestamp"))}
             msg = d.get("message") or {}
             u, mid = msg.get("usage"), msg.get("id")
@@ -153,6 +156,8 @@ class ClaudeSession(Session):
                 continue
             tok, calls, seen, model, ts = 0, 0, set(), "", []
             for d in records(os.path.join(sdir, f)):
+                if d.get("type") == "api-request-blob":
+                    continue
                 m = d.get("message") or {}
                 t = iso(d.get("timestamp"))
                 if t:

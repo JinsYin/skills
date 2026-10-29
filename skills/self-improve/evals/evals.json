@@ -56,7 +56,8 @@
         "Classifies the lesson as rule exists but did not fire, citing the existing Gate/CI passage of github-pr-merge",
         "Proposed diff edits the existing CI rule's wording or placement rather than appending a second CI rule",
         "Diff contains no ALL-CAPS MUST/NEVER and keeps growth ≤ ~20% of the file",
-        "Issue Evidence Signal cells read `strong`, and prose cells are Chinese"
+        "Issue Evidence Signal cells read `strong`, and prose cells are Chinese",
+        "Digest lists `SKILL: github-pr-merge` once and `[heavy-turn 1]` reports `calls=2`: the fixture's `api-request-blob` copies are not counted as calls"
       ]
     },
     {

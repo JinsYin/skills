@@ -64,6 +64,9 @@ class S:
                         "content": [{"type": "tool_use", "id": tid, "name": name, "input": inp}],
                         "usage": {"input_tokens": 50, "cache_read_input_tokens": tok, "output_tokens": 300}}
         self.recs.append(d)
+        # Claude Code ≥2.1.312 另写一条无 usage 的 api-request-blob 副本，digest 必须跳过
+        self.recs.append({"type": "api-request-blob", "hash": tid, "sessionId": self.sid,
+                          "message": {"role": "assistant", "content": d["message"]["content"]}})
         r = self._base("user", 5)
         r["message"] = {"role": "user", "content": [{"type": "tool_result", "tool_use_id": tid,
                                                     "content": result, "is_error": err}]}
