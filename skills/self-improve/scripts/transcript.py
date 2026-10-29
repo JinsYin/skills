@@ -52,8 +52,11 @@ def digest(s):
     turn = 0
     # 按用户轮次累计开销
     cost = collections.defaultdict(lambda: {"in": 0, "out": 0, "calls": 0, "ms": 0, "skills": set(), "manual": set(), "prompt": "",
-                                         "compact": 0, "peak": 0, "res": 0})
+                                         "compact": 0, "peak": 0, "res": 0,
+                                         "by": collections.defaultdict(lambda: {"in": 0, "ms": 0}), "seg": []})
     peak, span, has_usage = 0, {}, False
+    # 轮内开销按段归属：每次 skill 调用开启新段，直到下一个 skill 或本轮结束；只按整轮算会让同轮每个 skill 都背全轮开销
+    cur, last, now = None, None, None
     pend = None  # 记录的 tick 先于其事件发出：暂存，等看清是否新一轮提问再记，免得把两轮间的空闲算进上一轮
 
     def stamp(t):
@@ -65,18 +68,24 @@ def digest(s):
     for e in s.events():
         k, ts = e["k"], e.get("ts")
         if k == "tick":
-            pend = ts  # 未产生事件的记录（queue-operation、attachment 等）不计时：它们常带着下一条提问的时间
+            pend = now = ts  # 未产生事件的记录（queue-operation、attachment 等）不计时：它们常带着下一条提问的时间
             continue
         if k == "user":
             turn += 1
         stamp(pend)
         stamp(ts)
         pend = None
+        now = ts or now  # 事件本身不带时间，取所在记录的 tick
+        if now:
+            if last and k != "user":
+                cost[turn]["by"][cur]["ms"] += max(0, int((now - last).total_seconds() * 1000))
+            last = now
         if k == "usage":
             has_usage = True
             cost[turn]["in"] += e["ctx"]
             cost[turn]["out"] += e["out"]
             cost[turn]["peak"] = max(cost[turn]["peak"], e["ctx"])
+            cost[turn]["by"][cur]["in"] += e["ctx"]
             peak = max(peak, e["ctx"])
         elif k == "compact":
             cost[turn]["compact"] += 1
@@ -84,11 +93,15 @@ def digest(s):
         elif k == "skill_loaded":
             print(f"[{turn}] SKILL-LOADED: {e['path']}")
             cost[turn]["skills"].add(skill_name(e["path"]))
+            cur = skill_name(e["path"])
+            cost[turn]["seg"].append((last, cur))
         elif k == "user":
             t = e["text"]
             cost[turn]["prompt"] = t
             # 用户手动点名的 skill（斜杠命令、$skill、附加 skill）= 手动触发；工具调用加载的为自动触发
             cost[turn]["manual"].update(n.split(":")[-1] for n in e.get("manual") or [])
+            cur = max(cost[turn]["manual"], default=None)
+            cost[turn]["seg"].append((now, cur))
             print(f"[{turn}] {'USER*' if CORRECTION.search(t) else 'USER'}: {clip(t, 400)}")
         elif k == "note":
             print(f"[{turn}] {e['text']}")
@@ -99,6 +112,8 @@ def digest(s):
             if e.get("skill"):
                 sk, args = e["skill"]
                 cost[turn]["skills"].add(str(sk).split(":")[-1])
+                cur = str(sk).split(":")[-1]
+                cost[turn]["seg"].append((last, cur))
                 print(f"[{turn}] SKILL: {sk} {args}")
             elif e.get("agent") is not None:
                 print(f"[{turn}] AGENT: {e['agent']}")
@@ -168,16 +183,22 @@ def cost_report(cost, peak, agents, span):
 
 
 def skill_report(cost, agents, span, ttok, tms):
-    """Per-skill totals: main-agent input and wall time of the turns it was active in,
-    plus subagents started within those turns. A turn with several skills counts for each."""
+    """Per-skill totals: main-agent input and wall time from each invocation until the next
+    skill or turn end, plus subagents started in that stretch."""
     per = collections.defaultdict(lambda: {"tok": 0, "ms": 0, "manual": False})
     for t, c in cost.items():
-        for sk in filter(None, c["skills"] | c["manual"]):
-            p = per[sk]
-            p["tok"] += c["in"] + sum(a["tokens"] for a in agents
-                                      if t in span and a["start"] and span[t][0] <= a["start"] <= span[t][1])
-            p["ms"] += c["ms"]
-            p["manual"] |= sk in c["manual"]
+        for sk, b in c["by"].items():
+            if sk:
+                per[sk]["tok"] += b["in"]
+                per[sk]["ms"] += b["ms"]
+        for sk in filter(None, c["manual"]):
+            per[sk]["manual"] = True
+        for a in agents:
+            if t in span and a["start"] and span[t][0] <= a["start"] <= span[t][1]:
+                # 子 Agent 归给启动时正在运行的 skill
+                sk = next((s for at, s in reversed(c["seg"]) if at is None or at <= a["start"]), None)
+                if sk:
+                    per[sk]["tok"] += a["tokens"]
     for sk, p in sorted(per.items(), key=lambda x: -x[1]["tok"])[:5]:
         tp, mp = p["tok"] * 100 // max(ttok, 1), p["ms"] * 100 // max(tms, 1)
         tag = "HEAVY-SKILL" if max(tp, mp) >= HEAVY_SKILL * 100 else "skill-cost"
