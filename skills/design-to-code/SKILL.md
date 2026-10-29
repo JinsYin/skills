@@ -27,7 +27,7 @@ Skill owns neither stack nor design system; wires their sources of truth togethe
 | Stack, deps, scaffold, project structure, module docs | `frontend-ui-best-practices` |
 | Design system: palette, type, radii, spacing, elevation, shape language, component specs | `products/design/DESIGN.md` |
 | Page structure, layout, copy, interaction flow, state transitions | `products/prototype/` |
-| States/preconditions prototype leaves undrawn: loading, empty, error, no-permission, disabled | `products/specs/<product>/CURRENT.md`: `状态与流转` and `前置条件` column; on conflict prototype and DESIGN.md win, drift goes to `product-spec add` |
+| States/preconditions prototype leaves undrawn: loading, empty, error, no-permission, disabled | `products/fspec/<product>/CURRENT.md`: `状态与流转` and `前置条件` column; on conflict prototype and DESIGN.md win, drift goes to `fspec` |
 | Interface detail: validation timing, overlay state, destructive confirmation, pagination, date/number formats | `ui-ux-best-practices` |
 | Anything above conflicting with project | project's `CLAUDE.md` — wins |
 
@@ -144,7 +144,7 @@ Copy skill's `scripts/visual-check.mjs` to `<app>/scripts/`, gitignore `.visual-
 
 Prototype changes after plans wired code:
 
-- Port only changes user names, default newest `products/prototype/CHANGELOG.md` entries minus those backporting landed code. Skip Step 0, and Step 1 unless DESIGN.md changed
+- Port only changes user names, default newest non-empty `products/prototype/CHANGELOG.md` section (several lines: this app's) minus entries backporting landed code. Skip Step 0, and Step 1 unless DESIGN.md changed
 - Rewrite only visual layer: JSX structure, classes, variants, copy. Existing `src/api/` and `src/hooks/` files untouched; new page gets new mock twins
 - Report every binding new prototype orphans (e.g. removed field); never delete silently
 - Update `index.md` and `visual-targets.mjs` for changed pages; Step 4 runs `--only` them

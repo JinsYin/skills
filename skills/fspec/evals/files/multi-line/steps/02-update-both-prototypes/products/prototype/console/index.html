@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- Hermes 控制台原型；数据来自 hermes-gateway mock -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>开放平台控制台</title>
+<style>
+  body { font-family: "PingFang SC"; color: #1F2328; }
+  aside { width: 220px; }
+  .primary { background: #1F6FEB; color: #fff; padding: 6px 16px; border-radius: 6px; }
+  .tag-fail { color: #CF222E; }
+</style>
+</head>
+<body>
+<aside>
+  <div class="logo">开放平台</div>
+  <nav>
+    <div class="group">客户管理
+      <a data-page="orgs">机构管理</a>
+      <a data-page="apps">应用管理</a>
+    </div>
+  </nav>
+</aside>
+<main>
+  <section data-page="orgs">
+    <h1>机构管理</h1>
+    <form class="filters">
+      <input placeholder="机构名称">
+      <select><option>全部状态</option><option>正常</option><option>已停用</option></select>
+      <button>查询</button><button>重置</button>
+    </form>
+    <table>
+      <thead><tr><th>机构名称</th><th>统一社会信用代码</th><th>关联应用</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody><tr><td>华东理赔服务中心</td><td>91310000MA1FL0XXXX</td><td>3</td><td>正常</td><td><a>查看</a> <a>停用</a></td></tr></tbody>
+    </table>
+  </section>
+  <section data-page="apps">
+    <h1>应用管理</h1>
+    <form class="filters">
+      <input placeholder="应用名称">
+      <select><option>全部状态</option><option>启用</option><option>停用</option></select>
+      <button>查询</button><button>重置</button>
+    </form>
+    <button class="primary">新建应用</button>
+    <table>
+      <thead><tr><th>应用名称</th><th>所属机构</th><th>AppKey</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+      <tbody><tr><td>理赔核验应用</td><td>华东理赔服务中心</td><td>ak_7f3e…c21</td><td>启用</td><td>2026-08-12 10:24</td><td><a>编辑</a> <a>重置密钥</a> <a>停用</a> <a>复制 AppKey</a></td></tr></tbody>
+    </table>
+    <div class="drawer" hidden>
+      <h2>新建应用</h2>
+      <label>应用名称 <input required maxlength="40"></label>
+      <label>所属机构 <select required><option>华东理赔服务中心</option></select></label>
+      <label>回调地址 <input type="url"></label>
+      <button class="primary">保存</button><button>取消</button>
+    </div>
+    <div class="modal" hidden>
+      <p>重置后旧密钥立即失效，请输入应用名称确认。</p>
+      <input><button>确认重置</button>
+    </div>
+  </section>
+</main>
+</body>
+</html>

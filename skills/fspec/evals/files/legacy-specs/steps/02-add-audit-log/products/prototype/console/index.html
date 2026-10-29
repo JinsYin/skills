@@ -1,0 +1,86 @@
+<!doctype html>
+<!-- Hermes 控制台原型；数据来自 hermes-gateway mock -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>开放平台控制台</title>
+<style>
+  body { font-family: "PingFang SC"; color: #1F2328; }
+  aside { width: 220px; }
+  .primary { background: #1F6FEB; color: #fff; padding: 6px 16px; border-radius: 6px; }
+  .tag-fail { color: #CF222E; }
+</style>
+</head>
+<body>
+<aside>
+  <div class="logo">开放平台</div>
+  <nav>
+    <div class="group">客户管理
+      <a data-page="orgs">机构管理</a>
+      <a data-page="apps">应用管理</a>
+    </div>
+    <div class="group">安全审计
+      <a data-page="audits">审计日志</a>
+    </div>
+  </nav>
+</aside>
+<main>
+  <section data-page="orgs">
+    <h1>机构管理</h1>
+    <form class="filters">
+      <input placeholder="机构名称">
+      <select><option>全部状态</option><option>正常</option><option>已停用</option></select>
+      <button>查询</button><button>重置</button>
+    </form>
+    <table>
+      <thead><tr><th>机构名称</th><th>统一社会信用代码</th><th>关联应用</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody><tr><td>华东理赔服务中心</td><td>91310000MA1FL0XXXX</td><td>3</td><td>正常</td><td><a>查看</a> <a>停用</a></td></tr></tbody>
+    </table>
+  </section>
+  <section data-page="apps">
+    <h1>应用管理</h1>
+    <form class="filters">
+      <input placeholder="应用名称">
+      <select><option>全部状态</option><option>启用</option><option>停用</option></select>
+      <button>查询</button><button>重置</button>
+    </form>
+    <button class="primary">新建应用</button>
+    <table>
+      <thead><tr><th>应用名称</th><th>所属机构</th><th>AppKey</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+      <tbody><tr><td>理赔核验应用</td><td>华东理赔服务中心</td><td>ak_7f3e…c21</td><td>启用</td><td>2026-08-12 10:24</td><td><a>编辑</a> <a>重置密钥</a> <a>停用</a></td></tr></tbody>
+    </table>
+    <div class="drawer" hidden>
+      <h2>新建应用</h2>
+      <label>应用名称 <input required maxlength="40"></label>
+      <label>所属机构 <select required><option>华东理赔服务中心</option></select></label>
+      <label>回调地址 <input type="url"></label>
+      <button class="primary">保存</button><button>取消</button>
+    </div>
+    <div class="modal" hidden>
+      <p>重置后旧密钥立即失效，请输入应用名称确认。</p>
+      <input><button>确认重置</button>
+    </div>
+  </section>
+  <section data-page="audits">
+    <h1>审计日志</h1>
+    <form class="filters">
+      <input type="date"> 至 <input type="date">
+      <select><option>全部操作类型</option><option>新建应用</option><option>重置密钥</option><option>停用应用</option><option>停用机构</option></select>
+      <input placeholder="操作人">
+      <button>查询</button><button>重置</button>
+    </form>
+    <table>
+      <thead><tr><th>时间</th><th>操作人</th><th>操作类型</th><th>操作对象</th><th>结果</th><th>操作</th></tr></thead>
+      <tbody>
+        <tr><td>2026-10-18 14:02:11</td><td>王敏</td><td>重置密钥</td><td>理赔核验应用</td><td>成功</td><td><a>查看详情</a></td></tr>
+        <tr><td>2026-10-18 09:40:57</td><td>李强</td><td>停用机构</td><td>华南医保结算中心</td><td class="tag-fail">失败</td><td><a>查看详情</a></td></tr>
+      </tbody>
+    </table>
+    <div class="drawer" hidden>
+      <h2>操作详情</h2>
+      <dl><dt>变更前</dt><dd>状态：启用</dd><dt>变更后</dt><dd>状态：停用</dd><dt>来源 IP</dt><dd>10.12.3.45</dd></dl>
+    </div>
+  </section>
+</main>
+</body>
+</html>
