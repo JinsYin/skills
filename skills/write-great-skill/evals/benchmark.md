@@ -1,5 +1,17 @@
 # Eval run log
 
+## 2026-10-29: fixtures hold pre-task state only
+
+- Matrix: eval 0 both ways (new expectation), `claude-sonnet-5-5` at `effort: high`; other evals untouched. Graded inline.
+- Totals (eval 0): write-great-skill 7/7; no skill 4/7.
+
+| Eval | write-great-skill | No skill |
+|---|---|---|
+| 0 new-skill-user-gate | 7/7 | 4/7 |
+
+- Regression guards (pass both ways): the new fixture expectation. The with-skill draft built `evals/files/init.sh` with plain TODO/FIXME lines and no output hint; the no-skill run built no fixtures at all, so it passes vacuously.
+- Earlier no-skill score 2/6 now reads 4/7: the vacuous new pass, and one dispatch logged covering both configurations.
+
 ## 2026-10-29: verify after polish + compress, `effort: high`
 
 - Matrix: with-skill only on all evals (compression touched every section), `claude-sonnet-5-5` at `effort: high`; no-skill rows cached from the initial run. Graded by one grader subagent, eval 2 regraded by script.

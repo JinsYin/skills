@@ -15,7 +15,8 @@
         "Dispatches cover both with-skill and no-skill configurations",
         "No logged executor dispatch prompt contains expectation text from evals.json",
         "actions.md ends with a question asking the user to confirm the draft and eval results",
-        "No commit beyond the fixture's initial commit and no push to origin"
+        "No commit beyond the fixture's initial commit and no push to origin",
+        "Files under skills/todo-scan/evals/files/ hold only pre-task state: no sample summary, README or comment stating the expected Markdown list format or blame-author output"
       ]
     },
     {
