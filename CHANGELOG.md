@@ -43,6 +43,7 @@
 
 ### Fixed
 
+- **self-improve digest 按段统计 skill 开销**：`[skill-cost]`/`HEAVY-SKILL` 从每次 skill 调用记到下一个 skill 或本轮结束，同一轮的多个 skill 不再各自背上整轮开销而误报 HEAVY-SKILL。
 - **self-improve digest 不再把后台任务通知计为用户提问**：Claude Code 的 `<task-notification>` 不再另起一轮，同一 skill 的开销不再被拆走，HEAVY-SKILL 判定恢复准确。
 - **self-improve 轮次耗时**：digest 的 wall 不再把两轮之间等待用户的空闲算进上一轮，`HEAVY-SKILL` 按耗时判定恢复可信。
 - **version-release 发布范围**：按构建关系统一发布成员版本，保留图外冻结原型、fixture 和 vendored 项目。
