@@ -1,0 +1,81 @@
+{
+  "skill_name": "re-spec",
+  "evals": [
+    {
+      "id": 0,
+      "name": "matt-local-preapproved-alignment",
+      "prompt": "审计日志的功能规格 V2 已经确认了，帮我把 .scratch/audit-log/spec.md 按它修订一下，直接改就行，改完告诉我改了什么。",
+      "expected_output": "Fixture `matt-local`: matt local spec committed before active V2. V2 adds the audit page with time/type/operator filters, renames 关联应用 → 关联空间 list, adds a backported 复制 AppKey and puts 导出审计日志 in 明确不做. Pre-approved: edits the spec in place at story level, moves export to Out of Scope with V2's reason, uses V2 terms, keeps the backport row and Testing Decisions out of the edit, cites CURRENT.md once in Further Notes and appends a re-spec entry under ## Comments.",
+      "files": [
+        "evals/files/matt-local/"
+      ],
+      "expectations": [
+        "The filter user story in `.scratch/audit-log/spec.md` now covers 操作类型 and 操作人 besides time range",
+        "User Stories no longer contain the Excel export story, and Out of Scope gains 导出审计日志 with a reason from V2 (原型评审 / 页面筛选核查)",
+        "User Stories no longer mention 关联应用; the org-list story says 关联空间 or 数据空间",
+        "The spec does not mention 复制 AppKey (a backport row unrelated to the feature)",
+        "`## Testing Decisions` is byte-identical to before the run",
+        "The spec contains no fspec field or action table (no `| 字段 |` or `| 操作 |` header row) and no new `##` section",
+        "Further Notes points to `products/fspec/console/CURRENT.md`",
+        "`## Comments` gains a new entry citing `products/fspec/console/V2__audit_log.md`, with the original to-spec entry kept"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "superpowers-confirm-with-questions",
+      "prompt": "/re-spec docs/superpowers/specs/m2-audit-log.SPEC.md",
+      "expected_output": "Fixture `superpowers`: reviewed superpowers SPEC.md committed before active V2. Spec promises batch-deleting expired records (absent from V2 and CURRENT, not in 明确不做) and says retention 90 days while V2 says only the last 180 days are queryable. Without pre-approval: shows a section-grouped change list, asks about batch delete and the 90 vs 180 day conflict in one round, mentions the original /brainstorming session option, and leaves the spec untouched.",
+      "files": [
+        "evals/files/superpowers/"
+      ],
+      "expectations": [
+        "`docs/superpowers/specs/m2-audit-log.SPEC.md` is unchanged after the run",
+        "Final reply lists proposed edits grouped by spec section (e.g. User-facing Behavior, Non-goals) with before → after",
+        "Final reply asks whether 批量删除过期审计记录 is descoped or missed by the prototype, rather than deciding",
+        "Final reply raises the 90 天 retention vs 近 180 天 query range conflict as a question",
+        "Final reply mentions the original /brainstorming session as an option for answers that need its reasoning",
+        "Final reply asks for confirmation before writing"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "draft-v-stops",
+      "prompt": "fspec 出了审计日志的 V2，帮我把 .scratch/audit-log/spec.md 对齐一下。",
+      "expected_output": "Fixture `draft-v`: the newest V2 is still `status: draft`. Stops without editing and tells the user to confirm V2 with /fspec first.",
+      "files": [
+        "evals/files/draft-v/"
+      ],
+      "expectations": [
+        "`.scratch/audit-log/spec.md` is unchanged after the run",
+        "Final reply says V2 is still draft and must be confirmed with `/fspec` before revising the spec"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "github-issue-spec-reads-via-gh",
+      "prompt": "按最新的功能规格修订 GitHub 上 #12 那个审计日志的 spec，先给我看要改什么。",
+      "expected_output": "Fixture `github` (run with `PATH=\"${tmp}/bin:${PATH}\"`): spec lives in issue #12, created before active V2. Reads body and comments with `gh issue view 12 --comments`, shows the change list, and calls no `gh issue edit` or `gh issue comment` before the user confirms.",
+      "files": [
+        "evals/files/github/"
+      ],
+      "expectations": [
+        "`.gh-calls.log` contains a `gh issue view 12` call with `--comments`",
+        "`.gh-calls.log` contains no `gh issue edit` and no `gh issue comment` call",
+        "Final reply lists proposed edits including moving 导出 to Out of Scope and 关联应用 → 关联空间, and asks for confirmation"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "already-aligned-noop",
+      "prompt": "/re-spec .scratch/audit-log/spec.md",
+      "expected_output": "Fixture `aligned`: spec was revised in a commit after V2. Reports the spec already matches fspec and edits nothing.",
+      "files": [
+        "evals/files/aligned/"
+      ],
+      "expectations": [
+        "Working tree stays clean: `git status --porcelain` prints nothing after the run",
+        "Final reply says the spec is already aligned with fspec V2 (nothing to revise)"
+      ]
+    }
+  ]
+}

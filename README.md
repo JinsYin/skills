@@ -22,6 +22,7 @@ npx skills@latest add jinsyin/skills
 | `doc-to-md` | 将文档转换为 Markdown |
 | `backport-prototype` | 将已上线前端回补到产品原型 |
 | `fspec` | 按原型维护版本化的功能规格说明书 |
+| `re-spec` | 依据功能规格说明书修订需求 spec |
 | `design-to-code` | 按设计系统与原型实现 React 界面 |
 | `version-release` | 统一多模块版本、更新日志与本地发版 |
 | `gsx` | GSD 工作流入口与项目校验 |

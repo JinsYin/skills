@@ -1,0 +1,15 @@
+#!/bin/sh
+# eval 用 gh 桩：只模拟 issue 12，所有调用记入 .gh-calls.log
+echo "gh $*" >> "$(dirname "$0")/../.gh-calls.log"
+case "$1 $2" in
+  "issue view")
+    cat "$(dirname "$0")/../.gh-fixture/issue-12.md"
+    ;;
+  "issue edit"|"issue comment")
+    echo "https://github.com/acme/open-platform/issues/12"
+    ;;
+  *)
+    echo "gh stub: unsupported: $*" >&2
+    exit 1
+    ;;
+esac
