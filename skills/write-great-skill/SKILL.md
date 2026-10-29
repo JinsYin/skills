@@ -9,6 +9,7 @@ Workflow + quality bar for skills and agent-loaded docs. Project `CLAUDE.md`/`AG
 ## Eval rules
 
 - Ship `evals/evals.json` per `skill-creator` schema; fixtures under `evals/files/`, built by script (`init.sh`, `gen_fixtures.py`) once beyond a handful of files, so every run starts from identical state.
+- Fixtures hold pre-task state only: header, comment or doc line spelling out behavior under test lets no-skill run copy it, so eval stops discriminating.
 - Cover every branch and guardrail with ≥1 eval with checkable `expectations`.
 - Aim `expectations` at what skill adds: behavior model misses without it, observable in output files or run's action log. Eval passing both ways stays only as regression guard, marked so in `benchmark.md`.
 - ≥1 eval triggers skill in natural language, no `/<skill>` command.
