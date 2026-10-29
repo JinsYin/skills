@@ -43,6 +43,7 @@
 
 ### Fixed
 
+- **skillsw update 不再把源码目录换成 symlink**：`npx skills update` 不支持 `--agent`，会装进所有检测到的 agent 目录；本机有 `~/.openclaw` 时 OpenClaw 的项目目录即根 `skills/`，源码目录被替换为 symlink。`./skillsw update [<skills...>]` 改按 lock 来源走 `add --agent universal claude-code`，名字不在 lock 中即报错，`-g` 仍透传；`CLAUDE.md` 删去事后恢复说明。
 - **self-improve digest 不再把后台任务通知计为用户提问**：Claude Code 的 `<task-notification>` 不再另起一轮，同一 skill 的开销不再被拆走，HEAVY-SKILL 判定恢复准确。
 - **self-improve 轮次耗时**：digest 的 wall 不再把两轮之间等待用户的空闲算进上一轮，`HEAVY-SKILL` 按耗时判定恢复可信。
 - **version-release 发布范围**：按构建关系统一发布成员版本，保留图外冻结原型、fixture 和 vendored 项目。
