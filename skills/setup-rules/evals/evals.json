@@ -6,7 +6,9 @@
       "name": "update-runs-without-confirmation",
       "prompt": "/setup-rules update",
       "expected_output": "Project has stale Core, current Karpathy, an unmatched `## Team Notes` section, one stale and one identical Claude Superpowers agent, a `Read(.env)` deny, and a stale `skillsw`. Rebuilds `CLAUDE.local.md` as current core + karpathy + Team Notes, overwrites only the stale agent and `skillsw`, re-merges the `.env` deny, and reports — without asking any question.",
-      "files": ["evals/files/update-project/"],
+      "files": [
+        "evals/files/update-project/"
+      ],
       "expectations": [
         "Asks the user no question and requests no confirmation at any point",
         "`CLAUDE.local.md` equals current `core.md` + `karpathy.md` concatenated, followed by the `## Team Notes` section",
@@ -24,7 +26,9 @@
       "name": "update-never-offers-new-items",
       "prompt": "/setup-rules update",
       "expected_output": "Same fixture as eval 0. Scripted follow-up after the update report: \"顺便看看有没有新的约定可以加\". Refreshes installed items only; answers the follow-up by saying adding conventions needs a full `/setup-rules` run instead of offering or installing Design, GSD, etc.",
-      "files": ["evals/files/update-project/"],
+      "files": [
+        "evals/files/update-project/"
+      ],
       "expectations": [
         "Does not add any convention section absent from the original `CLAUDE.local.md`",
         "Does not present a selection prompt for optional conventions",
@@ -36,7 +40,9 @@
       "name": "update-stops-without-local-md",
       "prompt": "/setup-rules update",
       "expected_output": "Project has no `CLAUDE.local.md`: stops and says so, writing no files.",
-      "files": ["evals/files/no-local-project/"],
+      "files": [
+        "evals/files/no-local-project/"
+      ],
       "expectations": [
         "States that `CLAUDE.local.md` is missing",
         "Creates or modifies no files",
@@ -48,7 +54,9 @@
       "name": "update-skips-unparseable-config",
       "prompt": "/setup-rules update",
       "expected_output": "Project has Core installed and the Cursor hook script, but `.cursor/hooks.json` is invalid JSON. Refreshes other targets, skips `hooks.json`, and reports it without asking.",
-      "files": ["evals/files/bad-hooks-project/"],
+      "files": [
+        "evals/files/bad-hooks-project/"
+      ],
       "expectations": [
         "Does not overwrite or rewrite the invalid `.cursor/hooks.json`",
         "Does not ask the user how to handle the broken file",
@@ -59,8 +67,10 @@
       "id": 4,
       "name": "no-auto-trigger-on-natural-language",
       "prompt": "这个项目的 CLAUDE.local.md 好像过时了，帮我看看里面的规则写得怎么样",
-      "expected_output": "Skill is explicit-invocation only: the model reviews the file directly and does not run the setup-rules update flow or rewrite `CLAUDE.local.md` from assets.",
-      "files": ["evals/files/update-project/"],
+      "expected_output": "A review request is outside the skill's triggers: the model reviews the file directly and does not run the setup-rules update flow or rewrite `CLAUDE.local.md` from assets.",
+      "files": [
+        "evals/files/update-project/"
+      ],
       "expectations": [
         "Does not rebuild `CLAUDE.local.md` from `assets/conventions/`",
         "Does not copy any agent or adapter files"
@@ -71,7 +81,9 @@
       "name": "workflow-interview-starts-with-core",
       "prompt": "/setup-rules",
       "expected_output": "Fresh project: prints `core.md` in full, asks which optional conventions to add with short summaries, and waits before writing anything.",
-      "files": ["evals/files/fresh-project/"],
+      "files": [
+        "evals/files/fresh-project/"
+      ],
       "expectations": [
         "Prints the full text of `assets/conventions/core.md`",
         "Asks about optional conventions with a one-line summary each",
@@ -84,7 +96,9 @@
       "name": "workflow-sensitive-and-git-choices",
       "prompt": "/setup-rules",
       "expected_output": "Fresh project with `.env.prod`. Scripted user replies, fed in order whenever the skill waits: (1) \"只要 core，其他可选约定都不要\" (2) every adapter/subagent/skillsw question → \"不要\" (3) sensitive files → \"没有额外的\" (4) Git tracking → \"用默认\". Asks about `skillsw` separately, preselects `.env.prod` as sensitive and asks for extras, presents default skills ignoring with custom as the only alternative, then shows the full manifest and waits for confirmation.",
-      "files": ["evals/files/fresh-project/"],
+      "files": [
+        "evals/files/fresh-project/"
+      ],
       "expectations": [
         "Preselects `.env.prod` as a sensitive target without reading its contents",
         "Asks for extra sensitive paths instead of inferring them",
@@ -98,7 +112,9 @@
       "name": "workflow-ignore-skills-keeps-lock",
       "prompt": "/setup-rules",
       "expected_output": "Fixture `skills-project` is `git init`-ed with every file committed: tracked `.agents/skills/demo`, a `.claude/skills/demo` symlink, `skills-lock.json`, and `.cursor/worktrees.json` with `npm ci`. Scripted user replies, fed in order whenever the skill waits: (1) \"只要 core\" (2) every adapter/subagent question → \"不要\" (3) skillsw → \"要\" (4) sensitive files → \"没有额外的\" (5) Git tracking → \"用默认\" (6) manifest → \"确认\". Installs executable `skillsw`, Ignores and untracks both `skills/` subtrees, keeps `skills-lock.json` tracked and staged, writes `.agents/skills/` to `.worktreeinclude`, merges the copy command into `.cursor/worktrees.json` beside `npm ci`, does not commit, and points to the restore command.",
-      "files": ["evals/files/skills-project/"],
+      "files": [
+        "evals/files/skills-project/"
+      ],
       "expectations": [
         "`.gitignore` gains `.agents/skills/` and `.claude/skills/`, and `git rm -r --cached` untracks them while the local files remain",
         "`skills-lock.json` is neither ignored nor untracked and is staged with `git add`",
@@ -108,6 +124,21 @@
         "Creates no git commit",
         "Copies `assets/skillsw` to project-root `skillsw` and makes it executable",
         "Final report points to the Core `### Skills` restore command (`./skillsw clean install`) for fresh clones"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "natural-language-sync-runs-update",
+      "prompt": "setup-rules 的约定刚改过，帮我把这个项目的规则同步到最新",
+      "expected_output": "Natural-language sync request triggers the skill's `update` mode: rebuilds `CLAUDE.local.md` as current core + karpathy + Team Notes and overwrites stale installed items without asking or installing anything new.",
+      "files": [
+        "evals/files/update-project/"
+      ],
+      "expectations": [
+        "Loads the setup-rules skill and follows its Update mode, not the full Workflow interview",
+        "Asks the user no question and requests no confirmation",
+        "`CLAUDE.local.md` equals current `core.md` + `karpathy.md` concatenated, followed by the `## Team Notes` section",
+        "Does not install agents, adapters or conventions that were not already present"
       ]
     }
   ]

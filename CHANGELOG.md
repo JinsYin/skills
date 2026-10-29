@@ -19,6 +19,7 @@
 
 ### Changed
 
+- **setup-rules 允许模型调用**：移除 `disable-model-invocation`，description 改为同步约定或用户要求配置规则时触发、审阅 `CLAUDE.local.md` 时不触发，使 Skill Workflow 第 7 步可由模型自动执行 `/setup-rules update`；新增自然语言触发 `update` 的 eval。
 - **product-spec 更名为 fspec 并精简**：目录改为 `products/fspec/`，只保留 `/fspec [<prototype>]` 一个入口（原型默认 `products/prototype/`），移除 check、export 与设计工具方言；按上个 V 提交以来的原型 diff 起草增量 V，前端回补并入同一 V，确认后只把该 V 增量合入 `CURRENT.md`，并把原型 CHANGELOG 的 `[Unreleased]` 切为同号的 `[V<n>]`（多产品线为 `[<Line> V<n>]`）；遇旧目录 `products/specs/` 先提议 `git mv` 迁移；evals 与 fixtures 重写。
 - **ideate 构想文档链接改用参考链接**：模板中的文档链接、项目地址改为 `[文本][]`，文末按 HTML 注释分组定义（调研记录在前、URL 在后）；功能调研项新增「调研记录」行，校验引用与定义一一对应，并补充 evals。
 - **product-spec 文档名称统一**：产品级文档统一称为“功能规格说明书”。

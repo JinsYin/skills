@@ -1,7 +1,6 @@
 ---
 name: setup-rules
-description: Conduct an interactive interview, then install selected agent conventions, adapters, `skillsw`, and sensitive-file read restrictions into a project; `update` refreshes installed items without prompting. Explicit invocation only.
-disable-model-invocation: true
+description: "Conduct an interactive interview, then install selected agent conventions, adapters, `skillsw`, and sensitive-file read restrictions into a project; `update` refreshes installed items without prompting. Use when the user asks to set up agent rules, or run `update` after `setup-rules` conventions change (e.g. Skill Workflow sync). Not for reviewing or hand-editing `CLAUDE.local.md`."
 ---
 
 # setup-rules
