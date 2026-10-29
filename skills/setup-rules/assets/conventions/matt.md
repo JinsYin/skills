@@ -6,10 +6,10 @@
 
 ### Spec Pipeline
 
-- Forward UI feature (0→1, or a 1→2 big feature, new page or new look): `/grill-with-docs` → `/to-spec` → product prototype (0→1 designed from spec; 1→2 backport landed frontend first, then iterate) → `/fspec <prototype>` → correct spec → `stitch-extract-design-md` → `/design-to-code` → `/to-tickets <spec>` → `/implement-spec <spec>` → `/retro`.
-- Reverse UI change (1→2, small): change frontend first; later, typically before next forward feature, backport it into prototype → `/fspec <prototype>` → `stitch-extract-design-md` → `/design-to-code`.
+- Forward UI feature (0→1, or a 1→2 big feature, new page or new look): `/grill-with-docs` → `/to-spec` → product prototype (0→1 designed from spec; 1→2 `/backport-prototype` first, then iterate) → `/fspec <prototype>` → `/re-spec <spec>` → `stitch-extract-design-md` → `/design-to-code` → `/to-tickets <spec>` → `/implement-spec <spec>` → `/retro`.
+- Reverse UI change (1→2, small): change frontend first; later, typically before next forward feature, `/backport-prototype` → `/fspec <prototype>` → `stitch-extract-design-md` → `/design-to-code`.
 - No UI: `/to-spec` → `/to-tickets <spec>`.
-- Correct spec in `/to-spec` session, resumed: align its user stories, decisions and Out of Scope with new `fspec` V file. Start every other step in fresh session.
+- Start every step in fresh session. `/re-spec <spec>` may instead run in resumed `/to-spec` session when spec reasoning lives only there.
 - `/to-spec`: record agreed test seams under Testing Decisions.
 - Product prototype means `products/prototype/` per Design, never `/prototype`.
 - After each step, commit; with spec, also append spec comment: step, artifact path, commit. Spec body plus comments are the only handoff across sessions.
