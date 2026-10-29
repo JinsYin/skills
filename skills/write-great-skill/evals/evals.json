@@ -12,6 +12,7 @@
       "expectations": [
         "skills/todo-scan/SKILL.md and skills/todo-scan/evals/evals.json exist",
         "actions.md logs eval executions dispatched to subagents with model sonnet and effort high, and no eval prompt is executed inline by the main run",
+        "actions.md shows the draft polished (writing-for-agents) and compressed before the eval dispatches",
         "Dispatches cover both with-skill and no-skill configurations",
         "No logged executor dispatch prompt contains expectation text from evals.json",
         "actions.md ends with a question asking the user to confirm the draft and eval results",

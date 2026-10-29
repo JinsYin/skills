@@ -43,6 +43,7 @@ Newest section on top; keep older sections: they are baseline cache.
 
 - Matrix: <skill> vs no skill, `<model id>`, one run per configuration; fixtures from `<fixture cmd>`.
 - Totals: <skill> X/N; no skill Y/N; delta +Z pp. Verify rerun: X'/N, no regression.
+- Cost (optional): cumulative tokens per run from session transcript; task-notification `total_tokens` counts only final context, far below billed input.
 
 | Eval | <skill> | No skill |
 |---|---|---|

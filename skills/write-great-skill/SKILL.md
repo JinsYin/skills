@@ -10,7 +10,7 @@ Workflow + quality bar for skills and agent-loaded docs. Project `CLAUDE.md`/`AG
 
 - Ship `evals/evals.json` per `skill-creator` schema; fixtures under `evals/files/`, built by script (`init.sh`, `gen_fixtures.py`) once beyond a handful of files, so every run starts from identical state.
 - Cover every branch and guardrail with ≥1 eval with checkable `expectations`.
-- Aim `expectations` at what skill adds: behavior model misses without it, observable in output files or run's action log. Eval passing both ways stays only as regression guard, marked so in `benchmark.md`.
+- Aim `expectations` at what skill adds: behavior model misses without it, observable in output files or run's action log. Assert invariant a rule protects, reachable under executor limits (no user, no nested subagents), not one literal outcome: narrow ones fail correct runs and get rewritten after. Eval passing both ways stays only as regression guard, marked so in `benchmark.md`.
 - ≥1 eval triggers skill in natural language, no `/<skill>` command.
 - Update evals in same change that alters behavior.
 - Record every run in `evals/benchmark.md` ([format](references/eval-runs.md#benchmarkmd)). Doubles as baseline cache: no-skill scores depend only on eval prompt, fixtures, model, never on skill text.
@@ -31,7 +31,7 @@ Steps 2–4 cover only agent-loaded files (`SKILL.md`, `references/*.md`, `rules
 
 Only steps 1 and 4 run evals. Every subagent this skill dispatches (eval executor, grader, Ship) runs `model: sonnet`, `effort: high`: reliable on multi-step written instructions at fraction of session model's cost.
 
-1. **Draft** — `/skill-creator`, running evals per [Eval runs](#eval-runs) instead of its own run loop, which reruns every eval and baseline each iteration; skip its HTML viewer and description optimization loop unless user asks (each costs more than it adds here). Done when evals satisfy Eval rules and scores in `benchmark.md`.
+1. **Draft** — `/skill-creator`, running evals per [Eval runs](#eval-runs) instead of its own run loop, which reruns every eval and baseline each iteration; skip its `timing.json`, HTML viewer and description optimization loop unless user asks (each costs more than it adds here). Apply steps 2–3 to draft before its full eval run, so suite runs once on final wording and step 4 reruns only post-gate edits. Done when evals satisfy Eval rules and scores in `benchmark.md`.
 2. **Polish** — `/writing-for-agents`, inline. Done when every finding applied or rejected with reason.
 3. **Compress** — `/caveman-compress` rules applied by hand to added/changed text only; untouched lines stay. Done when headings, code, URLs, paths unchanged.
 4. **Verify** — `/skill-optimizer` checks (activation, salience, regressions) statically; rerun with-skill only, on evals covering text changed since their last run, against cached baselines. Done when every finding applied or rejected with reason and no eval regresses.
