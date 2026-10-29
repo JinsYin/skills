@@ -1,0 +1,30 @@
+{
+  "skill_name": "commit-digest",
+  "evals": [
+    {
+      "id": 0,
+      "name": "group-by-type",
+      "prompt": "帮我出一份这周的提交周报",
+      "expected_output": "digest.md with feat/fix/docs/other sections, one bullet per commit with hash and author; reply lists counts per type.",
+      "files": [],
+      "expectations": [
+        "digest.md has one `## <type>` section per type present",
+        "Each bullet ends with `(<hash>, <author>)`",
+        "Commits older than 7 days are absent",
+        "Reply lists the count per type"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "drop-merge-commits",
+      "prompt": "/commit-digest",
+      "expected_output": "Merge commits are excluded from digest.md.",
+      "files": [],
+      "expectations": [
+        "No `Merge branch` subject appears in digest.md",
+        "Non-merge commits from the merged branch still appear",
+        "Counts in the reply exclude merge commits"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "skills": {
+    "commit-digest": { "source": "acme/skills", "skillPath": "skills/commit-digest/SKILL.md" }
+  }
+}

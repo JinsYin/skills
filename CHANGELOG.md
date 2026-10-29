@@ -8,6 +8,7 @@
 
 ### Added
 
+- **write-great-skill**：新增技能，从根 `CLAUDE.md` 提炼 Skill Evals 与 Skill Workflow 的通用部分：eval 规则、按触发方分门控、起草 → 润色 → 压缩 → 验证 → 交付五步；新增省 token 方案：eval 一律交给 Sonnet（`effort: high`）subagent 执行，无 skill 基线只跑新增或改动的 eval 并以 `evals/benchmark.md` 缓存，迭代只重跑受影响的 eval，执行者看不到 expectations，评分走脚本或 Sonnet grader，第 4 步只重跑 with-skill，交付交给新的 Sonnet subagent；默认跳过 `skill-creator` 的 HTML viewer 与 description 优化循环。
 - **devops-best-practices 开发环境与交付链路 playbook**：新增 `references/dev-env.md`，首个依赖随任务同时建 `docker-compose.yml` 与 `process-compose.yml`，已有项目缺任一文件时先凭证据盘点依赖与进程、给出补齐方案并询问先补还是跳过；新增 `references/delivery.md`，交付链路独立成 phase/spec，先访谈再把事实写入 `deploy/README.md`，按 `deploy/` 布局产出 Dockerfile、Drone、Kustomize 与 Helm。新增规则 `deploy-kustomize-helm-parity`（两套部署逐环境渲染一致，附 `scripts/k8s-parity.py` 只比对 key 不比对值）与 `proc-deps-via-compose-wait`（`process-compose up -D` 为唯一入口，一次性 `deps` 执行 `docker compose up --wait`）；description 扩展触发场景，并补充 evals。
 - **setup-rules DevOps 约定**：新增可选约定 `devops.md`，排在 Karpathy 与 GSD 之间；首个依赖随任务建开发环境，缺开发环境时先给补齐方案并询问先补还是跳过，交付链路独立成单元，涉及开发环境或交付文件的计划在 Done 中校验 `docker compose config -q` 与 `k8s-parity.py`；按 GSD（`gsx --quick` / 新增 phase）、Matt（`/implement` quick task / 无 UI 流水线）、Superpowers（当前会话单独提交 / 修订 SPEC 后在当前里程碑追加 phase）分别路由，并补充 evals。
 - **backport-prototype**：新增技能，逐页全量结构比对已上线前端与 `products/prototype/`，一次性回补前端有、原型缺的页面、字段、操作与文案；跳过数据接线、DESIGN.md 或 `progress.md` 认可的视觉差异（restyle 应用跳过全部视觉），权限守卫只记为 `fspec` 前置条件素材；原型独有内容若为待开发项则保留，否则询问是否已在代码中移除；条目以「回补已上线前端：」记入原型 CHANGELOG 的 `[Unreleased]`，多产品线加 `**<Line>**：` 前缀，最后提示 `/fspec products/prototype/`。
@@ -25,6 +26,7 @@
 
 ### Changed
 
+- **根 CLAUDE.md 改为引用 write-great-skill**：移除 Skill Evals 与通用流程步骤，只保留项目级补充：eval prompt 用中文、Ship 的 rebase 推送方式、Sync（`skillsw update` 与 `/setup-rules update`，并补充 `skills/<name>/` 被替换为符号链接时的恢复方法）；提交风格沿用 `setup-rules` Core 约定。
 - **gsx 改名为 gsdspec**：目录与 `name` 改为 `gsdspec`，正文、references 中的命令示例与提示同步改为 `gsdspec --<mode>`；description 保留 `gsx` 触发词；`setup-rules` 的 GSD、DevOps 约定及 README 同步新名。
 - **fspec、backport-prototype 改名**：`fspec` 更名为 `write-fspec`，`backport-prototype` 更名为 `backfill-prototype`；产物仍称 fspec，`products/fspec/` 路径与 `CURRENT.md` 的 `generator: fspec` 标记不变；`re-spec`、`setup-rules` 的 Matt、Superpowers、Design 约定及 README 同步改用新名；描述保留 `fspec`、`回补原型`、`backport` 触发词；backfill-prototype 正文动词统一为 backfill，并新增跳过项：`ui-ux-best-practices` 管辖的交互约定（二次确认等）不画进原型
 - **setup-rules 允许模型调用**：移除 `disable-model-invocation`，description 改为同步约定或用户要求配置规则时触发、审阅 `CLAUDE.local.md` 时不触发，使 Skill Workflow 第 7 步可由模型自动执行 `/setup-rules update`；新增自然语言触发 `update` 的 eval。

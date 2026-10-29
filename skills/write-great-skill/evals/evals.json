@@ -1,0 +1,87 @@
+{
+  "skill_name": "write-great-skill",
+  "evals": [
+    {
+      "id": 0,
+      "name": "new-skill-user-gate",
+      "prompt": "帮我新写一个 skill，叫 todo-scan：扫描代码里的 TODO/FIXME 注释，按文件汇总成 Markdown 清单，每条带上 git blame 的作者。",
+      "expected_output": "Fixture `init.sh base`. User-triggered: drafts skills/todo-scan/ with evals.json (≥1 natural-language prompt), dispatches eval executions to fresh Sonnet subagents for both with-skill and no-skill configs without pasting expectations into executor prompts, then stops at the gate: shows draft and scores, asks the user to confirm, and neither polishes, commits nor pushes.",
+      "files": [
+        "evals/files/init.sh"
+      ],
+      "expectations": [
+        "skills/todo-scan/SKILL.md and skills/todo-scan/evals/evals.json exist",
+        "actions.md logs eval executions dispatched to subagents with model sonnet and effort high, and no eval prompt is executed inline by the main run",
+        "Dispatches cover both with-skill and no-skill configurations",
+        "No logged executor dispatch prompt contains expectation text from evals.json",
+        "actions.md ends with a question asking the user to confirm the draft and eval results",
+        "No commit beyond the fixture's initial commit and no push to origin"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "edit-skill-reuses-baselines",
+      "prompt": "给 commit-digest 加个 --since 参数，可以指定起始日期，不传还是最近 7 天。",
+      "expected_output": "Fixture `init.sh base`; benchmark.md holds 2026-10-20 no-skill scores for evals 0–1 on claude-sonnet-5-5. Adds an eval for --since; dispatches a no-skill run only for that new eval, reusing cached baselines for evals 0–1; with-skill runs on Sonnet compare against the last with-skill row instead of an old-skill snapshot run; stops at the user gate.",
+      "files": [
+        "evals/files/init.sh"
+      ],
+      "expectations": [
+        "evals.json gains an eval whose prompt exercises --since",
+        "No-skill dispatches target only the new --since eval; evals 0 and 1 reuse the cached 2026-10-20 baselines",
+        "No dispatch runs an old-skill snapshot as baseline",
+        "With-skill dispatches use model sonnet",
+        "No commit beyond the fixture's initial commit"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "post-gate-unattended",
+      "prompt": "commit-digest 加 --since 的草稿和 eval 结果我都看过了，没问题，按流程继续吧。",
+      "expected_output": "Fixture `init.sh since-draft`: uncommitted --since draft with step-1 scores in benchmark.md. Polishes and compresses the --since text, leaving lines unrelated to it intact; verify reruns with-skill only on evals covering changed text, reusing step-1 baselines; delegates commit and push to a fresh Sonnet subagent with a handoff; asks the user nothing along the way.",
+      "files": [
+        "evals/files/init.sh",
+        "evals/files/overlays/since-draft/"
+      ],
+      "expectations": [
+        "The --since paragraph in SKILL.md is shorter than in evals/files/overlays/since-draft/skills/commit-digest/SKILL.md",
+        "SKILL.md lines unrelated to --since (`#` headings and steps 2–4) are byte-identical to evals/files/skills-repo/skills/commit-digest/SKILL.md",
+        "Verify dispatches with-skill reruns covering the changed text, with no no-skill dispatch",
+        "Commit and push are delegated to a subagent with model sonnet and effort high whose handoff names the changed paths, instead of running `git commit` inline",
+        "actions.md contains no question to the user"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "skill-triggered-defers-sync",
+      "prompt": "（由 self-improve 调用）复盘结论：commit-digest 在没有任何提交的仓库里会因 git log 报错直接退出，应改为输出“本周无提交”。请按 skill 流程修改并准备 PR。",
+      "expected_output": "Fixture `init.sh base`. Skill-triggered: proceeds through the steps without asking the user to confirm, adds an eval for the empty-repo branch, delegates commit and push to a Sonnet subagent, and leaves the project's post-merge Sync (`./sync.sh`) unrun, naming it in the PR body.",
+      "files": [
+        "evals/files/init.sh"
+      ],
+      "expectations": [
+        "SKILL.md handles a repo with no commits by reporting 本周无提交 or equivalent instead of failing",
+        "evals.json gains an eval for the empty-repo case",
+        "actions.md contains no question asking the user to confirm the draft",
+        "Commit and push are delegated to a subagent with model sonnet instead of running `git commit` inline",
+        "`./sync.sh` is never run",
+        "A PR body in outbox/ names `./sync.sh` as a step deferred until after merge"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "root-doc-only-no-evals",
+      "prompt": "在根目录 CLAUDE.md 里加一条约定：所有 shell 脚本开头必须 set -euo pipefail。",
+      "expected_output": "Fixture `init.sh base`. Root-doc-only change: edits CLAUDE.md, shows the diff and asks the user to confirm before polishing or committing; creates and runs no evals.",
+      "files": [
+        "evals/files/init.sh"
+      ],
+      "expectations": [
+        "CLAUDE.md contains the set -euo pipefail rule",
+        "actions.md ends with a question asking the user to confirm the diff",
+        "No commit beyond the fixture's initial commit",
+        "No evals.json is created or changed and no eval dispatch is logged"
+      ]
+    }
+  ]
+}

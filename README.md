@@ -26,6 +26,7 @@ npx skills@latest add jinsyin/skills
 | `design-to-code` | 按设计系统与原型实现 React 界面 |
 | `version-release` | 统一多模块版本、更新日志与本地发版 |
 | `gsdspec` | GSD 工作流入口与项目校验 |
+| `write-great-skill` | 编写与修改 Skill 的工作流、eval 标准与省 token 方案 |
 | `self-improve` | 复盘会话并改进相关技能 |
 | `github-pr-merge` | 交互式评审并 squash 合并 PR，关闭关联 Issue |
 
