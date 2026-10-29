@@ -14,7 +14,7 @@ Numbering (`X.Y` = Phase X / Plan Y; `X.Y.Z` = the Zth `<task>`) and blank-arg i
 
 At the end of a `checkpoint:human-verify` round, audit what changed across **frontend / backend / database**, and surface one hidden risk: **problems that should have been fixed in the backend or database but were patched in the frontend.** These look fine in a browser but fail the moment someone calls the API directly — validation absent, translations and defaults missing, sensitive fields still returned.
 
-Flow: summarize by layer → flag risks → interview the user → record decisions. **No code edits, no gsd-executor, no commits, no file writes** — conversation only. Acting on flagged items is the user's call (follow up with `gsx --quick`).
+Flow: summarize by layer → flag risks → interview the user → record decisions. **No code edits, no gsd-executor, no commits, no file writes** — conversation only. Acting on flagged items is the user's call (follow up with `gsdspec --quick`).
 
 ## 0 — Locate the scope (read-only)
 
@@ -96,7 +96,7 @@ The user may use "Other". **Record only, do not act.**
 - 你的决定：<the user's own words>
 
 ### 三、后续建议
-> The items the user agreed to, as a checklist (**not dispatched** — follow up with gsx --quick).
+> The items the user agreed to, as a checklist (**not dispatched** — follow up with gsdspec --quick).
 ```
 
 ## Guardrails (`--vrf-review`)

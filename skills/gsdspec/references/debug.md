@@ -72,7 +72,7 @@ Ask **two questions** and wait for the answer before routing. The *content* is f
 
 1. **修复方案** — one entry per plan from step 3: its one-line essence plus scope/trade-off. With only one plan, still present it and ask for a confirm-or-adjust.
 2. **修复方式** — exactly two options:
-   - `Quick fix（gsx --quick）` — hand the chosen plan to `/gsd:quick --discuss` (讨论 + 研究 + 计划校验 + 执行 + 验证). Best when it touches backend/DB, or when you want the structured, atomic, reversible flow.
+   - `Quick fix（gsdspec --quick）` — hand the chosen plan to `/gsd:quick --discuss` (讨论 + 研究 + 计划校验 + 执行 + 验证). Best when it touches backend/DB, or when you want the structured, atomic, reversible flow.
    - `Manual fix` — this mode applies the edits itself and verifies on the running instance. Best for a small, well-contained change you want done in place now.
 
 Respect the answers. If the user picks a plan but wants to tweak it, fold that into the chosen plan before routing.
@@ -106,7 +106,7 @@ Show the user the diff and the verification result. **If verification fails, say
 - **Final summary**:
 
 ```
-## gsx --debug — Done
+## gsdspec --debug — Done
 根因：{one-line confirmed root cause}（见 .planning/debug/{slug}.md）
 Context7：{what current docs confirmed, or「未涉及外部行为，已跳过」}
 方案：{chosen plan, one line}

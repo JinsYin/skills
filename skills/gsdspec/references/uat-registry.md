@@ -118,22 +118,22 @@ The "supplement" branch commits too (a supplement line was still written), with 
 ## 8 — Summary report
 
 ```
-## gsx --uat-newtest — Phase {NN}（{filename}）
+## gsdspec --uat-newtest — Phase {NN}（{filename}）
 New Test registered:
 - Test {N}：{title} · expected：{summary} · result：{result} · note：{summary or（无）}
 Updated: `## Tests` appended · frontmatter `updated:` → {ts} · `## Summary` `total:` {old}→{new}, `{field}:` {old}→{new}
 Committed as docs({NN}) {hash}.
-下一步：gsx --uat-autorun {NN}（自动跑）· gsx --uat-phase {NN}（人工跑）· gsx --uat-newgap {NN}（登记 Gap）
+下一步：gsdspec --uat-autorun {NN}（自动跑）· gsdspec --uat-phase {NN}（人工跑）· gsdspec --uat-newgap {NN}（登记 Gap）
 ```
 
 ```
-## gsx --uat-newgap — Phase {NN}（{filename}）
+## gsdspec --uat-newgap — Phase {NN}（{filename}）
 New Gap(s) registered:
 - GAP-{N}：{title} · severity：{severity} · 关联 Test：{test} · files：{count} · outstanding：{count}
 -（one line per sub-Gap if step 0b split was confirmed）
 Updated: `## Gaps` appended · frontmatter `updated:` → {ts} · `## Summary` `open_gaps:` {old}→{new}
 Committed as docs({NN}) {hash}.
-下一步：gsx --uat-quickfix {NN} GAP-{N}（逐个修）· gsx --uat-planfix {NN}（批量修）
+下一步：gsdspec --uat-quickfix {NN} GAP-{N}（逐个修）· gsdspec --uat-planfix {NN}（批量修）
 ```
 
 ## Guardrails

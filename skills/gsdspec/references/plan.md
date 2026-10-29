@@ -31,10 +31,10 @@ If the workflow surfaces a tech-shaped gray area and you can see the grounding d
 ### 2 — Close out
 
 ```
-## gsx --discuss-phase — Done
+## gsdspec --discuss-phase — Done
 Phase {N}：讨论完成，已写入 {N}-CONTEXT.md
 Context7 核对：{一行 —— 哪些技术/库/API/方言决策经文档确认；若全是内部决策则写「本次均为内部决策，未涉及外部行为」}
-下一步：见上方 discuss-phase 的提示（通常是 gsx --plan-phase {N}）
+下一步：见上方 discuss-phase 的提示（通常是 gsdspec --plan-phase {N}）
 ```
 
 If the user bailed before `CONTEXT.md` was written, say so plainly — no context file landed.
@@ -82,14 +82,14 @@ The planner spawn, the `gsd-plan-checker` verify loop, iteration to pass, and th
 ### 3 — Close out
 
 ```
-## gsx --plan-phase — Done
+## gsdspec --plan-phase — Done
 Phase {N}：研究 + 计划完成，已写入 {N}-RESEARCH.md、{N}-PLAN.md
 Context7 核对：{一行 —— 哪些库/API/版本/方言/CLI 结论经文档确认；若研究中全是内部结论则写「本次研究均为内部结论，未涉及外部行为」}
-下一步（建议先评审）：gsx --plan-review {N} —— 用外部 Codex CLI 做跨 AI 计划评审，独立挑出假设漏洞 / 缺失边界 / 排序问题，再决定是否执行
+下一步（建议先评审）：gsdspec --plan-review {N} —— 用外部 Codex CLI 做跨 AI 计划评审，独立挑出假设漏洞 / 缺失边界 / 排序问题，再决定是否执行
 下一步（或直接执行）：见上方 plan-phase 的提示（通常是 /gsd:execute-phase {N}）
 ```
 
-Recommend `--plan-review` ahead of execution: right after a plan is written, neither the planner nor you are sensitive to your own blind spots, and an independent external model reading it cold finds problems at the point where they're still cheap — before any code. Once the review produces `REVIEWS.md`, `gsx --replan-phase {N}` folds it back in, closing the plan → review → replan loop.
+Recommend `--plan-review` ahead of execution: right after a plan is written, neither the planner nor you are sensitive to your own blind spots, and an independent external model reading it cold finds problems at the point where they're still cheap — before any code. Once the review produces `REVIEWS.md`, `gsdspec --replan-phase {N}` folds it back in, closing the plan → review → replan loop.
 
 If the run bailed before `PLAN.md` was written (the verify loop didn't converge, or the user stopped after research), say so plainly and name what *did* land (`RESEARCH.md` only, or nothing).
 

@@ -9,6 +9,6 @@
 
 | Workflow | Backfill runs via | Delivery runs as |
 |---|---|---|
-| GSD | `gsx --quick` | new phase (`/gsd:add-phase`), then usual `gsx` chain |
+| GSD | `gsdspec --quick` | new phase (`/gsd:add-phase`), then usual `gsdspec` chain |
 | Matt | `/implement` quick task | No UI pipeline: `/to-spec` → `/to-tickets <spec>` |
 | Superpowers | current session, own commit | amend SPEC with Delivery chapter → `reviewed` → `writing-plans` appends phase to current milestone's `ROADMAP.md`; overrides fixed roadmap scope |

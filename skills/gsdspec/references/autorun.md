@@ -11,8 +11,8 @@ Both modes share one execution protocol (§E: cold start, Playwright, curl, judg
 
 **Shared boundary (hard rules)**:
 
-- **Test only, never fix.** A bug goes into the Gap section or the report; **never change business code** (fixes go to `gsx --quick` / `gsx --debug`).
-- **Never release.** Never reply the `<resume-signal>`; on all-pass, prompt the user to run `gsx --vrf-approved`.
+- **Test only, never fix.** A bug goes into the Gap section or the report; **never change business code** (fixes go to `gsdspec --quick` / `gsdspec --debug`).
+- **Never release.** Never reply the `<resume-signal>`; on all-pass, prompt the user to run `gsdspec --vrf-approved`.
 - No commits, no branch switches, no checkpoints.
 - Test data is self-managed and **not force-cleaned** (kept for re-verification); say what was created in the `note` or report.
 - Reply in Chinese.
@@ -98,11 +98,11 @@ note: 1 个请求落 2 条审计记录（id 28/29 内容相同），审计重复
 2. **`## Summary`** → confirm the counts match (`pending` = 0).
 3. **frontmatter `status`** → no `pending`/`blocked` → `complete`; some `blocked` → `partial`. Bump `updated`.
 4. **`## Gaps`** → append each `result: issue` case as verify-work YAML. `blocked`/`skipped` do **not** become Gaps — those are environment or judgment problems, not code defects. Fields: `truth` (the assertion distilled from expected), `status: failed`, `reason: "Autotest: <expected X, actual Y>"`, `severity`, `test` (case number), `artifacts: []`, `missing: []`. If the section was `[none yet]` or a placeholder → replace; otherwise append.
-5. **Return to the orchestrator (compact)**: as the final message, return only the final Summary counts (total/passed/issues/skipped/blocked); the **skipped/blocked list** (one reason each, needing manual `/gsd:verify-work {NN}`); and the **Gap list** (the `issue` cases, fixed via `gsx --uat-quickfix` or `gsx --uat-planfix`). **Do not** paste raw tool output.
+5. **Return to the orchestrator (compact)**: as the final message, return only the final Summary counts (total/passed/issues/skipped/blocked); the **skipped/blocked list** (one reason each, needing manual `/gsd:verify-work {NN}`); and the **Gap list** (the `issue` cases, fixed via `gsdspec --uat-quickfix` or `gsdspec --uat-planfix`). **Do not** paste raw tool output.
 
 ## 6 — Present the results (main thread / Opus)
 
-When the subagent returns, the orchestrator **re-runs nothing** — relay its compact summary in Chinese: Summary counts, the skipped/blocked list (why each needs a human), the Gap list (how to fix). Remind the user that results were written back live to `{NN}-*UAT.md`, and that skipped items still need a manual `gsx --uat-phase {NN}` pass.
+When the subagent returns, the orchestrator **re-runs nothing** — relay its compact summary in Chinese: Summary counts, the skipped/blocked list (why each needs a human), the Gap list (how to fix). Remind the user that results were written back live to `{NN}-*UAT.md`, and that skipped items still need a manual `gsdspec --uat-phase {NN}` pass.
 
 ---
 
@@ -166,7 +166,7 @@ Multiple gate tasks → one block each.
 - Task N 步骤 K「<摘要>」—— 原因
 
 ## Gaps（发现的问题）
-- Task N 步骤 M「<摘要>」—— fail：期望 X，实际 Y。修复走 gsx --quick 或 gsx --debug。
+- Task N 步骤 M「<摘要>」—— fail：期望 X，实际 Y。修复走 gsdspec --quick 或 gsdspec --debug。
 -（blocked 的环境问题与自动化盲区也列在这里）
 
 ## 本轮创建的测试数据
@@ -177,9 +177,9 @@ The report **must** call out two things: (1) which steps were skipped and why; (
 
 **Closing prompt**:
 
-- All pass, no skips or Gaps → "全部步骤通过 —— 你确认后跑 `gsx --vrf-approved` 放行。"
+- All pass, no skips or Gaps → "全部步骤通过 —— 你确认后跑 `gsdspec --vrf-approved` 放行。"
 - Skips but no fail/blocked → "没发现问题，但有 N 步需人工跟进 —— 核实那几步后再放行。"
-- Any fail/blocked → "发现 Gap —— 先修（`gsx --quick` 或 `gsx --debug`）并复验，再放行。"
+- Any fail/blocked → "发现 Gap —— 先修（`gsdspec --quick` 或 `gsdspec --debug`）并复验，再放行。"
 
 **Always remind**: automated verification is not human judgment — review the skips first.
 

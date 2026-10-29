@@ -1,14 +1,14 @@
 ---
-name: gsx
-description: "Unified front-door to the GSD workflow (.planning/ + /gsd:* commands), dispatching 20 modes by --flag: --fast/--quick/--debug for trivial edits, one scoped problem, and root-cause debugging; --discuss-phase/--plan-phase/--plan-review/--replan-phase for the discuss → research+plan → cross-AI review → fold-back convergence loop; --ui-spec for the UI design contract; --code-review to audit and auto-fix changed source; --uat-phase/--uat-autorun/--uat-newtest/--uat-newgap/--uat-quickfix/--uat-planfix to run UAT, register Tests/Gaps, and close Gaps; --vrf-autorun/--vrf-review/--vrf-approved to pre-run a checkpoint's verify steps, audit the round's changes, and release the gate; --add-todo/--add-backlog to capture work. Use this skill whenever the user mentions a Phase number, planning/discussion/research/plan review, UAT/acceptance/Gap/checkpoint/release/approved, or says 'just fix this quickly', 'why is this failing', 'review the code', 'spec the UI', 'add a todo', 'park this idea' — or names gsx, gsx-fast, gsx-uat-autorun and friends. Prefer it over calling /gsd:* directly: the Context7 docs gate, prototype-fidelity constraints, acceptance write-back and commit hygiene live here, and calling the command directly loses them."
+name: gsdspec
+description: "Unified front-door to the GSD workflow (.planning/ + /gsd:* commands), dispatching 20 modes by --flag: --fast/--quick/--debug for trivial edits, one scoped problem, and root-cause debugging; --discuss-phase/--plan-phase/--plan-review/--replan-phase for the discuss → research+plan → cross-AI review → fold-back convergence loop; --ui-spec for the UI design contract; --code-review to audit and auto-fix changed source; --uat-phase/--uat-autorun/--uat-newtest/--uat-newgap/--uat-quickfix/--uat-planfix to run UAT, register Tests/Gaps, and close Gaps; --vrf-autorun/--vrf-review/--vrf-approved to pre-run a checkpoint's verify steps, audit the round's changes, and release the gate; --add-todo/--add-backlog to capture work. Use this skill whenever the user mentions a Phase number, planning/discussion/research/plan review, UAT/acceptance/Gap/checkpoint/release/approved, or says 'just fix this quickly', 'why is this failing', 'review the code', 'spec the UI', 'add a todo', 'park this idea' — or names gsdspec (formerly gsx), gsdspec-fast, gsx-uat-autorun and friends. Prefer it over calling /gsd:* directly: the Context7 docs gate, prototype-fidelity constraints, acceptance write-back and commit hygiene live here, and calling the command directly loses them."
 argument-hint: "--<mode> [args for that mode]"
 ---
 
-# gsx — GSD workflow front-door
+# gsdspec — GSD workflow front-door
 
 Wraps `/gsd:*` commands, attaches this project's gates and close-out, then hands the work to GSD.
 
-**Core boundary — orchestrate, don't overreach.** Code changes, the writing of PLAN/RESEARCH/CONTEXT/SUMMARY, and code commits come 100% from the wrapped `/gsd:*` command. gsx itself does three things: parse args, attach the gate, write back and commit acceptance docs (with `git add` scoped to exact paths). It never touches STATE.md, never commits code, never switches branches. One object per run (one Phase / one problem / one checkpoint) — a different one means a fresh invocation. **Reply in Chinese throughout, following Chinese Markdown conventions.**
+**Core boundary — orchestrate, don't overreach.** Code changes, the writing of PLAN/RESEARCH/CONTEXT/SUMMARY, and code commits come 100% from the wrapped `/gsd:*` command. gsdspec itself does three things: parse args, attach the gate, write back and commit acceptance docs (with `git add` scoped to exact paths). It never touches STATE.md, never commits code, never switches branches. One object per run (one Phase / one problem / one checkpoint) — a different one means a fresh invocation. **Reply in Chinese throughout, following Chinese Markdown conventions.**
 
 Three exceptions, each stated in its own mode: `--fast` may run non-source git ops (squash / undo / stash); the `--uat-*` and `--vrf-review` modes may write acceptance docs; `--debug`'s Manual-fix path may edit source itself. Everything else hands off.
 
@@ -49,7 +49,7 @@ The first `--flag` in `$ARGUMENTS` picks the mode; the rest are that mode's args
 
 In Codex, translate this wrapper instead of rewriting it:
 
-- `$ARGUMENTS` = the text after `$gsx`.
+- `$ARGUMENTS` = the text after `$gsdspec`.
 - `Skill("gsd:<name>", args="…")` = run `.codex/skills/gsd-<name>/SKILL.md` with args as `{{GSD_ARGS}}`.
 - `AskUserQuestion`: only map it to `request_user_input` if your Codex build truly renders an interactive picker; otherwise (the usual Codex case) do **not** force it. Before any choice among options or plans, print each option's core content in your reply, list the choices as a numbered Markdown list, then **stop and wait** for the user's text reply. Never self-answer a prompt the user never saw.
 - Claude tool names are intent labels; use the equivalent Codex tools.
@@ -84,7 +84,7 @@ Skill("gsd:quick", args="--discuss " + problem description)
 Close-out: `/gsd:quick` produces its own (quick_id / commit / task_dir). Don't re-summarize the code work it already reported; add one line of framing:
 
 ```
-## gsx --quick — Done
+## gsdspec --quick — Done
 问题：{problem}
 交付：见上方 /gsd:quick 的 close-out（quick_id / commit / task_dir）。
 ```
@@ -97,7 +97,7 @@ Parse the Phase number (§A) → call `/gsd:review --phase {N} --codex` → rela
 
 **Why Codex specifically**: an independent external model reading the plan cold catches what the planner (and you, having just written it) are blind to — unstated assumptions, missing edge cases, a sequencing flaw, an over-scoped task. A cross-AI pass buys *divergent* judgment before the plan goes to execution, where mistakes get expensive. For a different or wider panel (`--gemini`, `--all`), call `/gsd:review` directly.
 
-Prerequisite: the Phase must already have a `PLAN.md`. If not, send the user to `gsx --plan-phase {N}` and stop.
+Prerequisite: the Phase must already have a `PLAN.md`. If not, send the user to `gsdspec --plan-phase {N}` and stop.
 
 ```
 Skill("gsd:review", args="--phase {N} --codex")
@@ -106,14 +106,14 @@ Skill("gsd:review", args="--phase {N} --codex")
 If the Codex CLI isn't installed or detected, the command will say so — relay that plainly; **never** silently substitute another reviewer.
 
 ```
-## gsx --plan-review — Phase {N}
+## gsdspec --plan-review — Phase {N}
 Command:  /gsd:review --phase {N} --codex
 Reviewer: Codex CLI
 Report:   .planning/phases/{NN}-*/{NN}-REVIEWS.md
 Verdict:  {one line — Codex's headline take}
 Concerns: {count by severity, else a one-line gist}
 
-下一步：gsx --replan-phase {N} —— 把本次评审意见（REVIEWS.md）回灌进计划，重新生成 PLAN.md
+下一步：gsdspec --replan-phase {N} —— 把本次评审意见（REVIEWS.md）回灌进计划，重新生成 PLAN.md
 ```
 
 **Always give that next step** — `REVIEWS.md` exists to be consumed, and leaving it unread wastes the review. HIGH concerns → make the recommendation emphatic (a plan shouldn't reach execution with open HIGH concerns). Codex found nothing material → still mention `--replan-phase` is available but note it's optional; the user can go straight to `/gsd:execute-phase {N}`.
@@ -124,7 +124,7 @@ Concerns: {count by severity, else a one-line gist}
 
 The third beat of the plan → review → replan loop. Parse the Phase number (§A) → call `/gsd:plan-phase {N} --reviews` → relay. `--reviews` makes plan-phase read the Phase's `REVIEWS.md` and re-run the planner so the regenerated `PLAN.md` answers the reviewers' concerns. The command owns the planner spawn, the `gsd-plan-checker` verify loop, and the `PLAN.md` rewrite; **this layer never drafts or edits the plan**.
 
-Prerequisite: the Phase must already have a `REVIEWS.md`. If not, send the user to `gsx --plan-review {N}` first (or `gsx --plan-phase {N}` for a fresh plan) and stop. **Never run `--reviews` against a missing file.**
+Prerequisite: the Phase must already have a `REVIEWS.md`. If not, send the user to `gsdspec --plan-review {N}` first (or `gsdspec --plan-phase {N}` for a fresh plan) and stop. **Never run `--reviews` against a missing file.**
 
 Trailing plan-phase flags (`--tdd` `--mvp` `--skip-verify` `--text` …) pass through unchanged.
 
@@ -135,12 +135,12 @@ Skill("gsd:plan-phase", args="{N} --reviews {pass-through flags}")
 `--reviews` does not re-research, so the docs-grounded `RESEARCH.md` from `--plan-phase` stays intact — this is a plan revision, not fresh research.
 
 ```
-## gsx --replan-phase — Phase {N}
+## gsdspec --replan-phase — Phase {N}
 Command:   /gsd:plan-phase {N} --reviews
 Input:     .planning/phases/{NN}-*/{NN}-REVIEWS.md（Codex 评审意见）
 Output:    .planning/phases/{NN}-*/{NN}-PLAN.md（已按评审意见重生成）
 Addressed: {one line — which concerns were folded in / which were explicitly deferred}
-下一步：/gsd:execute-phase {N}（若仍有未消化的意见，可再跑一轮 gsx --plan-review 复评）
+下一步：/gsd:execute-phase {N}（若仍有未消化的意见，可再跑一轮 gsdspec --plan-review 复评）
 ```
 
 If concerns remain unresolved, or the reviewer's points conflict with locked decisions, name that plainly rather than implying a clean sweep — the user may want another round or a manual call. If the verify loop didn't converge or the run bailed, say what state the plan is in (old `PLAN.md` untouched, or partially written).
@@ -160,7 +160,7 @@ Skill("gsd:code-review", args="{NN} --fix --all")
 The command runs its full flow (validate → config gate → file scoping → reviewer → `REVIEW.md` → fixer → summary). Don't interfere while it runs.
 
 ```
-## gsx --code-review — Phase {NN}
+## gsdspec --code-review — Phase {NN}
 Command:    /gsd:code-review {NN} --fix --all
 Report:     .planning/phases/{NN}-*/{NN}-REVIEW.md
 Findings:   Critical {n} · Warning {n} · Info {n}
@@ -168,7 +168,7 @@ Fixed:      {fixes applied (+ commits if any)}
 Still open: {remaining / not auto-fixable / needs manual confirm}
 ```
 
-Incomplete fixes or remaining findings → list the outstanding items plus next steps (manual / re-run / `gsx --quick`). No changed files or an empty scope → report that accurately, don't fabricate. Commits and branching belong to the command; if fixes sit uncommitted in the working tree, remind the user to confirm and commit.
+Incomplete fixes or remaining findings → list the outstanding items plus next steps (manual / re-run / `gsdspec --quick`). No changed files or an empty scope → report that accurately, don't fabricate. Commits and branching belong to the command; if fixes sit uncommitted in the working tree, remind the user to confirm and commit.
 
 ## `--ui-spec` — generate the UI design contract
 

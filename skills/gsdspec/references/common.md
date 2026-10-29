@@ -1,4 +1,4 @@
-# gsx shared conventions
+# gsdspec shared conventions
 
 Parsing rules, format definitions and gates reused across modes. Read the section you need; don't read it all.
 
@@ -37,7 +37,7 @@ ls .planning/phases/{NN}-*/{NN}-VERIFICATION.md \
 ```
 
 - Both `{NN}-UAT.md` and `{NN}-HUMAN-UAT.md` exist → prefer `HUMAN-UAT.md`; note in the report which was chosen and which was left untouched.
-- 0 matches → "Phase {NN} has no acceptance output — run `/gsd:execute-phase {NN}` or `/gsd:verify-work {NN}` first." Stop. gsx does not generate these files.
+- 0 matches → "Phase {NN} has no acceptance output — run `/gsd:execute-phase {NN}` or `/gsd:verify-work {NN}` first." Stop. gsdspec does not generate these files.
 
 ### B2 — UAT file structure (`/gsd:verify-work` output)
 

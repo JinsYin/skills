@@ -7,7 +7,7 @@ The first half is identical for both: locate and parse the Gaps (`common.md` §B
 
 **Boundary**: orchestrate only (parse → fix → write back → commit the write-back). Code, PLAN.md and code commits come 100% from the invoked `/gsd:*` commands. The only files written here are the Gap source files (`*-VERIFICATION.md`, `*-UAT.md` / `*-HUMAN-UAT.md`), and only after a Gap is confirmed fixed with a commit. Never touch STATE.md, never commit **code**, never switch branches or cut checkpoints — the only commit is the Gap-status write-back, with `git add` scoped to exact paths. One Phase per run.
 
-Gaps in a `{NN}-AUTOTEST.md` are out of scope — tell the user to fix those with `gsx --quick`.
+Gaps in a `{NN}-AUTOTEST.md` are out of scope — tell the user to fix those with `gsdspec --quick`.
 
 ## 0 — Parse args
 
@@ -159,7 +159,7 @@ For `--uat-planfix`, include VERIFICATION only in case ②; skip it in case ①.
 ## 8 — Summary report
 
 ```
-## gsx --uat-quickfix — Phase {NN}
+## gsdspec --uat-quickfix — Phase {NN}
 Sources: {VERIFICATION filename (has/no Gaps)} + {UAT filename (has/no Gaps)}
 Mode:    /gsd:quick{ --discuss}
 
@@ -173,7 +173,7 @@ Write-back: {filename} marked {N} Gaps fixed. Committed as docs({NN}) {hash}.（
 ```
 
 ```
-## gsx --uat-planfix — Phase {NN}
+## gsdspec --uat-planfix — Phase {NN}
 Sources:   {NN}-VERIFICATION.md（{has/no} Gaps）+ {UAT filename}（{has/no} Gaps）
 Context7 核对：{one line per grounded Gap — 核对的构造 → 文档确认了什么（来源 /org/project）；若全部 Gap 均为内部问题则写「本次 Gap 均为内部问题，未涉及外部技术行为，无需查证」}
 Planning:  /gsd:plan-phase {NN} --gaps → plans {list}
@@ -182,7 +182,7 @@ Execution: /gsd:execute-phase {NN} --gaps-only（VERIFICATION：{passed / gaps_f
 Fixed:
 - {Gap}「{title}」（source: {VERIFICATION/UAT}）→ plan {NN}-{xx}, commit {hash}
 Not closed:
-- {Gap}「{title}」—— {reason} + 下一步（重跑本模式 / gsx --quick / 人工 / 先重新登记 Gap）
+- {Gap}「{title}」—— {reason} + 下一步（重跑本模式 / gsdspec --quick / 人工 / 先重新登记 Gap）
 
 Write-back: {UAT filename} marked {N} fixed; VERIFICATION.md {已自动复验 / 补丁了 M 条}. Committed as docs({NN}) {hash}.
 ```

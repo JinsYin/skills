@@ -25,6 +25,7 @@
 
 ### Changed
 
+- **gsx 改名为 gsdspec**：目录与 `name` 改为 `gsdspec`，正文、references 中的命令示例与提示同步改为 `gsdspec --<mode>`；description 保留 `gsx` 触发词；`setup-rules` 的 GSD、DevOps 约定及 README 同步新名。
 - **fspec、backport-prototype 改名**：`fspec` 更名为 `write-fspec`，`backport-prototype` 更名为 `backfill-prototype`；产物仍称 fspec，`products/fspec/` 路径与 `CURRENT.md` 的 `generator: fspec` 标记不变；`re-spec`、`setup-rules` 的 Matt、Superpowers、Design 约定及 README 同步改用新名；描述保留 `fspec`、`回补原型`、`backport` 触发词；backfill-prototype 正文动词统一为 backfill，并新增跳过项：`ui-ux-best-practices` 管辖的交互约定（二次确认等）不画进原型
 - **setup-rules 允许模型调用**：移除 `disable-model-invocation`，description 改为同步约定或用户要求配置规则时触发、审阅 `CLAUDE.local.md` 时不触发，使 Skill Workflow 第 7 步可由模型自动执行 `/setup-rules update`；新增自然语言触发 `update` 的 eval。
 - **product-spec 更名为 fspec 并精简**：目录改为 `products/fspec/`，只保留 `/fspec [<prototype>]` 一个入口（原型默认 `products/prototype/`），移除 check、export 与设计工具方言；按上个 V 提交以来的原型 diff 起草增量 V，前端回补并入同一 V，确认后只把该 V 增量合入 `CURRENT.md`，并把原型 CHANGELOG 的 `[Unreleased]` 切为同号的 `[V<n>]`（多产品线为 `[<Line> V<n>]`）；遇旧目录 `products/specs/` 先提议 `git mv` 迁移；evals 与 fixtures 重写。

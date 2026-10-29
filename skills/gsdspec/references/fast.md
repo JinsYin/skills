@@ -28,7 +28,7 @@ git status --short
 
 `/gsd:fast` is only for **trivial** work: one sentence, ≤3 file edits, ≤1 minute, no research, planning or new deps. Assess read-only (Read/Grep/Glob — no guessing). Three exits:
 
-- **Not trivial** (>3 edits, cross-file, needs research / planning / new deps / new components / new routes / architecture) → **escalate to `--quick`**. Tell the user: *"超出 fast 档 —— 更适合 gsx --quick（/gsd:quick --discuss：讨论 + 研究 + 计划校验 + 验证，留 PLAN/SUMMARY）。要切吗？"*
+- **Not trivial** (>3 edits, cross-file, needs research / planning / new deps / new components / new routes / architecture) → **escalate to `--quick`**. Tell the user: *"超出 fast 档 —— 更适合 gsdspec --quick（/gsd:quick --discuss：讨论 + 研究 + 计划校验 + 验证，留 PLAN/SUMMARY）。要切吗？"*
 - **Value-semantics trap** (looks trivial, belongs in the backend) → **escalate to `--quick`**. Anything changing "what the API returns, or how a return value renders as a label": field localization, status in Chinese, enum·code → readable label, amount·date formatting, masking. The correct fix is usually backend (VO/Service/DTO/dict), not a hardcoded Vue map. **Exception**: if read-only inspection confirms this project does that translation purely on the frontend (frontend dict / i18n / label-map), it's pure-frontend trivial and may stay. **When in doubt, escalate.**
 - **Truly trivial** (typo or copy fix, config value, version number, one import or `.gitignore` line, a constant, frontend spacing·color·border-radius, or an already-frontend-owned label translation) → step 2. Frontend or backend both fine, as long as it's genuinely trivial and not one of the two cases above.
 
@@ -43,7 +43,7 @@ Nothing in this tier confirms a change with the user before it lands — that's 
 - **Clean tree** (`DIRTY_FILES` empty) → nothing to sweep; go to step 2.
 - **Dirty, no overlap** (`TARGET_FILES ∩ DIRTY_FILES = ∅` **and** target files confidently known) → **don't ask**. Park the unrelated changes so the run commits only this change's files:
   ```bash
-  git stash push -u -m "gsx-fast-preserve-${BASELINE}"
+  git stash push -u -m "gsdspec-fast-preserve-${BASELINE}"
   ```
   **Record `STASH=yes` in the conversation** and `git stash pop` on every exit (see the parked-changes rule). Go to step 2.
 - **Dirty with overlap, or target files uncertain** → this change can't be cleanly isolated. `AskUserQuestion` (header `Dirty tree`): *"待修改文件与未提交变更重叠（或无法确定改动范围）—— /gsd:fast 会用 git add -A 一并提交。先 stash/commit 再来？"* Options:
@@ -66,7 +66,7 @@ There's no task_dir or slug to identify, so check commits:
 git log "${BASELINE}..HEAD" --oneline
 ```
 
-- **0 commits** → it likely judged the work not trivial / suggested `/gsd:quick`, or there was nothing to change. **If `STASH=yes`, `git stash pop` first.** Relay: *"/gsd:fast 没有产生 commit（多半超出琐碎范围）。HEAD 未变。要切到 gsx --quick 吗？"*, then stop (step 8's no-change exit).
+- **0 commits** → it likely judged the work not trivial / suggested `/gsd:quick`, or there was nothing to change. **If `STASH=yes`, `git stash pop` first.** Relay: *"/gsd:fast 没有产生 commit（多半超出琐碎范围）。HEAD 未变。要切到 gsdspec --quick 吗？"*, then stop (step 8's no-change exit).
 - **≥1** → show the commit list (hash + subject), go to step 4.
 
 ## 4 — Interactive prompt
@@ -86,7 +86,7 @@ git log "${BASELINE}..HEAD" --oneline
 3. **Call again**: `Skill("gsd:fast", args=this round's tweak)`
 4. **Return to step 3** — re-check `git log BASELINE..HEAD`, ask "Continue?" again.
 
-No hard cap, but after every 3 rounds without convergence, prompt: *"已经 3 轮了 —— 反复多轮往往说明它并不琐碎。继续 / squash 当前状态 / 全部撤销 / 切到 gsx --quick？"*
+No hard cap, but after every 3 rounds without convergence, prompt: *"已经 3 轮了 —— 反复多轮往往说明它并不琐碎。继续 / squash 当前状态 / 全部撤销 / 切到 gsdspec --quick？"*
 
 ## 6 — Squash close-out (satisfied path)
 
@@ -112,7 +112,7 @@ git checkout "${BASELINE}" -- .planning/STATE.md 2>/dev/null || true
 git add -A
 git commit -m "{type}: {subject}
 
-Squashed N fast-edits (gsx --fast):
+Squashed N fast-edits (gsdspec --fast):
 - {commit1 hash} {commit1 subject}
 - {commit2 hash} {commit2 subject}
 - ..."
@@ -133,7 +133,7 @@ Only when `.planning/STATE.md` has the "Quick Tasks Completed" table (5 columns 
 - Commit this row separately, keeping the code commit's hash clean:
   ```bash
   git add .planning/STATE.md
-  git commit -m "docs(state): log gsx --fast {short summary}"
+  git commit -m "docs(state): log gsdspec --fast {short summary}"
   ```
 
 No STATE.md or no such table → **silently skip**.
@@ -160,7 +160,7 @@ This reverts all tracked changes after the baseline, including the STATE.md rows
 
 **Satisfied (squash):**
 ```
-## gsx --fast — Done
+## gsdspec --fast — Done
 Change:       {problem}
 Iterations:   first call + {N-1} tweaks
 Commits:      {N} → squashed into 1
@@ -170,15 +170,15 @@ STATE.md:     added 1 fast row (if the table exists)
 
 **Undo:**
 ```
-## gsx --fast — Undone
+## gsdspec --fast — Undone
 Change: {problem}
 Discarded {N} commits; HEAD restored to start: {BASELINE short}
 ```
 
 **No-change exit:**
 ```
-## gsx --fast — Aborted (no changes)
+## gsdspec --fast — Aborted (no changes)
 Change: {problem}
 /gsd:fast produced no commit (likely exceeds trivial scope); HEAD unchanged: {BASELINE short}
-（需要的话可以切到 gsx --quick。）
+（需要的话可以切到 gsdspec --quick。）
 ```
