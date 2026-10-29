@@ -1,9 +1,22 @@
 # Eval run log
 
+## 2026-10-29: polish + compress before step-1 eval run; skip `timing.json`; invariant expectations (#38)
+
+- Matrix: with-skill only on evals 0, 1, 3 (the evals whose runs execute step 1), `claude-sonnet-5-5` at `effort: high`; no-skill rows cached. Graded by script from `actions.md` and project state.
+- Totals: 18/18; no regression. Eval 0 gains an expectation (draft polished and compressed before eval dispatches), cached no-skill fails it (no dispatches).
+
+| Eval | write-great-skill | No skill |
+|---|---|---|
+| 0 new-skill-user-gate | 7/7 | 2/7 (cached) |
+| 1 edit-skill-reuses-baselines | 5/5 | 3/5 (cached) |
+| 3 skill-triggered-defers-sync | 6/6 | 5/6 (cached) |
+
+- Eval 3 first run 5/6: executor read the harness's no-nested-subagents limit as license to ship inline. Unchanged Ship text; one confirming rerun delegated Ship correctly, so recorded as flake.
+
 ## 2026-10-29: verify after polish + compress, `effort: high`
 
 - Matrix: with-skill only on all evals (compression touched every section), `claude-sonnet-5-5` at `effort: high`; no-skill rows cached from the initial run. Graded by one grader subagent, eval 2 regraded by script.
-- Totals: 26/26; no regression. Cost: 5 executors 292k (53–62k each, 24–77 s), grader 63k.
+- Totals: 26/26; no regression. Cost (cumulative input, session transcript): 5 executors ≈1.5M, grader 0.28M.
 
 | Eval | write-great-skill | No skill |
 |---|---|---|
@@ -18,7 +31,7 @@
 ## 2026-10-29: subagents pinned to `effort: medium`
 
 - Matrix: with-skill only on evals 0 and 2 (the evals covering dispatch and Ship text), `claude-sonnet-5-5` at `effort: medium`; no-skill rows cached from the initial run below. Graded by script.
-- Totals: 11/11 on rerun evals; no regression. Cost: 2 executors 112k (55–56k each, 22–31 s).
+- Totals: 11/11 on rerun evals; no regression. Cost (cumulative input, session transcript): 2 executors 0.47M (0.21–0.26M each).
 
 | Eval | write-great-skill | No skill |
 |---|---|---|
@@ -29,7 +42,7 @@
 
 - Matrix: write-great-skill vs no skill, subagent runs on `claude-sonnet-5-5`, one run per configuration; fixtures from `evals/files/init.sh <scenario>`. Executors could not spawn nested subagents, so a dispatch logged in `actions.md` with its model counts as the dispatch.
 - Totals: write-great-skill 26/26; no skill 15/26; delta +42 pp.
-- Cost: 10 executors 578k tokens (52–69k each, 23–65 s), 1 grader 76k.
+- Cost (cumulative input, session transcript): 10 executors ≈3.0M (0.2–0.47M each), grader 0.64M. Earlier figures here came from task-notification `total_tokens`, which counts only final context.
 
 | Eval | write-great-skill | No skill |
 |---|---|---|
