@@ -11,7 +11,7 @@
 
 - Store prototypes in `products/prototype/` and UI designs in `products/design/`; read `products/prototype/` only when changing a prototype.
 - The `stitch-extract-design-md` skill MUST extract `DESIGN.md` from `products/prototype/` into `products/design/`, except in a `restyle` app (per `.design-to-code/progress.md`): its `DESIGN.md` is authored, never re-extracted; new looks are designed in it directly, and the prototype carries structure only.
-- MUST record or consolidate every addition or change to the product prototype in `products/prototype/CHANGELOG.md`.
+- MUST record or consolidate every addition or change to product prototype under `## [Unreleased]` in `products/prototype/CHANGELOG.md`, per Keep a Changelog; with several product lines, prefix each entry `**<Line>**：`. `fspec` cuts it to `## [V<n>] - <date>` (several lines: `[<Line> V<n>]`) when its V<n> goes active, so prototype and spec versions match.
 
 ### Images & Brand Assets
 
@@ -21,13 +21,12 @@
 
 ### Post-Build Changes
 
-- Once `design-to-code` has built the app, record every new feature with `product-spec add` first.
-- A new page, or a look `DESIGN.md` lacks, goes prototype → `DESIGN.md` → `design-to-code`; any other UI change goes straight into the code, leaving the prototype untouched.
-- Before that chain starts, backport into `products/prototype/`, in one pass, everything the landed frontend shows and the prototype lacks, logged as a backport in its `CHANGELOG.md`.
+- A new page, or a look `DESIGN.md` lacks, goes prototype → `fspec` → `DESIGN.md` → `design-to-code`; any other UI change goes straight into the code, leaving prototype and `fspec` untouched until backported.
+- Backport into `products/prototype/`, in one pass, everything landed frontend shows and prototype lacks, logged as backport in its `CHANGELOG.md`, then run that chain. Before new page or look, backport first, so one `fspec` V records both.
 - Plans only swap data implementations, wire APIs and add guards (hiding or disabling existing elements) and never touch classes, variants, tokens, layout or copy; `scripts/visual-freeze.sh` MUST pass on every plan branch, and a visual need found mid-plan stops the task and routes as above.
 - A page may ship on mock until its backend is ready; taking it live replaces its `src/api/` forwarder and deletes the mock twin in the same task.
 
 ### Commit & Retrospective
 
-- Commit after `stitch-extract-design-md` or `design-to-code`.
+- Commit after `stitch-extract-design-md`, `fspec` or `design-to-code`.
 - Once `design-to-code` finishes and commits, invoke `self-improve`.
