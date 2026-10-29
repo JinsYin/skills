@@ -1,6 +1,6 @@
 ---
 name: devops-best-practices
-description: 容器化与部署的工程规范。涵盖 Dockerfile 多阶段与非 root、K8s/Kustomize/Helm 的探针与安全上下文、凭据不入库、docker compose 的 profile 与健康检查、CI 流水线的事件作用域与 tag 策略、process-compose 的进程生命周期。在编写或审查 Dockerfile、docker-compose.yml、process-compose.yml、CI 流水线配置、K8s 清单、Helm chart、部署脚本时使用——尤其是新增服务、调整探针、处理镜像 tag 与环境差异、或往仓库里加任何含凭据的配置时。
+description: "Rules and playbooks for local dev env and delivery chain: Dockerfile, docker-compose.yml, process-compose.yml, Drone `.drone.yml`, Kubernetes Kustomize + Helm kept in parity, and `deploy/README.md` delivery facts. Use when writing, reviewing or planning any of these; when a task adds a database, cache, MQ or runnable process; when backfilling a missing dev env in an existing project; when planning or running a delivery phase (containerize, set up CI, deploy to k8s, release); or when adding a module, port, env var, config key or secret to a project that already has these files — even if no file is named."
 license: MIT
 metadata:
   author: JinsYin
@@ -9,7 +9,7 @@ metadata:
 
 # DevOps Best Practices
 
-容器化与部署的规范集，26 条规则分 6 类，按**违反后果**排序。
+容器化与部署的规范集，28 条规则分 6 类，按**违反后果**排序。
 
 ## 如何使用本 skill
 
@@ -30,11 +30,22 @@ rules/deploy-three-probes.md
 | `docker-compose.yml` | `compose-*` |
 | `process-compose.yml` | `proc-*` |
 | CI 流水线配置 | `ci-*`、`secret-ci-from-store-only` |
-| K8s 清单 / Kustomize overlay / Helm chart | `deploy-*`、`secret-*` |
+| K8s 清单 / Kustomize overlay / Helm chart | `deploy-*`、`secret-*`、`deploy/README.md` |
 | 新增一个服务（端到端） | `image-*` + `deploy-*` + `ci-tag-strategy-single-source` |
 | 任何含凭据的文件 | `secret-*`（全部，只有 3 条） |
 | 排查"构建成功但部署跑的是旧版本" | `ci-tag-strategy-single-source`、`deploy-no-latest-in-prod` |
 | 排查"本地好的、产线不对" | `image-tz-explicit`、`image-entrypoint-exec-form-env`、`image-nonroot-explicit-uid` |
+
+## Playbooks
+
+Read before acting, not only before editing file:
+
+| Situation | Read |
+|---|---|
+| First task needing a dependency or runnable process; project runs code but lacks `docker-compose.yml` or `process-compose.yml` | `references/dev-env.md` |
+| Delivery phase/spec (containerize, CI, deploy, release); new deployable module; any change to a project that already has delivery files | `references/delivery.md` |
+
+Project-specific facts (registries, secret names, environments) come from its `deploy/README.md`; missing → ask, never invent.
 
 ## 这类规范的共性
 
@@ -49,11 +60,11 @@ rules/deploy-three-probes.md
 | 优先级 | 分类 | 影响 | 前缀 | 条数 |
 |---|---|---|---|---|
 | 1 | 镜像构建 | CRITICAL | `image-` | 7 |
-| 2 | 部署清单 | CRITICAL | `deploy-` | 5 |
+| 2 | 部署清单 | CRITICAL | `deploy-` | 6 |
 | 3 | 凭据与配置 | CRITICAL | `secret-` | 3 |
 | 4 | 本地依赖编排 | HIGH | `compose-` | 4 |
 | 5 | CI 流水线 | HIGH | `ci-` | 4 |
-| 6 | 本地进程编排 | MEDIUM | `proc-` | 3 |
+| 6 | 本地进程编排 | MEDIUM | `proc-` | 4 |
 
 ## 规则索引
 
@@ -71,6 +82,7 @@ rules/deploy-three-probes.md
 
 - `deploy-base-overlay-diff-only` — overlay 只放差量，复制整份清单会让 base 的修复不再传播
 - `deploy-config-secret-split` — 敏感值进 Secret；ConfigMap 明文出现在 `kubectl describe` 里
+- `deploy-kustomize-helm-parity` — Kustomize and Helm render the same resources and keys per env; check with `scripts/k8s-parity.py`
 - `deploy-no-latest-in-prod` — 生产用确定 tag，否则回滚回退了清单却拉到同一个镜像
 - `deploy-securitycontext-match-image` — `runAsUser` 必须等于镜像内创建的 UID，否则挂载卷写不进去
 - `deploy-three-probes` — 慢启动用 `startupProbe`，调大 liveness 的 `initialDelay` 会让故障期同样延迟发现
@@ -97,6 +109,7 @@ rules/deploy-three-probes.md
 
 ### 6. 本地进程编排（MEDIUM）
 
+- `proc-deps-via-compose-wait` — process-compose is the only start command; its one-shot `deps` runs `docker compose up --wait`
 - `proc-guard-before-start` — 易错前提写成守护进程而非文档；违反后的症状通常远离根因
 - `proc-no-hardcoded-host-paths` — 不写死 `JAVA_HOME` 等本机路径，该文件是入库的
 - `proc-oneshot-restart-no` — 一次性进程必须 `restart:"no"`，否则成功退出后被无限拉起

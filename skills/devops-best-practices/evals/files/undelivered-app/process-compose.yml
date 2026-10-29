@@ -1,0 +1,18 @@
+version: "0.5"
+processes:
+  deps:
+    command: "docker compose up --wait --wait-timeout 180"
+    availability:
+      restart: "no"
+  backend:
+    command: "mvn spring-boot:run"
+    working_dir: "./backend"
+    depends_on:
+      deps:
+        condition: process_completed_successfully
+  frontend:
+    command: "pnpm dev"
+    working_dir: "./frontend"
+    depends_on:
+      backend:
+        condition: process_started

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-config
+data:
+  DB_HOST: postgres
+  REDIS_HOST: redis

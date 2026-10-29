@@ -1,0 +1,8 @@
+# Start deps first: docker compose up -d
+version: "0.5"
+processes:
+  backend:
+    command: "mvn spring-boot:run"
+    working_dir: "./backend"
+    environment:
+      - "JAVA_HOME=/Users/alice/.sdkman/candidates/java/21.0.4-tem"

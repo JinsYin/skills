@@ -8,6 +8,7 @@
 
 ### Added
 
+- **devops-best-practices 开发环境与交付链路 playbook**：新增 `references/dev-env.md`，首个依赖随任务同时建 `docker-compose.yml` 与 `process-compose.yml`，已有项目缺任一文件时先凭证据盘点依赖与进程、给出补齐方案并询问先补还是跳过；新增 `references/delivery.md`，交付链路独立成 phase/spec，先访谈再把事实写入 `deploy/README.md`，按 `deploy/` 布局产出 Dockerfile、Drone、Kustomize 与 Helm。新增规则 `deploy-kustomize-helm-parity`（两套部署逐环境渲染一致，附 `scripts/k8s-parity.py` 只比对 key 不比对值）与 `proc-deps-via-compose-wait`（`process-compose up -D` 为唯一入口，一次性 `deps` 执行 `docker compose up --wait`）；description 扩展触发场景，并补充 evals。
 - **backport-prototype**：新增技能，逐页全量结构比对已上线前端与 `products/prototype/`，一次性回补前端有、原型缺的页面、字段、操作与文案；跳过数据接线、DESIGN.md 或 `progress.md` 认可的视觉差异（restyle 应用跳过全部视觉），权限守卫只记为 `fspec` 前置条件素材；原型独有内容若为待开发项则保留，否则询问是否已在代码中移除；条目以「回补已上线前端：」记入原型 CHANGELOG 的 `[Unreleased]`，多产品线加 `**<Line>**：` 前缀，最后提示 `/fspec products/prototype/`。
 - **re-spec**：新增技能，依据新确认的 fspec V 文件修订需求 spec，支持 matt 本地 `.scratch/<feature>/spec.md`、GitHub Issue（经 `gh`）与 superpowers `SPEC.md`；对齐用户故事、决策与 Out of Scope，沿用 fspec 术语，界面细节只引用 `CURRENT.md` 不复制，回补条目与 Testing Decisions 不动；V 仍为 draft 时停下，无新 V 时报告已对齐；写入前先确认改动清单（用户预先授权则先写无歧义改动再提问），可在新会话运行，必要时回原 `/to-spec` 或 `/brainstorming` 会话。
 - **setup-rules 约定接入 backport-prototype 与 re-spec**：Matt 规格流水线以 `/backport-prototype`、`/re-spec <spec>` 取代手工回补与修订 spec，所有步骤默认开新会话；Design 约定回补走 `backport-prototype`、新页面链路加入 `re-spec`，两者完成后提交；Superpowers 约定 UI 里程碑在 `reviewed` 与 `writing-plans` 之间走原型 → `fspec` → `re-spec` → `stitch-extract-design-md` → `design-to-code`。

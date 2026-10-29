@@ -1,0 +1,9 @@
+namespace: shop
+image:
+  repository: harbor.example.internal/shop/backend
+  tag: latest
+config:
+  DB_HOST: postgres
+  REDIS_HOST: redis
+secrets:
+  create: true

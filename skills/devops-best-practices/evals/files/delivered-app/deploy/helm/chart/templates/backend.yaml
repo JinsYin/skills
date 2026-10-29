@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop-backend}
+  template:
+    metadata:
+      labels: {app: shop-backend}
+    spec:
+      containers:
+        - name: backend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports: [{containerPort: 8080}]
+          envFrom:
+            - configMapRef: {name: shop-config}
+            - secretRef: {name: shop-secret}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-backend
+spec:
+  selector: {app: shop-backend}
+  ports: [{port: 8080, targetPort: 8080}]

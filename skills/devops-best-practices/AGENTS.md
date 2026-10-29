@@ -1,7 +1,7 @@
 # DevOps Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-08-12 00:07:47
+> 生成时间：2026-10-29 07:42:42
 
 ## 1. 镜像构建
 
@@ -245,6 +245,40 @@ envFrom:
 用 `envFrom` 整体注入而非逐条 `env: - name/valueFrom`：新增一个配置项时只改 ConfigMap，不必同步改每个 Deployment——后者极易漏改其中一个服务，且漏改不报错，只是那个服务读到空值。
 
 Secret 的清单文件本身**不入库**（见 `secret-never-commit-real`），仓库里只保留 `secret.example.yaml`。
+
+
+### Kustomize and Helm render the same resources for every environment
+
+`deploy/k8s/` (Kustomize) and `deploy/helm/chart/` (Helm) = two renderings of one deployment. Env var, config key or Secret key added to one track deploys fine there; other track ships without it, and Pod fails or silently falls back to default only in envs deployed by that tool.
+
+Map tracks one-to-one:
+
+| Kustomize | Helm |
+|---|---|
+| `k8s/base/<resource>.yaml` | `helm/chart/templates/<resource>.yaml` |
+| `k8s/overlays/<env>/` | `helm/chart/values-<env>.yaml` |
+| env set under `overlays/` | env set of `values-*.yaml` |
+
+**Wrong** — key added to one track only:
+
+```yaml
+# deploy/k8s/base/configmap.yaml
+data:
+  TZ: Asia/Shanghai        # helm/chart/templates/configmap.yaml never got it
+```
+
+**Right** — same task edits both, then verifies:
+
+```bash
+python3 deploy/scripts/k8s-parity.py              # all envs; exit 0 = in parity
+python3 deploy/scripts/k8s-parity.py --env uat    # one env
+```
+
+Script ships with this skill as `scripts/k8s-parity.py`; copy into project's `deploy/scripts/` so CI and every agent run it. Renders both tracks per env, compares Kind/name sets, ConfigMap and Secret keys (never values), each container's env names and ports.
+
+Change aimed at one track = change to deployment: make both tracks agree. E.g. ops taking over prod Secret → `secrets.create: false` in `values-prod.yaml` **and** `$patch: delete` for that Secret in `overlays/prod/`; else `kubectl apply -k` overwrites real Secret with placeholders.
+
+`--ignore [ENV:]Kind/name` = last resort for difference one tool cannot express; record each with reason under `deploy/README.md` "Parity exceptions".
 
 
 ### 生产环境不用 latest，镜像 tag 必须确定
@@ -608,6 +642,37 @@ images:
 **生产侧的版本号应由发版脚本统一 bump**，不要人工在多个文件里各改一遍——服务数量一多，漏改一个的概率接近必然。若同时维护 Kustomize 与 Helm 两套清单，两者的版本必须一起改，并在文档里点明这个联动关系。
 
 ## 6. 本地进程编排
+
+
+### process-compose is the single entrypoint and starts docker compose first
+
+Two start commands (`docker compose up -d`, then `process-compose up`) → someone eventually runs only second: backend boots against absent database, error points at connection pool, not missing step. Agents especially start whatever last README line says.
+
+`process-compose.yml` = only entrypoint. First process brings deps up, waits until healthchecks pass; every app process gates on it.
+
+```yaml
+processes:
+  deps:
+    # --wait (implies -d) blocks until every service healthcheck passes (rule compose-healthcheck-start-period);
+    # --wait-timeout turns a dependency that never gets healthy into a failure instead of a hang
+    command: "docker compose up --wait --wait-timeout 180"
+    availability:
+      restart: "no"          # one-shot (rule proc-oneshot-restart-no)
+
+  backend:
+    command: "./mvnw spring-boot:run"
+    depends_on:
+      deps:
+        condition: process_completed_successfully
+```
+
+```bash
+process-compose up -D      # whole stack, detached
+process-compose down       # app processes only; dependency containers keep running
+docker compose down        # stop dependencies explicitly (never -v unless resetting data)
+```
+
+Deps long-lived: `deps` defines no `shutdown` command, so `process-compose down` leaves containers and data running; next `up` fast. `--wait` treats service without `healthcheck` as ready once container runs, so app may connect before service accepts connections; give every default service healthcheck.
 
 
 ### 易错的启动前提写成守护进程，而不是写进文档

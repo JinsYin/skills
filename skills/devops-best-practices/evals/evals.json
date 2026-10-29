@@ -1,0 +1,155 @@
+{
+  "skill_name": "devops-best-practices",
+  "evals": [
+    {
+      "id": 0,
+      "name": "backfill-detected-asks-first",
+      "prompt": "给商品列表接口加个按价格排序的参数，改完在本地跑起来验证一下。",
+      "expected_output": "legacy-app has Postgres + Redis in application.yml and manual README run steps but no docker-compose.yml/process-compose.yml. Before coding, the agent detects the gap, presents a backfill plan (deps and processes tables citing evidence files, files to create, verification) and asks whether to backfill first or skip, writing no dev-env file before the answer.",
+      "files": [
+        "evals/files/legacy-app/"
+      ],
+      "expectations": [
+        "Notices that docker-compose.yml and process-compose.yml are missing before or instead of starting services by hand",
+        "Presents a dependency inventory listing postgres and redis, each citing application.yml or README as evidence",
+        "Presents a process inventory listing backend and frontend with their ports (8080, 5173)",
+        "Asks the user to choose between backfilling first and skipping, where the backfill covers both docker-compose.yml and process-compose.yml",
+        "Creates neither docker-compose.yml nor process-compose.yml before the user answers"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "backfill-skipped-continues",
+      "prompt": "给商品列表接口加个按价格排序的参数。本地开发环境缺的那些 compose 文件这次先不补，跳过。",
+      "expected_output": "Same legacy-app; the user has already answered skip. The agent does the feature without creating dev-env files and without re-asking the backfill question.",
+      "files": [
+        "evals/files/legacy-app/"
+      ],
+      "expectations": [
+        "Does not create docker-compose.yml or process-compose.yml",
+        "Does not ask again whether to backfill the dev env",
+        "Proceeds with the sorting change in the backend code"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "direct-dev-env-request-single-entrypoint",
+      "prompt": "这个老项目本地起起来太麻烦了，每次手动起 postgres、redis 再分别起前后端。帮我把本地开发环境整理好。",
+      "expected_output": "legacy-app: the request itself authorizes the backfill, so no backfill-or-skip question. Creates docker-compose.yml (postgres 16 + redis 7 with healthchecks, parameterized ports, .env.example) and process-compose.yml whose one-shot deps process runs `docker compose up --wait`, with backend gated on it; README run steps become a single `process-compose up -D`.",
+      "files": [
+        "evals/files/legacy-app/"
+      ],
+      "expectations": [
+        "Does not ask whether to backfill or skip",
+        "docker-compose.yml gives both postgres and redis a healthcheck",
+        "docker-compose.yml parameterizes host ports or image tags with defaults and an .env.example exists",
+        "process-compose.yml has a deps process running `docker compose up` with `--wait` and `restart: \"no\"`",
+        "The backend process depends on deps with condition `process_completed_successfully`",
+        "README's local run instructions use `process-compose up -D` as the single start command",
+        "Neither file hardcodes a machine-specific path such as JAVA_HOME"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "first-dependency-creates-dev-env",
+      "prompt": "订单列表接口太慢了，加个 Redis 缓存吧，本地开发要能直接起起来。",
+      "expected_output": "no-deps-api runs code but has no dependency yet. Adding Redis is the first dependency, so the same change creates docker-compose.yml (redis with healthcheck) and process-compose.yml (deps one-shot + backend gated on it) without a separate backfill prompt, and updates README to `process-compose up -D`.",
+      "files": [
+        "evals/files/no-deps-api/"
+      ],
+      "expectations": [
+        "Creates docker-compose.yml with a redis service that has a healthcheck",
+        "Creates process-compose.yml in the same change, not only docker-compose.yml",
+        "process-compose.yml starts dependencies through a one-shot deps process using `docker compose up --wait`",
+        "Does not stop to ask a backfill-or-skip question",
+        "README run instructions are updated to `process-compose up -D`"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "delivery-interview-blocks-on-missing-facts",
+      "prompt": "这个服务要上 k8s 了，帮我把 Dockerfile、Drone 流水线和部署清单都搞起来。",
+      "expected_output": "undelivered-app has no deploy/ and no delivery facts. The agent runs the delivery interview first — registry, Drone secret names, environments/namespaces, tag strategy, node arch, secret ownership, runtime UID — and does not write delivery files with invented registry hosts or secret names. It states that facts will be recorded in deploy/README.md and that both Kustomize and Helm will be produced.",
+      "files": [
+        "evals/files/undelivered-app/"
+      ],
+      "expectations": [
+        "Asks for the target image registry, and every registry host in the reply is either the user's to fill in or explicitly labelled as an example",
+        "Asks which Drone secret names exist instead of inventing them",
+        "Asks for the environment list or namespaces and the image tag strategy",
+        "Writes no .drone.yml or k8s manifest containing an invented registry host or secret name",
+        "States that the answers will be recorded in deploy/README.md",
+        "Plans both Kustomize (deploy/k8s) and Helm (deploy/helm/chart) rather than one of them"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "delivery-skeleton-from-facts",
+      "prompt": "按 deploy/README.md 把后端的交付链路搭起来：镜像、Drone、k8s 部署都要。",
+      "expected_output": "delivery-facts-app has complete facts. The agent builds deploy/docker/Dockerfile.backend, .drone.yml, deploy/k8s base + uat/prod overlays and deploy/helm/chart with values-uat/values-prod, omits the prod Secret from both tracks (ops-owned), copies k8s-parity.py into deploy/scripts and runs it, using only the facts given.",
+      "files": [
+        "evals/files/delivery-facts-app/"
+      ],
+      "expectations": [
+        "Dockerfile is at deploy/docker/Dockerfile.backend, multi-stage, and runs as UID 10001",
+        "Dockerfile base images are parameterized to the harbor.example.internal/mirror registry via ARG",
+        ".drone.yml builds with the kaniko plugin (pulled directly or via the harbor mirror) and references only harbor_username and harbor_password via from_secret",
+        "Every .drone.yml build step restricts when.event to push and/or tag",
+        "prod image tags come from the git tag (DRONE_TAG), never `latest`",
+        "Both deploy/k8s/overlays/{uat,prod} and deploy/helm/chart/values-{uat,prod}.yaml exist",
+        "Probes include a startupProbe for the ~60s slow start rather than a large liveness initialDelaySeconds",
+        "Since ops applies shop-secret in prod, neither the prod Kustomize render nor the prod Helm render contains it, and parity passes without `--ignore`",
+        "deploy/scripts/k8s-parity.py exists and the agent runs it, reporting exit code 0",
+        "Does not push images or apply manifests to a cluster without asking"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "new-config-key-both-tracks",
+      "prompt": "后端新增一个配置 PAYMENT_TIMEOUT_MS，默认 3000，各环境都要能单独配。",
+      "expected_output": "delivered-app has Kustomize and Helm in parity. The agent adds the key to application.yml, the Kustomize ConfigMap (base, with per-env overrides possible in overlays) and the Helm config values (values.yaml, overridable per values-<env>.yaml) in the same change, and runs deploy/scripts/k8s-parity.py to confirm parity.",
+      "files": [
+        "evals/files/delivered-app/"
+      ],
+      "expectations": [
+        "Adds PAYMENT_TIMEOUT_MS to deploy/k8s/base/configmap.yaml or a Kustomize overlay",
+        "Adds PAYMENT_TIMEOUT_MS to the Helm chart values so the Helm-rendered ConfigMap contains it",
+        "Adds a per-env override for the key in both tracks: a Kustomize overlay patch and a values-<env>.yaml entry, for uat and prod",
+        "Runs deploy/scripts/k8s-parity.py (or the skill's k8s-parity.py) after the change and reports its result",
+        "Does not put the value into a Secret"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "secret-ownership-change-both-tracks",
+      "prompt": "prod 的 shop-secret 以后由运维手工 apply，helm 那边 prod 不要再渲染这个 Secret 了。",
+      "expected_output": "delivered-app: ops takes over prod shop-secret. The agent sets secrets.create false in values-prod.yaml AND removes the Secret from the prod Kustomize render (e.g. `$patch: delete` in overlays/prod), so `kubectl apply -k` cannot overwrite the real Secret; parity passes without `--ignore`; deploy/README.md's prod Secret owner is updated.",
+      "files": [
+        "evals/files/delivered-app/"
+      ],
+      "expectations": [
+        "Sets secrets.create to false in deploy/helm/chart/values-prod.yaml",
+        "Removes shop-secret from the prod Kustomize render as well, while uat still renders it",
+        "k8s-parity.py passes for prod and uat without any `--ignore` flag, and no parity exception is added to deploy/README.md",
+        "Updates the prod Secret owner in deploy/README.md's environments table"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "review-dev-env-config",
+      "prompt": "帮我 review 一下这个项目的本地开发环境配置，有问题列出来就行，先别改。",
+      "expected_output": "delivered-app's docker-compose.yml has no healthchecks, hardcoded ports, and an unneeded platform: linux/amd64 on redis; process-compose.yml hardcodes JAVA_HOME and relies on a separate docker compose command. The agent lists these against the rules without editing files.",
+      "files": [
+        "evals/files/delivered-app/"
+      ],
+      "expectations": [
+        "Flags the missing healthchecks on postgres and redis",
+        "Flags `platform: linux/amd64` on redis as unnecessary since the image has native arm64",
+        "Flags the hardcoded JAVA_HOME path in process-compose.yml",
+        "Flags the two-command start and recommends a one-shot deps process running `docker compose up --wait`",
+        "Flags hardcoded host ports or image tags without parameterization",
+        "Edits no file"
+      ]
+    }
+  ]
+}

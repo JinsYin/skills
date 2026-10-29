@@ -1,0 +1,21 @@
+# Default: postgres + redis. Ports/tags via .env (see .env.example).
+services:
+  postgres:
+    image: postgres:${POSTGRES_TAG:-16}
+    ports: ["${POSTGRES_HOST_PORT:-5432}:5432"]
+    environment:
+      POSTGRES_USER: shop
+      POSTGRES_PASSWORD: CHANGE_ME
+      POSTGRES_DB: shop
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shop -d shop"]
+      interval: 5s
+      retries: 20
+      start_period: 30s
+  redis:
+    image: redis:${REDIS_TAG:-7}
+    ports: ["${REDIS_HOST_PORT:-6379}:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
