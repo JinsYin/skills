@@ -20,7 +20,7 @@ Workflow requires an interactive interview: ask, wait, clarify, and confirm the 
 | skillsw | `assets/skillsw` | `skillsw` (project root, executable) | independently selectable |
 | Sensitive-file restrictions | `references/sensitive-file-access.md` | native Agent configuration | default set plus optional extras |
 
-Convention order is fixed: core → design → vibecoding → ponytail → karpathy → gsd → matt → superpowers. Skip unselected files.
+Convention order is fixed: core → design → vibecoding → ponytail → karpathy → devops → gsd → matt → superpowers. Skip unselected files.
 
 Convention files:
 
@@ -29,6 +29,7 @@ Convention files:
 - `assets/conventions/vibecoding.md`
 - `assets/conventions/ponytail.md`
 - `assets/conventions/karpathy.md`
+- `assets/conventions/devops.md`
 - `assets/conventions/gsd.md`
 - `assets/conventions/matt.md`
 - `assets/conventions/superpowers.md`
@@ -58,7 +59,7 @@ The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the pr
 
 **1. Locate project root.** Git root, else working directory; user-given path wins.
 
-**2. Start the interview with Core.** Print `assets/conventions/core.md` in full. Ask whether to include optional conventions (Design, Vibecoding, Ponytail, Karpathy, GSD, Matt and Superpowers), briefly summarize each, and offer GSD/Superpowers only when used. Wait for the response.
+**2. Start the interview with Core.** Print `assets/conventions/core.md` in full. Ask whether to include optional conventions (Design, Vibecoding, Ponytail, Karpathy, DevOps, GSD, Matt and Superpowers), briefly summarize each, and offer GSD/Superpowers only when used. Wait for the response.
 
 **3. Ask about Cursor general-purpose.** Independently ask whether to install `assets/adapters/cursor/agents/general-purpose.md` to `.cursor/agents/general-purpose.md`.
 

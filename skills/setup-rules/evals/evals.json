@@ -87,6 +87,7 @@
       "expectations": [
         "Prints the full text of `assets/conventions/core.md`",
         "Asks about optional conventions with a one-line summary each",
+        "Offers DevOps among the optional conventions with a one-line summary covering local dev env and delivery chain",
         "Asks at most four questions in a round",
         "Writes no files before the manifest is confirmed"
       ]
@@ -139,6 +140,22 @@
         "Asks the user no question and requests no confirmation",
         "`CLAUDE.local.md` equals current `core.md` + `karpathy.md` concatenated, followed by the `## Team Notes` section",
         "Does not install agents, adapters or conventions that were not already present"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "update-places-devops-in-order",
+      "prompt": "/setup-rules update",
+      "expected_output": "CLAUDE.local.md has current Core, current GSD, a stale DevOps section placed after GSD, current Karpathy and an unmatched Team Notes. Update rebuilds it in fixed order core → karpathy → devops → gsd with DevOps refreshed from assets, keeps Team Notes last, and asks nothing.",
+      "files": [
+        "evals/files/devops-update-project/"
+      ],
+      "expectations": [
+        "Asks the user no question and requests no confirmation",
+        "Recognizes `## DevOps` as the installed devops convention rather than an unmatched section",
+        "`CLAUDE.local.md` equals current `core.md` + `karpathy.md` + `devops.md` + `gsd.md` concatenated, followed by the `## Team Notes` section",
+        "The stale DevOps lines (`Keep Helm chart under helm/`) are gone",
+        "Does not add Matt, Superpowers or any other convention not already present"
       ]
     }
   ]
