@@ -44,3 +44,21 @@ Eval ids below predate the 2026-10-28 renumbering.
 - Eval 2: the fspec run read V1's first 9 lines for the version precondition; the expectation now allows frontmatter-only reads.
 - Removed on user request, both non-discriminating: `stale-locator-stops` and `multi-line-confirm-cuts-line-version`. Rule 3 and the multi-line cut have no eval.
 - Not yet measured, by user decision: eval 7 (its first run hit the usage limit), the switch to `/fspec [<prototype>]`, and the writing-for-agents and compression edits.
+
+## 2026-10-29: `/fspec [<prototype>]`, polished and compressed text
+
+- Change: argument is the prototype path (default `products/prototype/`); writing-for-agents and compression edits. Matrix as above, all 8 evals.
+- Totals: fspec 43/43; no skill 16/43; delta +63 percentage points. No regressions.
+
+| Eval | fspec | No skill |
+|---|---|---|
+| 0 greenfield-baseline-from-prototype | 9/9 | 2/9 |
+| 1 incremental-change-with-backport | 9/9 | 1/9 |
+| 2 confirmed-draft-merges-incrementally | 8/8 | 5/8 |
+| 3 multi-line-asks-which-line | 3/3 | 0/3 |
+| 4 legacy-dir-proposes-migration | 3/3 | 1/3 |
+| 5 no-prototype-change-writes-nothing | 3/3 | 2/3 |
+| 6 stale-current-full-replay | 5/5 | 3/5 |
+| 7 legacy-changelog-left-as-is | 3/3 | 2/3 |
+
+- Eval 7 discriminates only on the report: without the skill the model also leaves the legacy CHANGELOG untouched but never says why no prototype version was cut.
