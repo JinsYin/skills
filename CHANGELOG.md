@@ -8,6 +8,7 @@
 
 ### Added
 
+- **setup-rules Matt 约定 `/implement` 收尾**：实施 `/to-tickets` 的 ticket 时，在实现提交中勾选已满足的验收项并将 Status 置为 `resolved`，未全部满足则保持原状态并说明原因；无 spec/ticket 的小改动（quick task）先提交代码，再在 `.scratch/state.md` 的 `## Quick Tasks` 表（ID `YYMMDD-xxx` | Description | Commit | Status）追加一行单独提交，参考 gsd 的 `gsd-fast`/`gsd-quick`。
 - **setup-rules 规格流水线约定**：Matt 约定新增 Spec Pipeline，分正向（`/to-spec` → 原型 → `/fspec <prototype>` → 修订 spec → `stitch-extract-design-md` → `/design-to-code` → `/to-tickets <spec>`）与反向（先改前端，再择机回补原型并走 `fspec` 链）两条路径；修订 spec 回到 `/to-spec` 会话，其余步骤开新会话，以 spec 正文加评论交接。Design 约定原型 CHANGELOG 改用 Keep a Changelog，记入 `[Unreleased]`，由 `fspec` 切为同号 `[V<n>]`，多产品线条目加 `**<Line>**：` 前缀。
 - **doc-writing-best-practices 参考链接规则**：新增 `struct-reference-links`，全文链接超过约 5 个或同一目标被多次引用时改用折叠式参考链接 `[文本][]`，定义集中文末、按 HTML 注释分组（本地文件在前、URL 在后），并补充 evals。
 - **skillsw clean**：`./skillsw clean` 移除上游已改名/删除的 lock 条目及不在 lock 中的旧 skill，`./skillsw clean install` 清理后恢复，Core 规则改用后者。
