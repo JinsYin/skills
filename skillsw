@@ -4,16 +4,25 @@
 #   ./skillsw clean [--agent <agents...>]          仅清理：移除上游已不存在（改名/删除）的 lock 条目，
 #                                                  删除不在 lock 中的旧 skill
 #   ./skillsw install [--agent <agents...>]        仅按 skills-lock.json 恢复，不清理
+#   ./skillsw update [<skills...>] [--agent <agents...>]  按 lock 来源重装指定（缺省全部）skill 到最新；
+#                                                  -g 原样透传给 npx skills@latest update
 #   ./skillsw <其他参数>                            原样透传给 npx skills@latest
 # --agent 用法同 `npx skills add --agent`，缺省为 universal claude-code。
 set -e
 
-clean=0 install=0
+clean=0 install=0 update=0
+# CLI 的 update 不支持 --agent，会装进所有检测到的 agent 目录：本机有 ~/.openclaw 时
+# OpenClaw 的项目目录正是根 skills/，会把 skills 源码仓库的源码目录换成 symlink。
+# 故项目级 update 改走 add，与 install 一样只装指定 agent
+if [ "${1:-}" = update ]; then
+  for a in "$@"; do case $a in -g | --global) exec npx skills@latest "$@" ;; esac; done
+  update=1 install=1; shift
+fi
 if [ "${1:-}" = clean ]; then clean=1; shift; fi
 if [ "${1:-}" = install ]; then install=1; shift; fi
 [ $clean = 1 ] || [ $install = 1 ] || exec npx skills@latest "$@"
 
-agents=""
+agents="" only=""
 while [ $# -gt 0 ]; do
   case $1 in
     -a | --agent)
@@ -23,7 +32,9 @@ while [ $# -gt 0 ]; do
         case $1 in -*) break ;; *) agents="$agents $1"; shift ;; esac
       done
       ;;
-    *) echo "skillsw: unknown option: $1" >&2; exit 2 ;;
+    -p | --project | -y | --yes) [ $update = 1 ] || { echo "skillsw: unknown option: $1" >&2; exit 2; }; shift ;; # update 恒为项目级、免确认
+    -*) echo "skillsw: unknown option: $1" >&2; exit 2 ;;
+    *) [ $update = 1 ] || { echo "skillsw: unknown option: $1" >&2; exit 2; }; only="$only $1"; shift ;;
   esac
 done
 [ -n "$agents" ] || agents="universal claude-code"
@@ -45,12 +56,16 @@ else
 fi
 
 # 用 node 解析 lock（npx 依赖 node，无需额外安装 jq），按 source 分组输出 "source skill..."
+# update 指定了 skill 时只输出这些；不在 lock 中的名字直接报错
 node -e '
 const lock = JSON.parse(require("fs").readFileSync("skills-lock.json", "utf8"));
+const only = process.argv.slice(1), skills = lock.skills || {};
+const miss = only.filter(n => !skills[n]);
+if (miss.length) { console.error("skillsw: not in skills-lock.json: " + miss.join(" ")); process.exit(1); }
 const groups = {};
-for (const [name, e] of Object.entries(lock.skills || {})) (groups[e.source] ||= []).push(name);
+for (const [name, e] of Object.entries(skills)) if (!only.length || only.includes(name)) (groups[e.source] ||= []).push(name);
 for (const [src, names] of Object.entries(groups)) console.log(src + " " + names.join(" "));
-' >"$tmp/groups"
+' $only >"$tmp/groups"
 
 # 仅 clean 时先快速预检：并行只拉 GitHub 源的目录树（不下载文件、不安装），
 # 目录名或 skillPath 仍在的视为存在；只有疑似失效的再走下方 add --json 精确确认，避免误删
