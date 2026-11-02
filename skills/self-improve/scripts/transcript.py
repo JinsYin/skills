@@ -72,13 +72,15 @@ def digest(s):
             continue
         if k == "user":
             turn += 1
+            last = None  # 每轮独立计时，避免把轮间空闲或上一轮的时间游标带入新轮
         stamp(pend)
         stamp(ts)
         pend = None
         now = ts or now  # 事件本身不带时间，取所在记录的 tick
         if now:
-            if last and k != "user":
-                cost[turn]["by"][cur]["ms"] += max(0, int((now - last).total_seconds() * 1000))
+            if last:
+                now = max(last, now)  # 乱序记录不能让游标或 skill 分段边界倒退，否则后续耗时会重复计入
+                cost[turn]["by"][cur]["ms"] += int((now - last).total_seconds() * 1000)
             last = now
         if k == "usage":
             has_usage = True
@@ -100,7 +102,9 @@ def digest(s):
             cost[turn]["prompt"] = t
             # 用户手动点名的 skill（斜杠命令、$skill、附加 skill）= 手动触发；工具调用加载的为自动触发
             cost[turn]["manual"].update(n.split(":")[-1] for n in e.get("manual") or [])
-            cur = max(cost[turn]["manual"], default=None)
+            manual = cost[turn]["manual"]
+            # 多个候选无法确定执行顺序，等实际调用或加载后再归属开销
+            cur = next(iter(manual)) if len(manual) == 1 else None
             cost[turn]["seg"].append((now, cur))
             print(f"[{turn}] {'USER*' if CORRECTION.search(t) else 'USER'}: {clip(t, 400)}")
         elif k == "note":
