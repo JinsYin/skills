@@ -26,6 +26,7 @@
 
 ### Changed
 
+- **取消 Skill 评测**：删除所有 skill 的 `evals/` 目录与 `write-great-skill/references/eval-runs.md`；`write-great-skill` 移除 eval 规则与 Eval runs，五步流程保留，起草跳过 `skill-creator` 的 eval，验证只做静态检查；根 `CLAUDE.md` 以「不新增 `evals/`、不跑评测」取代 eval prompt 语言规则。
 - **根 CLAUDE.md 改为引用 write-great-skill**：移除 Skill Evals 与通用流程步骤，只保留项目级补充：eval prompt 用中文、Ship 的 rebase 推送方式、Sync（`skillsw update` 与 `/setup-rules update`，并补充 `skills/<name>/` 被替换为符号链接时的恢复方法）；提交风格沿用 `setup-rules` Core 约定。
 - **gsx 改名为 gsdspec**：目录与 `name` 改为 `gsdspec`，正文、references 中的命令示例与提示同步改为 `gsdspec --<mode>`；description 保留 `gsx` 触发词；`setup-rules` 的 GSD、DevOps 约定及 README 同步新名。
 - **fspec、backport-prototype 改名**：`fspec` 更名为 `write-fspec`，`backport-prototype` 更名为 `backfill-prototype`；产物仍称 fspec，`products/fspec/` 路径与 `CURRENT.md` 的 `generator: fspec` 标记不变；`re-spec`、`setup-rules` 的 Matt、Superpowers、Design 约定及 README 同步改用新名；描述保留 `fspec`、`回补原型`、`backport` 触发词；backfill-prototype 正文动词统一为 backfill，并新增跳过项：`ui-ux-best-practices` 管辖的交互约定（二次确认等）不画进原型
