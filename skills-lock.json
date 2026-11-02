@@ -17,19 +17,19 @@
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/github-pr-merge/SKILL.md",
-      "computedHash": "e23902942411cbaf8ff8db259dbaa04c18241a8909b0c6ab0d93bb587c3cc2e8"
+      "computedHash": "9ca27720701cb0af9171495d483e411848a743df60a3542bb810d34eccaf9609"
     },
     "self-improve": {
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/self-improve/SKILL.md",
-      "computedHash": "f6bbe0600d58702d7d4e303f8711dbe633c2f0546d97ef2b8f427a741afb256d"
+      "computedHash": "4e13b82213c274ef370dd06718943e5b8baa67a4f82463afd82bb11b734b0f02"
     },
     "setup-rules": {
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/setup-rules/SKILL.md",
-      "computedHash": "df93182d07f54919b58c16eebfcdb280db9d6b921fd9358bf4a4ef9a46986b26"
+      "computedHash": "5d48c9628d40c89bcfb778f8b76b25861a81eec1d077f5389d76e55311df0df1"
     },
     "skill-creator": {
       "source": "anthropics/skills",
@@ -47,7 +47,7 @@
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/version-release/SKILL.md",
-      "computedHash": "f92b6640d2164ad77aad73aecaa302f5f26d60ec901e3c2356d6e892571bd41e"
+      "computedHash": "aae5f64710d6b5ea2c417ec7163a7504b938f300661b73bc63aacbc4fcb9f896"
     },
     "write-great-skill": {
       "source": "jinsyin/skills",
