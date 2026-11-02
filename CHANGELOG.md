@@ -44,6 +44,8 @@
 
 ### Fixed
 
+- **self-improve digest 按段统计 skill 开销**：`[skill-cost]`/`HEAVY-SKILL` 从每次 skill 调用记到下一个 skill 或本轮结束，同一轮的多个 skill 不再各自背上整轮开销而误报 HEAVY-SKILL。
+- **self-improve 分段计费边界**：乱序时间戳不再重复累加耗时；同时点名多个 skill 时，实际调用或加载前的开销保持未归属。
 - **setup-rules Core 约定 zsh 引号示例**：示例由 `'====='` 改为 `echo '====='`，对准实际出错的 echo 分隔符写法，避免规则在场仍报 `== not found`（#39）。
 - **skillsw update 不再把源码目录换成 symlink**：`npx skills update` 不支持 `--agent`，会装进所有检测到的 agent 目录；本机有 `~/.openclaw` 时 OpenClaw 的项目目录即根 `skills/`，源码目录被替换为 symlink。`./skillsw update [<skills...>]` 改按 lock 来源走 `add --agent universal claude-code`，名字不在 lock 中即报错，`-g` 仍透传；`CLAUDE.md` 删去事后恢复说明。
 - **self-improve digest 不再把后台任务通知计为用户提问**：Claude Code 的 `<task-notification>` 不再另起一轮，同一 skill 的开销不再被拆走，HEAVY-SKILL 判定恢复准确。
