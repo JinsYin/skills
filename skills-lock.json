@@ -53,7 +53,7 @@
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/write-great-skill/SKILL.md",
-      "computedHash": "c636eb9481c316b8638809345240f7708f6f46703db0948a5b7c0757f3bd51b1"
+      "computedHash": "b9946a3688fef92943534950ffc8d4cbc6ff418c1aadb1899bf6f924da484fb4"
     },
     "writing-for-agents": {
       "source": "mattpocock/skills",
