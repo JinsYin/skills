@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # 升级模型时只改这里
-model="grok-4.6"
+model="grok-4.7"
 effort="xhigh"
-allowed_models=("${model}[effort=${effort}]" "cursor-${model}-${effort}")
+allowed_models=("${model}[reasoning_effort=${effort}]" "cursor-${model}-${effort}")
 log_file="$(cd "$(dirname "$0")" && pwd)/logs/enforce-subagent-model.log"
 hook_input="$(cat)"
 
