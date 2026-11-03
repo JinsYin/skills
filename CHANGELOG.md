@@ -8,6 +8,7 @@
 
 ### Added
 
+- **setup-rules 原型模板约束**：原型工作区约束模板新增避免不必要的二级标签与说明文案，由排版布局表达含义。
 - **write-great-skill**：新增技能，从根 `CLAUDE.md` 提炼 Skill Evals 与 Skill Workflow 的通用部分：eval 规则、按触发方分门控、起草 → 润色 → 压缩 → 验证 → 交付五步；新增省 token 方案：eval 一律交给 Sonnet（`effort: high`）subagent 执行，无 skill 基线只跑新增或改动的 eval 并以 `evals/benchmark.md` 缓存，迭代只重跑受影响的 eval，执行者看不到 expectations，评分走脚本或 Sonnet grader，第 4 步只重跑 with-skill，交付交给新的 Sonnet subagent；默认跳过 `skill-creator` 的 HTML viewer 与 description 优化循环。
 - **devops-best-practices 开发环境与交付链路 playbook**：新增 `references/dev-env.md`，首个依赖随任务同时建 `docker-compose.yml` 与 `process-compose.yml`，已有项目缺任一文件时先凭证据盘点依赖与进程、给出补齐方案并询问先补还是跳过；新增 `references/delivery.md`，交付链路独立成 phase/spec，先访谈再把事实写入 `deploy/README.md`，按 `deploy/` 布局产出 Dockerfile、Drone、Kustomize 与 Helm。新增规则 `deploy-kustomize-helm-parity`（两套部署逐环境渲染一致，附 `scripts/k8s-parity.py` 只比对 key 不比对值）与 `proc-deps-via-compose-wait`（`process-compose up -D` 为唯一入口，一次性 `deps` 执行 `docker compose up --wait`）；description 扩展触发场景，并补充 evals。
 - **setup-rules DevOps 约定**：新增可选约定 `devops.md`，排在 Karpathy 与 GSD 之间；首个依赖随任务建开发环境，缺开发环境时先给补齐方案并询问先补还是跳过，交付链路独立成单元，涉及开发环境或交付文件的计划在 Done 中校验 `docker compose config -q` 与 `k8s-parity.py`；按 GSD（`gsx --quick` / 新增 phase）、Matt（`/implement` quick task / 无 UI 流水线）、Superpowers（当前会话单独提交 / 修订 SPEC 后在当前里程碑追加 phase）分别路由，并补充 evals。
