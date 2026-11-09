@@ -29,7 +29,7 @@
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/setup-rules/SKILL.md",
-      "computedHash": "e49608b057e501141fa64dc6edf3ef9ba81c10be245d8afb2f690a00805d209a"
+      "computedHash": "805c8f45f387894d71700f5a9468e5aa8eb93484d6c701ff4b93712ddba4ad13"
     },
     "skill-creator": {
       "source": "anthropics/skills",
