@@ -15,6 +15,7 @@
 
 - Commit session changes only, slice vertical by feature.
 - Use scoped Conventional Commits with Chinese descriptions, following `caveman-commit` skill rules if installed.
+- Omit `Co-authored-by` trailers.
 - Prefer fast-forward merge then `rebase` to keep history linear.
 - Avoid `git reset --hard`.
 
