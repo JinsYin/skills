@@ -31,7 +31,7 @@ Graded by **consequence of violation**, not frequency:
 ## 4. Database & Migrations (db)
 
 **Impact:** HIGH
-**Description:** Table/column/index naming plus multi-dialect, multi-topology Flyway layering and parity. Missing dialect files or shard-local unique indexes fail only in target environments — usually production.
+**Description:** Table/column/index naming, Gauss driver and Flyway dependency selection, plus multi-dialect, multi-topology Flyway layering and parity. Missing dialect files or shard-local unique indexes fail only in target environments — usually production.
 
 ## 5. Response Envelopes & Error Codes (envelope)
 

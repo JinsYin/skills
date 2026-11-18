@@ -1,6 +1,6 @@
 ---
 name: spring-boot-best-practices
-description: "Rules for Spring Boot 3 + Java 21 + MyBatis-Plus backends: Controller/Service/Mapper layering, SM2/SM3/SM4 cryptography, MyBatis-Plus entities and primary keys, multi-dialect Flyway migrations (openGauss/GaussDB), R/RList/RPage envelopes and 6-digit error codes, Request/Response/Query/Dto boundaries and MapStruct, Spring Security vs Sa-Token auth, naming, and module READMEs. Use when writing, reviewing, or refactoring Spring Boot backend code, SQL migrations, API contracts, auth config, or module docs."
+description: "Rules for Spring Boot 3 + Java 21 + MyBatis-Plus backends: Controller/Service/Mapper layering, SM2/SM3/SM4 cryptography, MyBatis-Plus entities and primary keys, openGauss/GaussDB driver and Flyway dependencies, multi-dialect Flyway migrations, R/RList/RPage envelopes and 6-digit error codes, Request/Response/Query/Dto boundaries and MapStruct, Spring Security vs Sa-Token auth, naming, and module READMEs. Use when writing, reviewing, or refactoring Spring Boot backend code, SQL migrations, Maven DB dependencies, API contracts, auth config, or module docs."
 license: MIT
 metadata:
   author: JinsYin
@@ -9,7 +9,7 @@ metadata:
 
 # Spring Boot Best Practices
 
-Coding and architecture rules for Spring Boot 3 backends: 47 rules across 8 categories, ordered by **consequence of violation**.
+Coding and architecture rules for Spring Boot 3 backends: 49 rules across 8 categories, ordered by **consequence of violation**.
 
 ## How to use this skill
 
@@ -27,6 +27,7 @@ Route by **what you touch**, not by reading categories top to bottom:
 | Adding Controller | `layer-*`, `naming-controller-methods`, `envelope-r-types` |
 | Adding or editing Entity | `entity-*`, `db-table-naming`, `db-column-naming` |
 | Writing DB migration | `db-migration-*`, `db-opengauss-*`, `db-index-naming` |
+| Adding or upgrading JDBC/R2DBC driver or Flyway dependency | `db-gauss-*`, `db-opengauss-flyway-set-role` |
 | Adding unique constraint or index | `db-distributed-unique-index`, `db-index-naming` |
 | Editing applied migration | `db-migration-immutable-after-apply` |
 | Defining DTOs or converters | `dto-*`, `naming-class-suffix` |
@@ -45,7 +46,7 @@ Graded by **consequence of violation**, not frequency: CRITICAL = immediate bug,
 | 1 | Layering discipline | CRITICAL | `layer-` | 7 |
 | 2 | Cryptography | CRITICAL | `crypto-` | 6 |
 | 3 | Entities & persistence | CRITICAL | `entity-` | 3 |
-| 4 | Database & migrations | HIGH | `db-` | 10 |
+| 4 | Database & migrations | HIGH | `db-` | 12 |
 | 5 | Response envelopes & error codes | HIGH | `envelope-` | 5 |
 | 6 | DTO conventions | HIGH | `dto-` | 5 |
 | 7 | Naming conventions | MEDIUM | `naming-` | 6 |
@@ -86,7 +87,9 @@ Graded by **consequence of violation**, not frequency: CRITICAL = immediate bug,
 - `db-migration-immutable-after-apply` — Applied migrations are read-only; even comment edits break checksums and require `repair`
 - `db-distributed-unique-index` — Include distribution key in distributed unique constraints: inline on new tables, GSI on existing tables
 - `db-opengauss-dialect` — openGauss three rules: no `ON CONFLICT`, no `gen_random_uuid()`, no `jsonb_build_object`
-- `db-opengauss-flyway-set-role` — Gauss-family DBs reject `SET ROLE`; register Flyway Plugin SPI to skip role restore or all migrations abort
+- `db-opengauss-flyway-set-role` — Gauss-family DBs reject `SET ROLE`; register project-owned Flyway Plugin SPI, never shadow JARs or disabled validation, or all migrations abort
+- `db-gauss-driver-selection` — Pick Gauss JDBC/R2DBC coordinates from verified allowlist; some published versions are empty JARs or third-party-hosted
+- `db-gauss-dependency-scope` — Declare drivers and Flyway only in modules using them, versions in parent; leaked artifacts crash unrelated modules
 - `db-table-naming` — Table names use `t_` prefix + `snake_case` + singular noun
 - `db-column-naming` — `snake_case` columns, four audit columns, `deleted` for soft delete
 - `db-index-naming` — `uk_{table}_{field}` and `idx_{table}_{field}`

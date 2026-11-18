@@ -1,6 +1,6 @@
 # spring-boot-best-practices
 
-Coding conventions and architecture rules for Spring Boot 3 + Java 21 + MyBatis-Plus backends: 47 rules across 8 categories.
+Coding conventions and architecture rules for Spring Boot 3 + Java 21 + MyBatis-Plus backends: 49 rules across 8 categories.
 
 Structure modeled after [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices).
 
@@ -20,7 +20,7 @@ Path globs fail silently: in our earlier ruleset, 11 files included planning-art
 ## Layout
 
 ```
-SKILL.md            Index: 47 slugs + one-line summaries + task routing table (~5 KB)
+SKILL.md            Index: 49 slugs + one-line summaries + task routing table (~5 KB)
 rules/
   _sections.md      Category definitions: ID / order / impact / description (build input)
   _template.md      Single-rule skeleton

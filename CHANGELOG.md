@@ -8,6 +8,7 @@
 
 ### Added
 
+- **spring-boot-best-practices Gauss 驱动与依赖规则**：新增 `db-gauss-driver-selection`，列出 openGauss / GaussDB 的 JDBC 与 R2DBC 坐标白名单（含驱动类、URL 前缀、MyBatis-Plus `DbType`），禁用空 JAR 版本（`V2.0-8.218.0`、`505.2.1.SPC0800`）、第三方私服坐标 `com.huawei.gaussdb:gaussdb-jdbc`、`gaussdb-r2dbc:1.0.0.RC1` 与 `r2dbc-postgresql`，新项目 openGauss 用 `-og` 变体；新增 `db-gauss-dependency-scope`，驱动与 Flyway 只在使用的模块声明、版本由父 POM 与 `flyway.version` 统一管理，并说明 profile 依赖继承与 `activeByDefault` 抑制陷阱。
 - **setup-rules Git 提交约定**：省略 `Co-authored-by` 署名。
 - **setup-rules 原型模板约束**：原型工作区约束模板新增避免不必要的二级标签与说明文案，由排版布局表达含义。
 - **write-great-skill**：新增技能，从根 `CLAUDE.md` 提炼 Skill Evals 与 Skill Workflow 的通用部分：eval 规则、按触发方分门控、起草 → 润色 → 压缩 → 验证 → 交付五步；新增省 token 方案：eval 一律交给 Sonnet（`effort: high`）subagent 执行，无 skill 基线只跑新增或改动的 eval 并以 `evals/benchmark.md` 缓存，迭代只重跑受影响的 eval，执行者看不到 expectations，评分走脚本或 Sonnet grader，第 4 步只重跑 with-skill，交付交给新的 Sonnet subagent；默认跳过 `skill-creator` 的 HTML viewer 与 description 优化循环。

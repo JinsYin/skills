@@ -1,7 +1,7 @@
 # Spring Boot Best Practices
 
 > Generated from `rules/` by `scripts/build.sh`. Do not edit by hand.
-> Generated at: 2026-11-18 14:08:14
+> Generated at: 2026-11-18 15:34:14
 
 ## 1. Layering Discipline
 
@@ -521,6 +521,134 @@ Standalone/centralized engines reject `CREATE GLOBAL UNIQUE INDEX`, so **only th
 `ALTER TABLE ... ADD UNIQUE` on existing distributed tables carries same distribution-key requirement and does not bypass this rule.
 
 
+### Scope DB drivers and Flyway to the modules that use them
+
+Declare each DB artifact only in modules opening that connection type; manage versions once in parent POM. Spring Boot auto-configures from classpath, so leaked artifacts crash modules that never use them:
+
+- Flyway in non-migrating module + `spring.flyway.enabled=true` → startup fails with `Unsupported Database: GaussDB 9.2`.
+- R2DBC driver in JDBC module → `R2dbcAutoConfiguration` activates and JDBC `DataSource` / `SqlSessionFactory` wiring fails.
+
+| Artifact | Declare in |
+|---|---|
+| JDBC driver (see `db-gauss-driver-selection`) | Modules opening JDBC connections |
+| `gaussdb-r2dbc` | Modules opening reactive connections only |
+| `org.flywaydb:flyway-core` + `org.flywaydb:flyway-database-postgresql` | Module running migrations only, `compile` scope, beside Gauss plugin from `db-opengauss-flyway-set-role` |
+| Versions of all above | Parent `<properties>` / `<dependencyManagement>` |
+
+Pin Flyway via Spring Boot BOM property `flyway.version` and leave `<version>` off both artifacts: one property moves both together. Versioning one artifact alone splits them across Flyway releases, and Gauss plugin built on internal APIs breaks.
+
+**Maven profile traps:**
+
+- Parent profile `<dependencies>` are inherited by every child; put there only artifacts every child needs.
+- `activeByDefault` is deactivated only by another profile active in **same POM**. Child POM adding profile-specific dependencies must repeat every same-named profile from parent, or `-P mysql` still pulls default Gauss artifacts into that child.
+
+**Wrong (parent profile leaks Flyway and R2DBC into every module):**
+
+```xml
+<!-- Parent POM -->
+<profile>
+    <id>distributed-gaussdb</id>
+    <activation><activeByDefault>true</activeByDefault></activation>
+    <dependencies>
+        <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-database-postgresql</artifactId></dependency> <!-- ❌ -->
+        <dependency><groupId>com.huaweicloud.gaussdb</groupId><artifactId>gaussdb-r2dbc</artifactId></dependency>   <!-- ❌ -->
+    </dependencies>
+</profile>
+```
+
+**Right (parent pins versions; migrator repeats every DB profile):**
+
+```xml
+<!-- Parent POM -->
+<properties><flyway.version>10.20.1</flyway.version></properties>
+
+<!-- Migrator module POM -->
+<dependencies>
+    <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-core</artifactId></dependency>
+</dependencies>
+<profiles>
+    <profile>
+        <id>distributed-gaussdb</id>
+        <activation><activeByDefault>true</activeByDefault></activation>
+        <dependencies>
+            <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-database-postgresql</artifactId></dependency>
+        </dependencies>
+    </profile>
+    <!-- centralized-gaussdb / opengauss: same dependency, same ids as parent -->
+    <profile>
+        <id>mysql</id>
+        <dependencies>
+            <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-mysql</artifactId></dependency>
+        </dependencies>
+    </profile>
+</profiles>
+```
+
+`spring.flyway.enabled: false` in other modules masks leak only; fix is artifact absent from classpath.
+
+Verify every DB profile after dependency changes: `./mvnw -P <profile> dependency:tree -pl <module>`. Non-migrating modules show no `org.flywaydb`; JDBC-only modules show no R2DBC driver or `io.r2dbc:r2dbc-spi`.
+
+
+### Pick openGauss / GaussDB drivers from the verified allowlist
+
+Huawei publishes look-alike Gauss driver coordinates; some versions are empty JARs, one lives only in a third-party repository. Take coordinates from this allowlist and pin the version matching server `select version()` — wrong picks compile cleanly and fail only on first connection, often in target environment.
+
+| Target | API | Coordinate (verified version) | Driver class / provider | URL prefix | MyBatis-Plus `DbType` |
+|---|---|---|---|---|---|
+| GaussDB distributed or centralized | JDBC | `com.huaweicloud:gaussdbjdbc` (`v2.0-8.218.0`) **or** `com.huaweicloud.gaussdb:gaussdbjdbc` (`506.0.0.b058`) | `com.huawei.gaussdb.jdbc.Driver` | `jdbc:gaussdb://` | `GAUSS` |
+| openGauss | JDBC | `org.opengauss:opengauss-jdbc` with `-og` suffix (`5.0.3-og`) | `org.opengauss.Driver` | `jdbc:opengauss://` | `OPENGAUSS` |
+| GaussDB or openGauss | R2DBC | `com.huaweicloud.gaussdb:gaussdb-r2dbc` (`1.0.0`) | provider `gaussdb` | `r2dbc:gaussdb://` | — |
+
+- **GaussDB JDBC**: both lines ship classes under `com.huawei.gaussdb.jdbc`. Pick one by server version; one line per classpath, else first-loaded duplicate class wins.
+- **openGauss JDBC**: new projects use `-og` suffix matching server version. Unsuffixed variant (`5.0.3`) registers `org.postgresql.Driver`, accepts only `jdbc:postgresql://`, and collides with `org.postgresql:postgresql` — keep only in existing projects, with pgjdbc excluded.
+- **R2DBC**: Spring cannot resolve bind markers for driver name `GaussDB` (`NoBindMarkersFactoryException`); declare `DatabaseClient` with `BindMarkersFactory.indexed("$", 1)`. Spring Data R2DBC also needs `com.huaweicloud.gaussdb:gaussdb-spring-data-r2dbc` matching Spring Data minor. Multi-CN clusters use `r2dbc:gaussdb:failover://host1:8000,host2:8000`.
+
+**Denylist:**
+
+| Coordinate | Failure |
+|---|---|
+| `com.huaweicloud:gaussdbjdbc:V2.0-8.218.0` (uppercase `V`), `:505.2.1.SPC0800` | Empty JARs, zero classes → `ClassNotFoundException: com.huawei.gaussdb.jdbc.Driver` |
+| `com.huawei.gaussdb:gaussdb-jdbc` | Hosted only in third-party Rokid repository, absent from Maven Central |
+| `com.huaweicloud.gaussdb:gaussdb-r2dbc:1.0.0.RC1` | Pre-release still cited by Huawei ecosystem guides; use `1.0.0` |
+| `org.postgresql:r2dbc-postgresql` on Gauss targets | Gauss SHA256 auth fails handshake: `Argument 'serverMechanisms' is not valid` |
+
+macOS / Windows filesystems are case-insensitive: `v2.0-8.218.0` and `V2.0-8.218.0` share one `~/.m2` directory, and whichever downloads first serves both. Driver class suddenly missing → delete `~/.m2/repository/com/huaweicloud/gaussdbjdbc/` and re-resolve.
+
+**Wrong (empty JAR plus second driver line):**
+
+```xml
+<dependency>
+    <groupId>com.huaweicloud</groupId>
+    <artifactId>gaussdbjdbc</artifactId>
+    <version>505.2.1.SPC0800</version> <!-- ❌ empty JAR, no Driver class -->
+</dependency>
+<dependency>
+    <groupId>com.huaweicloud.gaussdb</groupId>
+    <artifactId>gaussdbjdbc</artifactId>
+    <version>506.0.0.b058</version> <!-- ❌ second line, same packages -->
+</dependency>
+```
+
+**Right (one line, version matches server):**
+
+```xml
+<dependency>
+    <groupId>com.huaweicloud</groupId>
+    <artifactId>gaussdbjdbc</artifactId>
+    <version>v2.0-8.218.0</version> <!-- lowercase v; matches Huawei Cloud GaussDB v2.0-8.218.0 instance -->
+</dependency>
+```
+
+Before adopting any new driver version, confirm JAR registers a driver (`unzip -p <jar> META-INF/services/java.sql.Driver`), then connect through application `DataSource` / `ConnectionFactory` on every target DB.
+
+**Sources:** [GaussDB drivers][] · [GaussDB R2DBC][] · [GaussDB ecosystem][]
+
+<!-- Huawei sample repositories -->
+[GaussDB drivers]: https://github.com/huaweicloud-samples/database-gaussdb-drivers
+[GaussDB R2DBC]: https://github.com/huaweicloud-samples/database-gaussdb-r2dbc
+[GaussDB ecosystem]: https://github.com/huaweicloud-samples/database-gaussdb-ecosystem
+
+
 ### Index naming with uk_ and idx_ prefixes
 
 - Unique index: `uk_{table}_{field...}`
@@ -704,15 +832,18 @@ All three come from real migration failures — check before writing SQL rather 
 
 ### Register a Flyway plugin on Gauss-family DBs to skip SET ROLE
 
-Flyway treats openGauss / GaussDB as PostgreSQL and runs `SET ROLE '<CURRENT_USER>'` after each step to restore state. Gauss-family DBs deny `SET ROLE` to non-`sysadmin` users (even back to self without `PASSWORD`, SQLState `42602` `set role denied`), aborting Flyway with `Unable to restore connection to its original state` while reading history table — before any migration runs. Never grant `sysadmin`; register a Flyway Plugin SPI that turns role restoration into a no-op.
+Flyway treats openGauss / GaussDB as PostgreSQL and runs `SET ROLE '<CURRENT_USER>'` after each step to restore state. Gauss-family DBs deny `SET ROLE` to non-`sysadmin` users (even back to self without `PASSWORD`, SQLState `42602` `set role denied`), aborting Flyway with `Unable to restore connection to its original state` while reading history table — before any migration runs. Never grant `sysadmin`; register a project-owned Flyway Plugin SPI that turns role restoration into a no-op.
 
-**Wrong (relying on built-in PostgreSQL support or switching roles in SQL):**
+**Wrong (role switching in SQL, or bypass workarounds):**
 
 ```sql
 SET ROLE app_owner PASSWORD '...'; -- ❌ pooled connection retains this role and pollutes later requests
 ```
 
-**Right (three classes with `flyway-database-postgresql` in `compile` scope):**
+- `com.github.mengweijin:db-migration-gauss-flyway` shadows `PostgreSQLConnection` and silently loses to `flyway-database-postgresql` on classpath order.
+- `spring.flyway.validate-on-migrate: false` hides schema drift along with symptom (see `db-migration-immutable-after-apply`).
+
+**Right (three classes; dependencies per `db-gauss-dependency-scope`):**
 
 ```java
 // 1. DatabaseType: higher priority than built-in PostgreSQL (0); match product name or fall back to super
@@ -722,6 +853,15 @@ public class GaussDBDatabaseType extends PostgreSQLDatabaseType {
     @Override public boolean handlesDatabaseProductNameAndVersion(String name, String ver, Connection c) {
         String n = name == null ? "" : name.toLowerCase(Locale.ROOT);
         return n.contains("gaussdb") || n.contains("opengauss") || super.handlesDatabaseProductNameAndVersion(name, ver, c);
+    }
+    // URL hooks: only for direct-URL runs (Flyway Maven plugin / CLI)
+    @Override public boolean handlesJDBCUrl(String url) {
+        return url.startsWith("jdbc:gaussdb:") || url.startsWith("jdbc:opengauss:") || super.handlesJDBCUrl(url);
+    }
+    @Override public String getDriverClass(String url, ClassLoader cl) {
+        if (url.startsWith("jdbc:gaussdb:")) return "com.huawei.gaussdb.jdbc.Driver";
+        if (url.startsWith("jdbc:opengauss:")) return "org.opengauss.Driver";
+        return super.getDriverClass(url, cl);
     }
     @Override public Database createDatabase(Configuration cfg, JdbcConnectionFactory f, StatementInterceptor si) {
         return new GaussDBDatabase(cfg, f, si);
@@ -745,10 +885,11 @@ com.example.config.GaussDBDatabaseType
 
 Key constraints:
 
-- **Match product name, never JDBC URL.** Spring passes Flyway a `DataSource` without URL matching. Official openGauss driver returns `PostgreSQL` from `getDatabaseProductName()`, so matching relies on `priority = 100` + `super.handlesDatabaseProductNameAndVersion(...)` (plain PostgreSQL also hits this type, acceptable in MySQL + Gauss projects).
+- **Match product name first.** Spring passes Flyway a `DataSource`, so detection reads `getDatabaseProductName()`: GaussDB driver reports `GaussDB` (`PostgreSQL` if `driverInfoMode` changed); both openGauss driver variants always report `PostgreSQL`. `priority = 100` + `super` fallback covers both — and also claims plain PostgreSQL, so keep plugin off pure-PostgreSQL deployments.
 - **No-op restore is safe** provided migrations never run `SET ROLE`: superclass method only runs `SET ROLE`, while `schema`, `search_path`, and `autocommit` reset on `close()`.
 - **Ship plugin in module that runs migrations.** Shared starters/libraries shipping migrations must bundle SPI registration too.
-- Plugin imports internal `org.flywaydb.core.internal.*` APIs: comment in code that Flyway upgrades require re-running openGauss migration ITs.
+- **No Gauss connector on Maven Central** (checked 2026-11); adopt third-party connectors (e.g. `flyway-database-opengauss`) only after verifying they resolve and pass migrations on the pinned Flyway version.
+- Plugin imports internal `org.flywaydb.core.internal.*` APIs: comment in code that Flyway upgrades require re-running Gauss migration ITs on every DB profile.
 
 
 ### Table names use t_ prefix, snake_case, and singular nouns
@@ -1176,6 +1317,7 @@ See `layer-controller-auth-annotations` for annotation usage.
 | API Gateway | Spring Cloud Gateway (WebFlux / Netty) |
 | ORM | MyBatis-Plus + `mybatis-plus-join`, **no XML mappers** |
 | Connection pool | HikariCP |
+| openGauss / GaussDB drivers | Allowlisted coordinates only — see `db-gauss-driver-selection` |
 | Embedded container | Undertow |
 | Auth | Spring Security or Sa-Token by project scale — see `stack-auth-framework` |
 | API docs | Knife4j (on SpringDoc OpenAPI 3) |

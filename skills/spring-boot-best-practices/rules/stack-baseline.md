@@ -12,6 +12,7 @@ tags: stack, dependencies
 | API Gateway | Spring Cloud Gateway (WebFlux / Netty) |
 | ORM | MyBatis-Plus + `mybatis-plus-join`, **no XML mappers** |
 | Connection pool | HikariCP |
+| openGauss / GaussDB drivers | Allowlisted coordinates only — see `db-gauss-driver-selection` |
 | Embedded container | Undertow |
 | Auth | Spring Security or Sa-Token by project scale — see `stack-auth-framework` |
 | API docs | Knife4j (on SpringDoc OpenAPI 3) |

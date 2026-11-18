@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "author": "JinsYin",
   "date": "2026-08",
-  "abstract": "Coding conventions and architecture discipline for Spring Boot 3 + Java 21 + MyBatis-Plus backends, designed for AI agents. 47 rules across 8 categories, ordered by consequence of violation rather than frequency: from CRITICAL (layering discipline, ShangMi cryptography, primary-key strategy — violations cause bugs, security vulnerabilities, or startup/runtime failures) to LOW (stack baseline). Each rule states the rationale plus wrong and right examples. The index is separated from rule bodies so agents locate relevant slugs by task and read individual rules on demand instead of loading the full ruleset at once.",
+  "abstract": "Coding conventions and architecture discipline for Spring Boot 3 + Java 21 + MyBatis-Plus backends, designed for AI agents. 49 rules across 8 categories, ordered by consequence of violation rather than frequency: from CRITICAL (layering discipline, ShangMi cryptography, primary-key strategy — violations cause bugs, security vulnerabilities, or startup/runtime failures) to LOW (stack baseline). Each rule states the rationale plus wrong and right examples. The index is separated from rule bodies so agents locate relevant slugs by task and read individual rules on demand instead of loading the full ruleset at once.",
   "references": [
     "https://docs.spring.io/spring-boot/index.html",
     "https://baomidou.com",
@@ -12,6 +12,9 @@
     "https://mapstruct.org",
     "https://doc.xiaominfo.com",
     "https://www.bouncycastle.org/documentation/documentation-java/",
-    "https://opengauss.org/zh/docs/"
+    "https://opengauss.org/zh/docs/",
+    "https://github.com/huaweicloud-samples/database-gaussdb-drivers",
+    "https://github.com/huaweicloud-samples/database-gaussdb-r2dbc",
+    "https://github.com/huaweicloud-samples/database-gaussdb-ecosystem"
   ]
 }
