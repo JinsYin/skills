@@ -1,7 +1,7 @@
 # Spring Boot Best Practices
 
 > Generated from `rules/` by `scripts/build.sh`. Do not edit by hand.
-> Generated at: 2026-11-18 15:34:14
+> Generated at: 2026-11-18 15:44:30
 
 ## 1. Layering Discipline
 
@@ -532,7 +532,7 @@ Declare each DB artifact only in modules opening that connection type; manage ve
 |---|---|
 | JDBC driver (see `db-gauss-driver-selection`) | Modules opening JDBC connections |
 | `gaussdb-r2dbc` | Modules opening reactive connections only |
-| `org.flywaydb:flyway-core` + `org.flywaydb:flyway-database-postgresql` | Module running migrations only, `compile` scope, beside Gauss plugin from `db-opengauss-flyway-set-role` |
+| `org.flywaydb:flyway-core` + `org.flywaydb:flyway-database-postgresql` | Module running migrations only, `compile` scope, beside Gauss plugin from `db-gauss-flyway-set-role` |
 | Versions of all above | Parent `<properties>` / `<dependencyManagement>` |
 
 Pin Flyway via Spring Boot BOM property `flyway.version` and leave `<version>` off both artifacts: one property moves both together. Versioning one artifact alone splits them across Flyway releases, and Gauss plugin built on internal APIs breaks.
@@ -587,6 +587,34 @@ Pin Flyway via Spring Boot BOM property `flyway.version` and leave `<version>` o
 `spring.flyway.enabled: false` in other modules masks leak only; fix is artifact absent from classpath.
 
 Verify every DB profile after dependency changes: `./mvnw -P <profile> dependency:tree -pl <module>`. Non-migrating modules show no `org.flywaydb`; JDBC-only modules show no R2DBC driver or `io.r2dbc:r2dbc-spi`.
+
+
+### Three Gauss-family SQL dialect rules
+
+On Gauss-family DBs (openGauss / GaussDB), rewrite these **unsupported** PostgreSQL constructs:
+
+| Unsupported | Rewrite as |
+|---|---|
+| `ON CONFLICT` | `INSERT ... SELECT ... WHERE NOT EXISTS`, or explicit deduplication |
+| `sys_guid()` / `gen_random_uuid()` | `md5(...)::uuid` |
+| `jsonb_build_object` | JSON literal cast: `'[...]'::jsonb` |
+
+**Wrong:**
+
+```sql
+INSERT INTO t_config(k, v) VALUES ('a', '1')
+ON CONFLICT (k) DO UPDATE SET v = '1'; -- ❌ unsupported on Gauss-family DBs
+```
+
+**Right:**
+
+```sql
+INSERT INTO t_config(k, v)
+SELECT 'a', '1'
+WHERE NOT EXISTS (SELECT 1 FROM t_config WHERE k = 'a');
+```
+
+All three come from real migration failures — check before writing SQL rather than debugging broken Flyway runs.
 
 
 ### Pick openGauss / GaussDB drivers from the verified allowlist
@@ -647,6 +675,68 @@ Before adopting any new driver version, confirm JAR registers a driver (`unzip -
 [GaussDB drivers]: https://github.com/huaweicloud-samples/database-gaussdb-drivers
 [GaussDB R2DBC]: https://github.com/huaweicloud-samples/database-gaussdb-r2dbc
 [GaussDB ecosystem]: https://github.com/huaweicloud-samples/database-gaussdb-ecosystem
+
+
+### Register a Flyway plugin on Gauss-family DBs to skip SET ROLE
+
+Flyway treats openGauss / GaussDB as PostgreSQL and runs `SET ROLE '<CURRENT_USER>'` after each step to restore state. Gauss-family DBs deny `SET ROLE` to non-`sysadmin` users (even back to self without `PASSWORD`, SQLState `42602` `set role denied`), aborting Flyway with `Unable to restore connection to its original state` while reading history table — before any migration runs. Never grant `sysadmin`; register a project-owned Flyway Plugin SPI that turns role restoration into a no-op.
+
+**Wrong (role switching in SQL, or bypass workarounds):**
+
+```sql
+SET ROLE app_owner PASSWORD '...'; -- ❌ pooled connection retains this role and pollutes later requests
+```
+
+- `com.github.mengweijin:db-migration-gauss-flyway` shadows `PostgreSQLConnection` and silently loses to `flyway-database-postgresql` on classpath order.
+- `spring.flyway.validate-on-migrate: false` hides schema drift along with symptom (see `db-migration-immutable-after-apply`).
+
+**Right (three classes; dependencies per `db-gauss-dependency-scope`):**
+
+```java
+// 1. DatabaseType: higher priority than built-in PostgreSQL (0); match product name or fall back to super
+public class GaussDBDatabaseType extends PostgreSQLDatabaseType {
+    @Override public String getName() { return "GaussDB"; }
+    @Override public int getPriority() { return 100; }
+    @Override public boolean handlesDatabaseProductNameAndVersion(String name, String ver, Connection c) {
+        String n = name == null ? "" : name.toLowerCase(Locale.ROOT);
+        return n.contains("gaussdb") || n.contains("opengauss") || super.handlesDatabaseProductNameAndVersion(name, ver, c);
+    }
+    // URL hooks: only for direct-URL runs (Flyway Maven plugin / CLI)
+    @Override public boolean handlesJDBCUrl(String url) {
+        return url.startsWith("jdbc:gaussdb:") || url.startsWith("jdbc:opengauss:") || super.handlesJDBCUrl(url);
+    }
+    @Override public String getDriverClass(String url, ClassLoader cl) {
+        if (url.startsWith("jdbc:gaussdb:")) return "com.huawei.gaussdb.jdbc.Driver";
+        if (url.startsWith("jdbc:opengauss:")) return "org.opengauss.Driver";
+        return super.getDriverClass(url, cl);
+    }
+    @Override public Database createDatabase(Configuration cfg, JdbcConnectionFactory f, StatementInterceptor si) {
+        return new GaussDBDatabase(cfg, f, si);
+    }
+}
+// 2. Database: swap only the Connection wrapper
+public class GaussDBDatabase extends PostgreSQLDatabase {
+    // Constructor forwards all three arguments to super
+    @Override protected PostgreSQLConnection doGetConnection(Connection c) { return new GaussDBConnection(this, c); }
+}
+// 3. Connection: make role restoration a no-op
+public class GaussDBConnection extends PostgreSQLConnection {
+    @Override protected void doRestoreOriginalState() { /* Gauss-family DBs reject SET ROLE; no role to restore */ }
+}
+```
+
+```text
+# META-INF/services/org.flywaydb.core.extensibility.Plugin
+com.example.config.GaussDBDatabaseType
+```
+
+Key constraints:
+
+- **Match product name first.** Spring passes Flyway a `DataSource`, so detection reads `getDatabaseProductName()`: GaussDB driver reports `GaussDB` (`PostgreSQL` if `driverInfoMode` changed); both openGauss driver variants always report `PostgreSQL`. `priority = 100` + `super` fallback covers both — and also claims plain PostgreSQL, so keep plugin off pure-PostgreSQL deployments.
+- **No-op restore is safe** provided migrations never run `SET ROLE`: superclass method only runs `SET ROLE`, while `schema`, `search_path`, and `autocommit` reset on `close()`.
+- **Ship plugin in module that runs migrations.** Shared starters/libraries shipping migrations must bundle SPI registration too.
+- **No Gauss connector on Maven Central** (checked 2026-11); adopt third-party connectors (e.g. `flyway-database-opengauss`) only after verifying they resolve and pass migrations on the pinned Flyway version.
+- Plugin imports internal `org.flywaydb.core.internal.*` APIs: comment in code that Flyway upgrades require re-running Gauss migration ITs on every DB profile.
 
 
 ### Index naming with uk_ and idx_ prefixes
@@ -800,96 +890,6 @@ Invariants:
 **Checklist when adding migration** — confirm every dialect directory has matching file and no active location set collides on version numbers.
 
 When one DB family spans multiple topologies (distributed / centralized / standalone), use `base + overlay` (`db-migration-base-overlay`). Follow project `CLAUDE.md` for exact location hierarchy.
-
-
-### Three openGauss SQL dialect rules
-
-On Gauss-family DBs (openGauss / GaussDB), rewrite these **unsupported** PostgreSQL constructs:
-
-| Unsupported | Rewrite as |
-|---|---|
-| `ON CONFLICT` | `INSERT ... SELECT ... WHERE NOT EXISTS`, or explicit deduplication |
-| `sys_guid()` / `gen_random_uuid()` | `md5(...)::uuid` |
-| `jsonb_build_object` | JSON literal cast: `'[...]'::jsonb` |
-
-**Wrong:**
-
-```sql
-INSERT INTO t_config(k, v) VALUES ('a', '1')
-ON CONFLICT (k) DO UPDATE SET v = '1'; -- ❌ unsupported on openGauss
-```
-
-**Right:**
-
-```sql
-INSERT INTO t_config(k, v)
-SELECT 'a', '1'
-WHERE NOT EXISTS (SELECT 1 FROM t_config WHERE k = 'a');
-```
-
-All three come from real migration failures — check before writing SQL rather than debugging broken Flyway runs.
-
-
-### Register a Flyway plugin on Gauss-family DBs to skip SET ROLE
-
-Flyway treats openGauss / GaussDB as PostgreSQL and runs `SET ROLE '<CURRENT_USER>'` after each step to restore state. Gauss-family DBs deny `SET ROLE` to non-`sysadmin` users (even back to self without `PASSWORD`, SQLState `42602` `set role denied`), aborting Flyway with `Unable to restore connection to its original state` while reading history table — before any migration runs. Never grant `sysadmin`; register a project-owned Flyway Plugin SPI that turns role restoration into a no-op.
-
-**Wrong (role switching in SQL, or bypass workarounds):**
-
-```sql
-SET ROLE app_owner PASSWORD '...'; -- ❌ pooled connection retains this role and pollutes later requests
-```
-
-- `com.github.mengweijin:db-migration-gauss-flyway` shadows `PostgreSQLConnection` and silently loses to `flyway-database-postgresql` on classpath order.
-- `spring.flyway.validate-on-migrate: false` hides schema drift along with symptom (see `db-migration-immutable-after-apply`).
-
-**Right (three classes; dependencies per `db-gauss-dependency-scope`):**
-
-```java
-// 1. DatabaseType: higher priority than built-in PostgreSQL (0); match product name or fall back to super
-public class GaussDBDatabaseType extends PostgreSQLDatabaseType {
-    @Override public String getName() { return "GaussDB"; }
-    @Override public int getPriority() { return 100; }
-    @Override public boolean handlesDatabaseProductNameAndVersion(String name, String ver, Connection c) {
-        String n = name == null ? "" : name.toLowerCase(Locale.ROOT);
-        return n.contains("gaussdb") || n.contains("opengauss") || super.handlesDatabaseProductNameAndVersion(name, ver, c);
-    }
-    // URL hooks: only for direct-URL runs (Flyway Maven plugin / CLI)
-    @Override public boolean handlesJDBCUrl(String url) {
-        return url.startsWith("jdbc:gaussdb:") || url.startsWith("jdbc:opengauss:") || super.handlesJDBCUrl(url);
-    }
-    @Override public String getDriverClass(String url, ClassLoader cl) {
-        if (url.startsWith("jdbc:gaussdb:")) return "com.huawei.gaussdb.jdbc.Driver";
-        if (url.startsWith("jdbc:opengauss:")) return "org.opengauss.Driver";
-        return super.getDriverClass(url, cl);
-    }
-    @Override public Database createDatabase(Configuration cfg, JdbcConnectionFactory f, StatementInterceptor si) {
-        return new GaussDBDatabase(cfg, f, si);
-    }
-}
-// 2. Database: swap only the Connection wrapper
-public class GaussDBDatabase extends PostgreSQLDatabase {
-    // Constructor forwards all three arguments to super
-    @Override protected PostgreSQLConnection doGetConnection(Connection c) { return new GaussDBConnection(this, c); }
-}
-// 3. Connection: make role restoration a no-op
-public class GaussDBConnection extends PostgreSQLConnection {
-    @Override protected void doRestoreOriginalState() { /* Gauss-family DBs reject SET ROLE; no role to restore */ }
-}
-```
-
-```text
-# META-INF/services/org.flywaydb.core.extensibility.Plugin
-com.example.config.GaussDBDatabaseType
-```
-
-Key constraints:
-
-- **Match product name first.** Spring passes Flyway a `DataSource`, so detection reads `getDatabaseProductName()`: GaussDB driver reports `GaussDB` (`PostgreSQL` if `driverInfoMode` changed); both openGauss driver variants always report `PostgreSQL`. `priority = 100` + `super` fallback covers both — and also claims plain PostgreSQL, so keep plugin off pure-PostgreSQL deployments.
-- **No-op restore is safe** provided migrations never run `SET ROLE`: superclass method only runs `SET ROLE`, while `schema`, `search_path`, and `autocommit` reset on `close()`.
-- **Ship plugin in module that runs migrations.** Shared starters/libraries shipping migrations must bundle SPI registration too.
-- **No Gauss connector on Maven Central** (checked 2026-11); adopt third-party connectors (e.g. `flyway-database-opengauss`) only after verifying they resolve and pass migrations on the pinned Flyway version.
-- Plugin imports internal `org.flywaydb.core.internal.*` APIs: comment in code that Flyway upgrades require re-running Gauss migration ITs on every DB profile.
 
 
 ### Table names use t_ prefix, snake_case, and singular nouns

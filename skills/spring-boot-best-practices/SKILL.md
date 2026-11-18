@@ -26,8 +26,8 @@ Route by **what you touch**, not by reading categories top to bottom:
 |---|---|
 | Adding Controller | `layer-*`, `naming-controller-methods`, `envelope-r-types` |
 | Adding or editing Entity | `entity-*`, `db-table-naming`, `db-column-naming` |
-| Writing DB migration | `db-migration-*`, `db-opengauss-*`, `db-index-naming` |
-| Adding or upgrading JDBC/R2DBC driver or Flyway dependency | `db-gauss-*`, `db-opengauss-flyway-set-role` |
+| Writing DB migration | `db-migration-*`, `db-gauss-dialect`, `db-gauss-flyway-set-role`, `db-index-naming` |
+| Adding or upgrading JDBC/R2DBC driver or Flyway dependency | `db-gauss-driver-selection`, `db-gauss-dependency-scope`, `db-gauss-flyway-set-role` |
 | Adding unique constraint or index | `db-distributed-unique-index`, `db-index-naming` |
 | Editing applied migration | `db-migration-immutable-after-apply` |
 | Defining DTOs or converters | `dto-*`, `naming-class-suffix` |
@@ -86,8 +86,8 @@ Graded by **consequence of violation**, not frequency: CRITICAL = immediate bug,
 - `db-migration-locations-injection` — Inject Flyway locations via build profile while packaging all inactive overlays into JAR
 - `db-migration-immutable-after-apply` — Applied migrations are read-only; even comment edits break checksums and require `repair`
 - `db-distributed-unique-index` — Include distribution key in distributed unique constraints: inline on new tables, GSI on existing tables
-- `db-opengauss-dialect` — openGauss three rules: no `ON CONFLICT`, no `gen_random_uuid()`, no `jsonb_build_object`
-- `db-opengauss-flyway-set-role` — Gauss-family DBs reject `SET ROLE`; register project-owned Flyway Plugin SPI, never shadow JARs or disabled validation, or all migrations abort
+- `db-gauss-dialect` — Gauss-family three rules: no `ON CONFLICT`, no `gen_random_uuid()`, no `jsonb_build_object`
+- `db-gauss-flyway-set-role` — Gauss-family DBs reject `SET ROLE`; register project-owned Flyway Plugin SPI, never shadow JARs or disabled validation, or all migrations abort
 - `db-gauss-driver-selection` — Pick Gauss JDBC/R2DBC coordinates from verified allowlist; some published versions are empty JARs or third-party-hosted
 - `db-gauss-dependency-scope` — Declare drivers and Flyway only in modules using them, versions in parent; leaked artifacts crash unrelated modules
 - `db-table-naming` — Table names use `t_` prefix + `snake_case` + singular noun

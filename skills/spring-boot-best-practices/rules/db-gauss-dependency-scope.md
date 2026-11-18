@@ -16,7 +16,7 @@ Declare each DB artifact only in modules opening that connection type; manage ve
 |---|---|
 | JDBC driver (see `db-gauss-driver-selection`) | Modules opening JDBC connections |
 | `gaussdb-r2dbc` | Modules opening reactive connections only |
-| `org.flywaydb:flyway-core` + `org.flywaydb:flyway-database-postgresql` | Module running migrations only, `compile` scope, beside Gauss plugin from `db-opengauss-flyway-set-role` |
+| `org.flywaydb:flyway-core` + `org.flywaydb:flyway-database-postgresql` | Module running migrations only, `compile` scope, beside Gauss plugin from `db-gauss-flyway-set-role` |
 | Versions of all above | Parent `<properties>` / `<dependencyManagement>` |
 
 Pin Flyway via Spring Boot BOM property `flyway.version` and leave `<version>` off both artifacts: one property moves both together. Versioning one artifact alone splits them across Flyway releases, and Gauss plugin built on internal APIs breaks.
