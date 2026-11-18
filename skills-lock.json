@@ -1,65 +1,66 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
     "caveman-commit": {
       "source": "JuliusBrussee/caveman",
       "sourceType": "github",
       "skillPath": "skills/caveman-commit/SKILL.md",
-      "computedHash": "b416cf134b0f33ddadeca7977aebdbb2d3db79a166d0fce2e1aabeec98132766"
+      "computedHash": "2c1472fb59eedd3cfba0b6512dc470a00287343ade421db55c21a6fb52afbe86"
     },
     "caveman-compress": {
       "source": "JuliusBrussee/caveman",
       "sourceType": "github",
       "skillPath": "skills/caveman-compress/SKILL.md",
-      "computedHash": "99141d4609fb7cbf7abd19075bb36a02f251cc7e716a2a532238ef66d2ec0324"
+      "computedHash": "bbd1155f825601cf99aad1de562f32f190f6d0fdb0d91803b598c314900a9b99"
     },
     "github-pr-merge": {
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/github-pr-merge/SKILL.md",
-      "computedHash": "9ca27720701cb0af9171495d483e411848a743df60a3542bb810d34eccaf9609"
+      "computedHash": "542ff2407432ba82fb0c624f55bf9041d6499483c95389216605d2e554445a9e"
     },
     "self-improve": {
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/self-improve/SKILL.md",
-      "computedHash": "f196e8168b7f231277fd4f1d37dc9feb2fe339560d2c5d24f40a0c211e0394d0"
+      "computedHash": "fed4a73dd116dd03a733c6095d2a6eebb9162b5b9d69419267ce68e1c50806ac"
     },
     "setup-rules": {
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/setup-rules/SKILL.md",
-      "computedHash": "805c8f45f387894d71700f5a9468e5aa8eb93484d6c701ff4b93712ddba4ad13"
+      "computedHash": "56d34194dbd84a6c30ad249a3b8e48731cd46a581b88aa4c07cf8f6cb483d882"
     },
     "skill-creator": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-creator/SKILL.md",
-      "computedHash": "5ea13a6d9f0d4bb694405d79acd00cadec0d21bb138c4dd10fcf3c500cb835c2"
+      "computedHash": ""
     },
     "skill-optimizer": {
       "source": "mcollina/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-optimizer/SKILL.md",
-      "computedHash": "17611b4b906ceabd9ae386350450e676d0692341d90af4468b00c0b7c9ed0a95"
+      "computedHash": "3aefae8cd3601feeb045df5ad3b841429d18760013c5ce4c8f9afef3c36a49d4"
     },
     "version-release": {
       "source": "jinsyin/skills",
       "sourceType": "github",
       "skillPath": "skills/version-release/SKILL.md",
-      "computedHash": "aae5f64710d6b5ea2c417ec7163a7504b938f300661b73bc63aacbc4fcb9f896"
+      "computedHash": "c7e876d75ebf5d19bd84601a4aac7ff60b4bfdd6d068dc4156f4a8ad55a3d558"
     },
     "write-great-skill": {
-      "source": "jinsyin/skills",
+      "source": "JinsYin/skills",
+      "commit": "c365f670a3ee68d2cbc3db7b64563a31d5fc0fe8",
       "sourceType": "github",
       "skillPath": "skills/write-great-skill/SKILL.md",
-      "computedHash": "b9946a3688fef92943534950ffc8d4cbc6ff418c1aadb1899bf6f924da484fb4"
+      "computedHash": "6cbafae8d196d16eb2e2d64d7899111f9cf0f12df35b4d4fae31cde37e06753d"
     },
     "writing-for-agents": {
       "source": "mattpocock/skills",
       "sourceType": "github",
       "skillPath": "skills/productivity/writing-for-agents/SKILL.md",
-      "computedHash": "95da47fc97af998e85b7d7e6d57b3ac76727c1e290cfe9ea09005aacb826959f"
+      "computedHash": "e79a2476b2417b228922453478d9505a6b9af19f3a412e560728ce62ed3555ca"
     }
   }
 }
