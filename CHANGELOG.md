@@ -28,6 +28,7 @@
 
 ### Changed
 
+- **spring-boot-best-practices 改用英文**：`SKILL.md`、`README.md`、`metadata.json`、`scripts/build.sh`、`rules/` 全部改写为精简英文并重新生成 `AGENTS.md`；保留目标项目的中文业务契约要求与示例字面量（Validation `message`、OpenAPI `@Schema` / `@Tag` / `@Operation`、`ErrorCode` 默认文案、枚举 `label`），`stack-module-readme` 移除对 `doc-writing-best-practices` 的重复交叉引述。
 - **setup-rules Cursor 模型**：统一更新为 `grok-4.7[reasoning_effort=xhigh]`，同步其余 Agent、模型策略与校验 hook；CLI 模型标识更新为 `cursor-grok-4.7-xhigh`。
 
 - **取消 Skill 评测**：删除所有 skill 的 `evals/` 目录与 `write-great-skill/references/eval-runs.md`；`write-great-skill` 移除 eval 规则与 Eval runs，五步流程保留，起草跳过 `skill-creator` 的 eval，验证只做静态检查；根 `CLAUDE.md` 以「不新增 `evals/`、不跑评测」取代 eval prompt 语言规则。

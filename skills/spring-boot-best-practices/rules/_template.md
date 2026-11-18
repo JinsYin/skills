@@ -1,24 +1,24 @@
 ---
-title: 规则标题
+title: Rule title
 impact: MEDIUM
-impactDescription: 可选，违反的具体后果（如"INSERT 直接失败"）
+impactDescription: Optional — concrete consequence of violation (e.g., "INSERT fails immediately")
 tags: tag1, tag2
 ---
 
-## 规则标题
+## Rule title
 
-一到三句话说明规则内容和**为什么**。写清违反的后果，不要只写"应该这样"。
+1–3 sentences: state rule and **why**. Name consequence of violation, not bare imperative.
 
-**错误（说明错在哪）：**
-
-```java
-// 反例
-```
-
-**正确（说明为什么对）：**
+**Wrong (explain what fails):**
 
 ```java
-// 正例
+// counter-example
 ```
 
-可选：补充说明、例外情形、参考链接。
+**Right (explain why it works):**
+
+```java
+// example
+```
+
+Optional: caveats, exceptions, references.

@@ -1,14 +1,14 @@
 ---
-title: Service 不碰 HTTP
+title: Keep HTTP types out of Services
 impact: HIGH
 tags: layer, service, http, testability
 ---
 
-## Service 不碰 HTTP
+## Keep HTTP types out of Services
 
-Service 里出现 `HttpServletRequest`、`request.getParameter()`、手工构造响应头或状态码，会让业务逻辑绑死在 Web 容器上——单测必须起 MockMvc，定时任务和 MQ 消费者也没法复用同一段逻辑。
+Pass typed parameters into Services; keep `HttpServletRequest`, `request.getParameter()`, and HTTP headers/status codes out. Servlet types inside Service couple domain logic to web container — unit tests then require `MockMvc`, and cron jobs or MQ consumers cannot reuse logic.
 
-**错误：**
+**Wrong:**
 
 ```java
 public boolean create(HttpServletRequest request) { // ❌
@@ -16,12 +16,12 @@ public boolean create(HttpServletRequest request) { // ❌
 }
 ```
 
-**正确（Controller 完成解析与鉴权，Service 只收类型化入参）：**
+**Right (Controller parses HTTP and auth context; Service takes typed parameters):**
 
 ```java
 public boolean create(UserCreateRequest request, Long operatorId) {
-    // 纯业务逻辑，可被 Controller / 定时任务 / MQ 消费者共用
+    // pure domain logic reusable across Controllers, cron jobs, and MQ consumers
 }
 ```
 
-当前登录人这类上下文由 Controller 取出后作为参数传入，或经由显式的上下文持有者，不要让 Service 直接读 HTTP。
+Extract caller context (e.g., operator ID) in Controller and pass explicitly, or read via transport-agnostic context holder — never read Servlet objects in Service.

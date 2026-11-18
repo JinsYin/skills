@@ -1,12 +1,12 @@
 ---
-title: Response 按视图命名
+title: Name Responses by view
 impact: MEDIUM
 tags: dto, response, openapi
 ---
 
-## Response 按视图命名
+## Name Responses by view
 
-按**使用场景**命名而非按实体：`OrderDetailResponse`、`OrderListItemResponse`、`OrderCreateResponse`。列表页和详情页需要的字段量差异往往很大，共用一个类会让列表接口传输大量无用字段。
+Name responses after **view / use case**, not entity alone: `OrderDetailResponse`, `OrderListItemResponse`, `OrderCreateResponse`. List and detail views need different field sets; reusing detail class for list rows ships heavy unused fields on every page load.
 
 ```java
 @Data
@@ -17,4 +17,4 @@ public class OrderDetailResponse {
 }
 ```
 
-每个字段都要有 `@Schema(description = ...)`，中文描述——这是 Knife4j 文档的唯一来源。
+Annotate every field with `@Schema(description = ...)` in Chinese — sole documentation source for Knife4j.

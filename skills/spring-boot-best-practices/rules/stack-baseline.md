@@ -1,23 +1,23 @@
 ---
-title: 技术栈基线
+title: Backend stack baseline
 impact: LOW
 tags: stack, dependencies
 ---
 
-## 技术栈基线
+## Backend stack baseline
 
-| 层面 | 选型 |
+| Layer | Choice |
 |---|---|
-| 基础 | Java 21 + Spring Boot 3.5 + Spring Cloud 2025.0（或兼容版本） |
-| 网关 | Spring Cloud Gateway（WebFlux / Netty） |
-| ORM | MyBatis Plus + mybatis-plus-join，**不用 XML 映射** |
-| 连接池 | HikariCP |
-| Web 容器 | Undertow |
-| 鉴权 | Spring Security 或 Sa-Token，按项目规模选，见 `stack-auth-framework` |
-| API 文档 | Knife4j（集成 SpringDoc OpenAPI 3） |
-| 对象映射 | MapStruct |
-| 样板消除 | Lombok |
-| 构建 | Maven 3.8+，附带 Wrapper |
-| 日志 | SLF4J + Logback，生产用 JSON 结构化输出 |
+| Runtime & framework | Java 21 + Spring Boot 3.5 + Spring Cloud 2025.0 (or compatible) |
+| API Gateway | Spring Cloud Gateway (WebFlux / Netty) |
+| ORM | MyBatis-Plus + `mybatis-plus-join`, **no XML mappers** |
+| Connection pool | HikariCP |
+| Embedded container | Undertow |
+| Auth | Spring Security or Sa-Token by project scale — see `stack-auth-framework` |
+| API docs | Knife4j (on SpringDoc OpenAPI 3) |
+| Object mapping | MapStruct |
+| Boilerplate reduction | Lombok |
+| Build | Maven 3.8+ with Maven Wrapper |
+| Logging | SLF4J + Logback, structured JSON output in prod |
 
-数据库与缓存的具体版本、以及多数据库支持策略，以项目自身的 CLAUDE.md 为准——这部分项目间差异大，不适合写死在通用规则里。
+DB/cache versions and multi-dialect targets live in project `CLAUDE.md` — too project-specific to hardcode here.

@@ -1,16 +1,16 @@
 ---
-title: Request 按动作命名并强制校验
+title: Name Requests by action and enforce Jakarta Validation
 impact: HIGH
 tags: dto, request, validation
 ---
 
-## Request 按动作命名并强制校验
+## Name Requests by action and enforce Jakarta Validation
 
-`{Name}{Action}Request`——`OrderCreateRequest`、`OrderUpdateRequest`、`OrderCancelRequest`。除非资源确实只有一个动作，否则不要用笼统的 `OrderRequest`：创建和更新的必填字段几乎从不相同，共用一个类就只能把校验全放宽。
+Name requests `{Name}{Action}Request` — `OrderCreateRequest`, `OrderUpdateRequest`, `OrderCancelRequest`. Avoid catch-all `OrderRequest` unless resource has only one write action: create and update differ in required fields, so sharing one class forces looser constraints on both.
 
-字段**必须**带 Jakarta Validation，`message` 用中文（会直接透给前端）。
+Every constrained field **must** carry Jakarta Validation annotations with Chinese `message` (returned directly to frontend).
 
-**正确：**
+**Right:**
 
 ```java
 @Data
@@ -28,4 +28,4 @@ public class OrderCreateRequest {
 }
 ```
 
-校验失败由 `GlobalExceptionHandler` 捕获 `MethodArgumentNotValidException` 统一处理，不在 Controller 里手写判空。
+Handle `MethodArgumentNotValidException` centrally in `GlobalExceptionHandler` — never write manual null/range `if` checks in Controllers.

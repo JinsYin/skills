@@ -1,22 +1,22 @@
 ---
-title: URL 全小写 kebab-case 复数
+title: Lowercase kebab-case plural URLs
 impact: MEDIUM
 tags: naming, url, rest, api
 ---
 
-## URL 全小写 kebab-case 复数
+## Lowercase kebab-case plural URLs
 
-- 全小写，多词用 **kebab-case**：`/order-items`
-- 资源名用**复数**：`/orders`、`/users`、`/roles`
-- 单个资源 `GET /orders/{id}`，集合 `GET /orders`
-- 非 CRUD 动作：`POST /orders/{id}/cancel`，**不要** `/cancelOrder` 这种把动词塞进路径的写法
+- Lowercase **kebab-case** segments: `/order-items`.
+- **Plural** resource nouns: `/orders`, `/users`, `/roles`.
+- Single resource: `GET /orders/{id}`; collection: `GET /orders`.
+- Non-CRUD actions: `POST /orders/{id}/cancel` — **never** RPC-style verb paths like `/cancelOrder`.
 
-分页、全量、下拉三种查询的路径约定：
+Standard query paths:
 
-| 用途 | 路径 | 说明 |
+| Query shape | Path | Notes |
 |---|---|---|
-| 分页 | `GET /roles` | 不要 `/roles/page` |
-| 全量 | `GET /roles/all` | 必须限制最大返回条数防 OOM |
-| 下拉选项 | `GET /roles/options` | 只返回 `{id, name}` |
+| Paginated | `GET /roles` | Never `/roles/page` |
+| Full list | `GET /roles/all` | Cap max rows to prevent OOM |
+| Dropdown options | `GET /roles/options` | Return `{id, name}` pairs only |
 
-注意 URL 用复数，而类名和实体用单数——这不矛盾：URL 指的是资源集合，类指的是单个对象。
+URLs use plural nouns (resource collections) while Java classes/Entities use singular nouns (single instances).

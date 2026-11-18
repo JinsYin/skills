@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 从 rules/_sections.md + rules/*.md 编译出 AGENTS.md 全量版。
-# 标题取自 SKILL.md 的首个 H1，故本脚本可在各 skill 间通用。
-# 用法：bash scripts/build.sh
-# 兼容 bash 3.2（macOS 自带），不使用 mapfile / readarray。
+# Compile the full AGENTS.md from rules/_sections.md + rules/*.md.
+# The title is taken from the first H1 of SKILL.md, so this script is skill-agnostic.
+# Usage: bash scripts/build.sh
+# Compatible with bash 3.2 (shipped with macOS): no mapfile / readarray.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -10,18 +10,18 @@ OUT=AGENTS.md
 RULES=rules
 
 TITLE=$(grep -m1 '^# ' SKILL.md | sed 's/^# //')
-[ -z "$TITLE" ] && { echo "❌ SKILL.md 中找不到 H1 标题"; exit 1; }
+[ -z "$TITLE" ] && { echo "❌ No H1 title found in SKILL.md"; exit 1; }
 
 {
   echo "# $TITLE"
   echo
-  echo "> 本文件由 \`scripts/build.sh\` 从 \`rules/\` 自动生成，请勿手工编辑。"
-  echo "> 生成时间：$(date '+%Y-%m-%d %H:%M:%S')"
+  echo "> Generated from \`rules/\` by \`scripts/build.sh\`. Do not edit by hand."
+  echo "> Generated at: $(date '+%Y-%m-%d %H:%M:%S')"
   echo
 } > "$OUT"
 
 total=0
-# 分类顺序与标题从 _sections.md 解析：'## N. 标题 (prefix)'
+# Category order and titles are parsed from _sections.md: '## N. Title (prefix)'
 while IFS= read -r line; do
   [ -z "$line" ] && continue
   num=$(echo "$line"   | sed -E 's/^## ([0-9]+)\..*$/\1/')
@@ -36,7 +36,7 @@ while IFS= read -r line; do
   printf '## %s. %s\n\n' "$num" "$title" >> "$OUT"
 
   for f in $files; do
-    # 剥掉 frontmatter（前两个 --- 之间），正文 H2 降为 H3
+    # Strip the frontmatter (between the first two ---) and demote body H2 to H3
     awk 'BEGIN{n=0} /^---$/{n++; next} n>=2' "$f" \
       | sed -E 's/^## /### /' >> "$OUT"
     printf '\n' >> "$OUT"
@@ -44,4 +44,4 @@ while IFS= read -r line; do
   done
 done < <(grep -E '^## [0-9]+\. .+ \(.+\)$' "$RULES/_sections.md")
 
-echo "✅ $OUT 已生成：$total 条规则，$(wc -c < "$OUT") 字节"
+echo "✅ $OUT written: $total rules, $(wc -c < "$OUT") bytes"

@@ -1,14 +1,14 @@
 ---
-title: BouncyCastle Provider 启动时注册一次
+title: Register BouncyCastle Provider once at startup
 impact: HIGH
 tags: crypto, bouncycastle, provider, startup
 ---
 
-## BouncyCastle Provider 注册一次
+## Register BouncyCastle Provider once at startup
 
-优先用 `org.bouncycastle:bcprov-jdk18on`，在应用启动时注册一次，不要在每次加解密时重复注册——`addProvider` 有同步开销，热路径上反复调用会成为瓶颈。
+Use `org.bouncycastle:bcprov-jdk18on` and register once at app startup — never inside per-request encrypt/decrypt calls. `Security.addProvider` takes global synchronization locks and bottlenecks hot paths.
 
-**正确：**
+**Right:**
 
 ```java
 @Configuration
@@ -22,4 +22,4 @@ public class CryptoConfig {
 }
 ```
 
-模块若已使用其他合规 provider，沿用即可，不要混装两个。
+If module already uses another compliant JCE provider, keep that single provider; never mount two.

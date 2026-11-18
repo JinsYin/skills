@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "author": "JinsYin",
   "date": "2026-08",
-  "abstract": "Spring Boot 3 + Java 21 + MyBatis Plus 后端项目的编码规范与架构纪律，面向 AI agent 设计。47 条规则分 8 类，按违反后果而非出现频率排序：从 CRITICAL（分层纪律、国密算法、主键策略——违反即 bug、安全问题或直接跑不起来）到 LOW（技术栈基线）。每条规则含成因说明、错误示例与正确示例。索引与规则正文分离，agent 按任务定位后再按需读取单条，避免一次性载入全部规范。",
+  "abstract": "Coding conventions and architecture discipline for Spring Boot 3 + Java 21 + MyBatis-Plus backends, designed for AI agents. 47 rules across 8 categories, ordered by consequence of violation rather than frequency: from CRITICAL (layering discipline, ShangMi cryptography, primary-key strategy — violations cause bugs, security vulnerabilities, or startup/runtime failures) to LOW (stack baseline). Each rule states the rationale plus wrong and right examples. The index is separated from rule bodies so agents locate relevant slugs by task and read individual rules on demand instead of loading the full ruleset at once.",
   "references": [
     "https://docs.spring.io/spring-boot/index.html",
     "https://baomidou.com",

@@ -1,17 +1,17 @@
 ---
-title: Dto 不外露，双角色必须拆开
+title: Keep Dto internal; split dual-purpose objects
 impact: HIGH
 tags: dto, layering, api-contract
 ---
 
-## Dto 不外露，双角色必须拆开
+## Keep Dto internal; split dual-purpose objects
 
-`{Name}Dto` 只用于 Service 之间、Service 内部方法之间，或 MQ 载荷。Controller **既不接收也不返回** Dto。
+Use `{Name}Dto` only across Services, between internal Service methods, and in MQ payloads. Controllers **neither accept nor return** `Dto` types.
 
-一个对象若同时承担「内部传输」和「接口返回」，必须拆成 Dto + Response 两个类。图省事合并的代价是：内部加一个字段就意外扩大了对外契约，且没有任何编译期提示。
+Split any dual-purpose internal/external class into `Dto` + `Response`. Sharing one class means adding an internal field silently widens public HTTP output with zero compile-time warning.
 
 ```
-Service ←→ Service     用 Dto
-MQ 载荷                用 Dto
-Controller ←→ 外部      用 Request / Response
+Service ←→ Service      use Dto
+MQ payload              use Dto
+Controller ←→ External  use Request / Response
 ```

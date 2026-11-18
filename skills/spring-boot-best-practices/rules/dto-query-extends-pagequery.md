@@ -1,25 +1,25 @@
 ---
-title: 分页查询必须 extends PageQuery
+title: Paginated queries must extend PageQuery
 impact: HIGH
 tags: dto, query, pagination
 ---
 
-## 分页查询必须 extends PageQuery
+## Paginated queries must extend PageQuery
 
-`{Name}Query` 用于 GET，通过 `@Valid @ModelAttribute` 绑定查询串。**需要分页就必须 `extends PageQuery`**，拿到统一的 `pageNo` / `pageSize` 及其边界校验（页码 ≥ 1、每页 ≤ 200）。
+`{Name}Query` binds `GET` query strings via `@Valid @ModelAttribute`. **Paginated queries must `extends PageQuery`** to inherit `pageNo` / `pageSize` and their bounds (`pageNo >= 1`, `pageSize <= 200`).
 
-自己声明分页字段会漏掉上限校验，前端传 `pageSize=999999` 直接拖垮数据库。
+Redeclaring pagination fields by hand drops the upper-bound check, letting `pageSize=999999` overload the DB.
 
-**错误：**
+**Wrong:**
 
 ```java
 public class OrderPageQuery {
-    private Long pageNo;    // ❌ 无 @Min
-    private Long pageSize;  // ❌ 无上限
+    private Long pageNo;    // ❌ missing @Min
+    private Long pageSize;  // ❌ missing upper bound
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @Data
@@ -34,4 +34,4 @@ public class OrderPageQuery extends PageQuery {
 }
 ```
 
-不分页的查询用普通 `{Name}Query`，不要为了统一而硬加分页字段。
+Use plain `{Name}Query` for unpaginated endpoints — never inherit `PageQuery` without pagination.

@@ -1,14 +1,14 @@
 ---
-title: 表名 t_ 前缀 + snake_case + 单数
+title: Table names use t_ prefix, snake_case, and singular nouns
 impact: HIGH
 tags: db, naming, sql
 ---
 
-## 表名 t_ 前缀 + snake_case + 单数
+## Table names use t_ prefix, snake_case, and singular nouns
 
-表名统一 `t_` 前缀、`snake_case`、**单数**：`t_order`、`t_user`、`t_order_item`。前缀把业务表与视图、中间表、框架表区分开；单数与实体类一一对应，避免 `t_users` ↔ `UserEntity` 这种单复数错位。
+Name domain tables `t_` + `snake_case` + **singular noun**: `t_order`, `t_user`, `t_order_item`. `t_` separates domain tables from views, staging tables, and framework tables; singular nouns match Entity classes 1-to-1 without `t_users` ↔ `UserEntity` mismatch.
 
-实体用 `@TableName` 显式映射，不依赖驼峰自动转换：
+Bind every Entity explicitly via `@TableName`, never implicit camel-to-snake conversion:
 
 ```java
 @Data

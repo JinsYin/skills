@@ -1,24 +1,24 @@
 ---
-title: gauss 系跑 Flyway 须注册插件跳过 SET ROLE
+title: Register a Flyway plugin on Gauss-family DBs to skip SET ROLE
 impact: CRITICAL
-impactDescription: 非 sysadmin 账号下任何迁移都跑不到，启动即失败
+impactDescription: Every migration aborts at startup under non-sysadmin accounts
 tags: db, migration, flyway, opengauss, gaussdb
 ---
 
-## gauss 系跑 Flyway 须注册插件跳过 SET ROLE
+## Register a Flyway plugin on Gauss-family DBs to skip SET ROLE
 
-Flyway 把 openGauss / GaussDB 当 PostgreSQL，每次操作后执行 `SET ROLE '<CURRENT_USER>'` 还原角色。gauss 系拒绝非 sysadmin 执行 `SET ROLE`，即使切回自己也要 `PASSWORD`，报 SQLState 42602 `set role denied`。Flyway 随即以 `Unable to restore connection to its original state` 中止，这一步发生在查历史表时，任何迁移都跑不到。给账号 sysadmin 权限不是解法。应当用 Flyway Plugin SPI 换掉连接实现，只把还原步骤置空。
+Flyway treats openGauss / GaussDB as PostgreSQL and runs `SET ROLE '<CURRENT_USER>'` after each step to restore state. Gauss-family DBs deny `SET ROLE` to non-`sysadmin` users (even back to self without `PASSWORD`, SQLState `42602` `set role denied`), aborting Flyway with `Unable to restore connection to its original state` while reading history table — before any migration runs. Never grant `sysadmin`; register a Flyway Plugin SPI that turns role restoration into a no-op.
 
-**错误（沿用内置 PostgreSQL 类型，或在迁移脚本里切角色）：**
+**Wrong (relying on built-in PostgreSQL support or switching roles in SQL):**
 
 ```sql
-SET ROLE app_owner PASSWORD '...'; -- ❌ 连接还回池时仍是这个角色，会污染后续请求
+SET ROLE app_owner PASSWORD '...'; -- ❌ pooled connection retains this role and pollutes later requests
 ```
 
-**正确（三个类，依赖 `flyway-database-postgresql`，compile scope）：**
+**Right (three classes with `flyway-database-postgresql` in `compile` scope):**
 
 ```java
-// 1. DatabaseType：优先级高于内置 PostgreSQL（0），按产品名接管，否则回落父类
+// 1. DatabaseType: higher priority than built-in PostgreSQL (0); match product name or fall back to super
 public class GaussDBDatabaseType extends PostgreSQLDatabaseType {
     @Override public String getName() { return "GaussDB"; }
     @Override public int getPriority() { return 100; }
@@ -30,14 +30,14 @@ public class GaussDBDatabaseType extends PostgreSQLDatabaseType {
         return new GaussDBDatabase(cfg, f, si);
     }
 }
-// 2. Database：只替换连接实现
+// 2. Database: swap only the Connection wrapper
 public class GaussDBDatabase extends PostgreSQLDatabase {
-    // 构造器透传三个参数
+    // Constructor forwards all three arguments to super
     @Override protected PostgreSQLConnection doGetConnection(Connection c) { return new GaussDBConnection(this, c); }
 }
-// 3. Connection：置空角色还原
+// 3. Connection: make role restoration a no-op
 public class GaussDBConnection extends PostgreSQLConnection {
-    @Override protected void doRestoreOriginalState() { /* gauss 系拒绝 SET ROLE；无角色可还原 */ }
+    @Override protected void doRestoreOriginalState() { /* Gauss-family DBs reject SET ROLE; no role to restore */ }
 }
 ```
 
@@ -46,9 +46,9 @@ public class GaussDBConnection extends PostgreSQLConnection {
 com.example.config.GaussDBDatabaseType
 ```
 
-要点：
+Key constraints:
 
-- **只能按产品名识别，不能靠 URL。** Spring 交给 Flyway 的是 DataSource，用不到 URL 识别。openGauss 官方驱动 `getDatabaseProductName()` 返回 `PostgreSQL`，所以实际是靠「优先级 100 + 回落父类」命中的。副作用是普通 PostgreSQL 也会被这个类型接管，只支持 MySQL + gauss 系的项目可以接受。
-- **置空是安全的。** 父类的这个方法只做 `SET ROLE` 一件事，而 Flyway 自身不切换角色。schema、search_path、autocommit 由 `close()` 还原，与这里无关。前提是迁移脚本里禁写 `SET ROLE`。
-- **放在执行迁移的那个模块。** 通过 Starter 或库对外提供迁移时，插件也要跟着下沉，否则只有带插件的应用能在 gauss 系上迁移。
-- 插件依赖 `org.flywaydb.core.internal.*`，这些是内部 API，没有兼容承诺。代码里要标注：升级 Flyway 必须重跑 openGauss 的迁移 IT。
+- **Match product name, never JDBC URL.** Spring passes Flyway a `DataSource` without URL matching. Official openGauss driver returns `PostgreSQL` from `getDatabaseProductName()`, so matching relies on `priority = 100` + `super.handlesDatabaseProductNameAndVersion(...)` (plain PostgreSQL also hits this type, acceptable in MySQL + Gauss projects).
+- **No-op restore is safe** provided migrations never run `SET ROLE`: superclass method only runs `SET ROLE`, while `schema`, `search_path`, and `autocommit` reset on `close()`.
+- **Ship plugin in module that runs migrations.** Shared starters/libraries shipping migrations must bundle SPI registration too.
+- Plugin imports internal `org.flywaydb.core.internal.*` APIs: comment in code that Flyway upgrades require re-running openGauss migration ITs.

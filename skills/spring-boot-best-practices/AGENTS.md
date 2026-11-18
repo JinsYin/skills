@@ -1,60 +1,60 @@
 # Spring Boot Best Practices
 
-> 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-09-25 15:07:04
+> Generated from `rules/` by `scripts/build.sh`. Do not edit by hand.
+> Generated at: 2026-11-18 14:08:14
 
-## 1. 分层纪律
+## 1. Layering Discipline
 
 
-### 权限校验用注解，不写在方法体里
+### Declare permission checks with annotations, not inside method bodies
 
-鉴权用框架的声明式配置与注解，不在方法体里手写 if 判断。声明式的好处是**默认拒绝**：兜底规则一旦立起来，新加的方法自动被覆盖；手写判断则是默认放行，新方法忘了写就是裸奔，而且这种遗漏在测试里通常发现不了——测试大多带着有权限的身份跑，缺校验的接口照样返回 200。
+Enforce auth via declarative framework config and annotations — never inline `if` checks inside controller methods. Declarative security **fails closed**: once fallback rule is wired, new endpoints stay protected automatically. Imperative checks **fail open**: one forgotten `if` exposes endpoint unauthenticated, and privileged test tokens still get 200.
 
-框架选型见 `stack-auth-framework`，两套的写法对照：
+See `stack-auth-framework` for framework selection. Equivalent forms:
 
-| 需求 | Spring Security | Sa-Token |
+| Requirement | Spring Security | Sa-Token |
 |---|---|---|
-| 要求已登录 | SecurityFilterChain 里 `.anyRequest().authenticated()` 兜底 | 类上标 `@SaCheckLogin` |
-| 要求权限点 | `@PreAuthorize("hasAuthority('user:query')")` | `@SaCheckPermission("user:query")` |
-| 要求角色 | `@PreAuthorize("hasRole('admin')")` | `@SaCheckRole("admin")` |
-| 公开接口 | `.requestMatchers("/auth/login").permitAll()` | `@SaIgnore` |
+| Authenticated user | `.anyRequest().authenticated()` fallback in `SecurityFilterChain` | `@SaCheckLogin` at class level |
+| Permission code | `@PreAuthorize("hasAuthority('user:query')")` | `@SaCheckPermission("user:query")` |
+| Role | `@PreAuthorize("hasRole('admin')")` | `@SaCheckRole("admin")` |
+| Public endpoint | `.requestMatchers("/auth/login").permitAll()` | `@SaIgnore` |
 
-两套各有一个静默失效点，都不报错：
+Silent failure modes (neither throws an exception):
 
-- **Spring Security**：`@PreAuthorize` 依赖 `@EnableMethodSecurity`（Spring Security 6 起取代 `@EnableGlobalMethodSecurity`），没开启时注解被完全忽略，方法级校验全部放行。另外 `hasRole('admin')` 实际匹配的权限串是 `ROLE_admin`，权限数据里没这个前缀就永远判 false——一个失效方向是放行，一个是全拒，都不会有异常提示你。
-- **Sa-Token**：默认放行，只有被注解或拦截器覆盖到的方法才校验。所以 `@SaCheckLogin` 要标在类上，让后加的方法自动继承。
+- **Spring Security**: `@PreAuthorize` requires `@EnableMethodSecurity` (replaces `@EnableGlobalMethodSecurity` since Spring Security 6); without it, method annotations are ignored and all methods allow access. Also, `hasRole('admin')` matches authority `ROLE_admin` — stored authorities missing `ROLE_` prefix always evaluate `false`.
+- **Sa-Token**: allows requests by default, checking only annotated or intercepted handlers. Put `@SaCheckLogin` on controller class so new methods inherit login check.
 
-公开接口必须**显式**登记（Spring Security 的 `permitAll()`、Sa-Token 的 `@SaIgnore`），而不是靠「这儿没加校验」隐式放行——显式标注让审查者一眼看出这是有意为之，而不是漏了。
+Register public endpoints **explicitly** (`permitAll()` in Spring Security, `@SaIgnore` in Sa-Token), never by omitting annotations — explicit opt-out proves openness is intentional.
 
-**错误（判断散落在方法体里，默认放行）：**
+**Wrong (inline check inside method body — fails open):**
 
 ```java
 @GetMapping
 public RPage<UserListItemResponse> page(@Valid UserPageQuery query) {
-    if (!StpUtil.hasPermission("user:query")) {   // 全靠人记得写；下一个方法忘了就是裸奔
+    if (!StpUtil.hasPermission("user:query")) {   // relies on human memory; next method forgotten = exposed
         throw new BizException(ErrorCode.FORBIDDEN);
     }
     return RPage.ok(userService.listUsers(query));
 }
 ```
 
-**正确（Spring Security）：**
+**Right (Spring Security):**
 
 ```java
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity   // 缺这行，下面的 @PreAuthorize 全部静默失效
+@EnableMethodSecurity   // without this, @PreAuthorize below is silently ignored
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                // 纯 Bearer 令牌、无 Cookie 会话时 CSRF 保护无意义；若把令牌放进 Cookie，必须保留
+                // Pure Bearer token with no Cookie session: CSRF adds nothing; keep enabled if token is in a Cookie
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login").permitAll()   // 公开接口显式登记
-                        .anyRequest().authenticated())                // 兜底默认拒绝
+                        .requestMatchers("/auth/login").permitAll()   // register public endpoints explicitly
+                        .anyRequest().authenticated())                // default deny fallback
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();
     }
@@ -78,11 +78,11 @@ public class UserController {
 }
 ```
 
-**正确（Sa-Token）：**
+**Right (Sa-Token):**
 
 ```java
 @Tag(name = "用户")
-@SaCheckLogin   // 标在类上，新增方法自动继承
+@SaCheckLogin   // class-level so new methods inherit login check automatically
 @RestController
 @RequestMapping("/users")
 @Validated
@@ -101,20 +101,20 @@ public class UserController {
 ```
 
 
-### Controller 不得返回 Entity
+### Controllers must never return Entities
 
-Entity 映射数据库全字段，含密码散列、软删标记、内部审计列等。直接返回等于把这些字段暴露给调用方，且今后给表加一列就会静默扩大接口输出。
+Return view-specific `Response` types from Controllers, never `Entity`. Entity maps every table column (password hashes, soft-delete flags, internal audit fields); returning it exposes sensitive data, and adding table columns later silently widens public API output.
 
-**错误（把整行数据抛给前端）：**
+**Wrong (exposing raw table row):**
 
 ```java
 @GetMapping("/users/{id}")
 public R<UserEntity> get(@PathVariable Long id) {
-    return R.ok(userService.getEntityById(id)); // ❌ 含 password / deleted
+    return R.ok(userService.getEntityById(id)); // ❌ includes password / deleted
 }
 ```
 
-**正确（用视图专属 Response，字段显式列举）：**
+**Right (view-specific Response with explicit fields):**
 
 ```java
 @GetMapping("/users/{id}")
@@ -123,41 +123,41 @@ public R<UserDetailResponse> get(@PathVariable Long id) {
 }
 ```
 
-Service 的返回类型也必须是 `Response` / `Dto` / 原始类型，**不能**是 Entity——否则 Controller 只是把泄漏点上移一层。
+Service methods must also return `Response`, `Dto`, or primitives — **never** `Entity`, or leak risk shifts up into Controller.
 
 
-### 跨领域调 Service，不调对方 Mapper
+### Cross-domain calls go through Service, never another domain's Mapper
 
-一个 Service 可以注入另一个 Service，但**不能**注入另一个领域的 Mapper。绕过对方 Service 等于绕过它的业务校验、缓存失效和事务约定，这类 bug 只在对方逻辑变更时才暴露。
+Service may inject another Service, **never** another domain's Mapper. Bypassing owning Service skips its validation, cache eviction, and transaction invariants — bugs hidden until other domain changes.
 
-**错误：**
+**Wrong:**
 
 ```java
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
-    private final RoleMapper roleMapper; // ❌ 越过 RoleService
+    private final RoleMapper roleMapper; // ❌ bypasses RoleService
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserMapper userMapper;   // 自己领域的 Mapper
-    private final RoleService roleService; // 别人领域走 Service
+    private final UserMapper userMapper;   // own domain's Mapper
+    private final RoleService roleService; // cross-domain via Service
 }
 ```
 
 
-### 不用 Map 当响应类型
+### Never use Map as a response type
 
-`Map<String, Object>` 没有编译期约束，也生成不出 OpenAPI schema，调用方只能靠猜或翻源码。改字段时无任何提示。
+Return typed `Response` classes, never `Map<String, Object>`. `Map<String, Object>` lacks compile-time checks and renders empty OpenAPI schema, forcing callers to guess keys or read backend code. Renaming keys gives zero compiler warning.
 
-**错误：**
+**Wrong:**
 
 ```java
 @GetMapping("/stats")
@@ -165,11 +165,11 @@ public R<Map<String, Object>> stats() {
     Map<String, Object> m = new HashMap<>();
     m.put("total", 100);
     m.put("active", 80);
-    return R.ok(m); // ❌ 契约不可见
+    return R.ok(m); // ❌ invisible contract
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @Data
@@ -180,54 +180,54 @@ public class StatsResponse {
 }
 ```
 
-仅当 schema 真正动态（如用户自定义表单）时才例外，且仍应包一层带类型的信封。
+Sole exception: dynamic user-defined schemas (e.g., custom form builders), still wrapped inside typed envelope field.
 
 
-### 禁止静默吞异常
+### Never silently swallow exceptions
 
-`catch` 后不处理也不重抛，会把失败伪装成成功：调用方收到 200 和空数据，故障延后到下游才暴露，且现场已丢失。
+Translate caught exceptions into domain errors or rethrow — never catch without handling or rethrowing. Silent `catch` masks failure as 200 OK with empty/partial state, pushing crash downstream after root-cause context is lost.
 
-**错误：**
+**Wrong:**
 
 ```java
 try {
     userMapper.insert(entity);
 } catch (Exception e) {
-    // ❌ 什么都不做，调用方以为成功
+    // ❌ does nothing; caller assumes insert succeeded
 }
 ```
 
-**正确（要么转成有业务含义的错误，要么交给全局处理器）：**
+**Right (translate to domain error or let global handler wrap):**
 
 ```java
 try {
     externalClient.sync(entity);
 } catch (RestClientException e) {
-    log.warn("上游同步失败, entityId={}", entity.getId(), e);
+    log.warn("Upstream sync failed, entityId={}", entity.getId(), e);
     throw new BizException(ErrorCode.UPSTREAM_UNAVAILABLE);
 }
 ```
 
-只有明确「失败可忽略」的旁路逻辑（如埋点上报）才允许吞，且必须留日志并注释原因。
+Swallowing allowed only on non-critical side channels (e.g., telemetry), and must log warning plus comment explaining why failure is safe to ignore.
 
 
-### 分层单向依赖
+### One-way layered dependencies
 
-`Controller → Service → Mapper`，每层只依赖紧邻的下一层。反向或跨层调用会同时破坏事务边界、可测性与复用性。
+`Controller → Service → Mapper`: each layer depends only on adjacent lower layer. Reverse or skip-layer calls break transaction boundaries, unit testability, and reuse at once.
 
-| 层 | 职责 | 禁止 |
+| Layer | Responsibility | Forbidden |
 |---|---|---|
-| Controller | HTTP 契约：路径、参数、校验、鉴权 | 访问 Mapper、调用其他 Controller |
-| Service | 业务逻辑、事务、编排、外部调用、缓存 | 处理视图关注点、直接调别的 Service 的 Mapper |
-| Mapper | 数据库访问、ORM 映射 | 业务逻辑、校验、事务 |
+| Controller | HTTP contract: routing, binding, validation, auth | Calling Mappers; calling other Controllers |
+| Service | Business logic, transactions, orchestration, external calls, caching | HTTP/view concerns; injecting another domain's Mapper |
+| Mapper | Database access and ORM mapping | Business rules, validation, transaction control |
 
-**错误（Controller 直连 Mapper，绕过事务与业务校验）：**
+**Wrong (Controller injects Mapper directly, bypassing transactions and domain checks):**
 
 ```java
 @RestController
 @RequiredArgsConstructor
 public class UserController {
-    private final UserMapper userMapper; // ❌ 跨层
+    private final UserMapper userMapper; // ❌ skips Service layer
     @GetMapping("/users/{id}")
     public R<UserEntity> get(@PathVariable Long id) {
         return R.ok(userMapper.selectById(id));
@@ -235,7 +235,7 @@ public class UserController {
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @RestController
@@ -250,11 +250,11 @@ public class UserController {
 ```
 
 
-### Service 不碰 HTTP
+### Keep HTTP types out of Services
 
-Service 里出现 `HttpServletRequest`、`request.getParameter()`、手工构造响应头或状态码，会让业务逻辑绑死在 Web 容器上——单测必须起 MockMvc，定时任务和 MQ 消费者也没法复用同一段逻辑。
+Pass typed parameters into Services; keep `HttpServletRequest`, `request.getParameter()`, and HTTP headers/status codes out. Servlet types inside Service couple domain logic to web container — unit tests then require `MockMvc`, and cron jobs or MQ consumers cannot reuse logic.
 
-**错误：**
+**Wrong:**
 
 ```java
 public boolean create(HttpServletRequest request) { // ❌
@@ -262,73 +262,73 @@ public boolean create(HttpServletRequest request) { // ❌
 }
 ```
 
-**正确（Controller 完成解析与鉴权，Service 只收类型化入参）：**
+**Right (Controller parses HTTP and auth context; Service takes typed parameters):**
 
 ```java
 public boolean create(UserCreateRequest request, Long operatorId) {
-    // 纯业务逻辑，可被 Controller / 定时任务 / MQ 消费者共用
+    // pure domain logic reusable across Controllers, cron jobs, and MQ consumers
 }
 ```
 
-当前登录人这类上下文由 Controller 取出后作为参数传入，或经由显式的上下文持有者，不要让 Service 直接读 HTTP。
+Extract caller context (e.g., operator ID) in Controller and pass explicitly, or read via transport-agnostic context holder — never read Servlet objects in Service.
 
-## 2. 密码学
+## 2. Cryptography
 
 
-### 只用批准的国密算法与模式
+### Use only approved ShangMi algorithms and modes
 
-| 用途 | 必须 | 禁止 |
+| Purpose | Required | Forbidden |
 |---|---|---|
-| 非对称加密 | SM2 `C1C3C2` | `C1C2C3`（仅隔离的兼容层可留） |
-| 签名 | SM2 + SM3 摘要 | — |
-| 摘要 | SM3 | MD5、SHA1 |
-| 对称加密 | `SM4/GCM/NoPadding` | **任何 `SM4/ECB/*`** |
-| 兼容场景 | `SM4/CBC/PKCS5Padding` | DES、3DES、RC4 |
+| Asymmetric encryption | SM2 `C1C3C2` | `C1C2C3` (isolated legacy adapter only) |
+| Digital signature | SM2 + SM3 digest | — |
+| Message digest | SM3 | MD5, SHA-1 |
+| Symmetric encryption | `SM4/GCM/NoPadding` | **Any `SM4/ECB/*`** |
+| Legacy compatibility | `SM4/CBC/PKCS5Padding` | DES, 3DES, RC4 |
 
-ECB 对相同明文块产生相同密文块，结构直接从密文可见——这不是强度问题，是模式本身不提供语义安全。
+ECB encrypts identical plaintext blocks into identical ciphertext blocks, exposing structure directly in ciphertext — zero semantic security regardless of key size.
 
-同样禁止自己实现密码学原语。需要什么就用 Bouncy Castle 已有的实现。
-
-
-### 密钥不入代码，按用途分离
-
-私钥、对称密钥、IV、nonce、盐、生产 secret 一律不得硬编码。进了 git history 就等于永久泄漏——即使后续删除文件，历史提交里仍在。
-
-- 加密、签名、MAC/完整性**各用独立密钥**，一把钥匙多用会让一处泄漏波及全部安全属性
-- SM2 密钥用 PEM/DER，SM4 用 16 字节二进制
-- 密文生命周期可能长于密钥轮换周期时，随载荷携带 `keyId`
-- 二进制传输默认 Base64，除非对端协议要求 hex
-
-没有 `keyId` 的历史密文在轮换后将无法解密，而这通常在轮换当天才被发现。
+Use vetted Bouncy Castle primitives; never implement cryptographic primitives by hand.
 
 
-### 密钥与明文不进日志
+### Never hardcode secrets; separate keys by purpose
 
-**禁止**记录明文、私钥、对称密钥、完整密文、完整签名、解密后载荷。日志往往被集中采集、长期留存，且访问权限比数据库宽得多——写进日志等于扩大了泄漏面。
+Load keys and secrets from external config or secret stores — never hardcode private keys, symmetric keys, IVs, nonces, salts, or prod secrets in code. Secrets committed to git history stay permanently compromised even if deleted in later commits.
 
-解密失败、认证标签不匹配、密文格式非法、验签失败一律按**安全错误**处理：返回稳定的业务错误码，不要把密码学细节透给调用方（那等于给攻击者提供预言机）。
+- **Separate keys by purpose**: distinct keys for encryption, signing, and MAC/integrity so one leaked key cannot compromise all security properties.
+- Encode SM2 keys as PEM/DER, SM4 keys as 16 raw bytes.
+- Attach `keyId` to payloads whenever ciphertext lifetime outlives key rotation.
+- Use Base64 for binary wire transport unless peer protocol mandates hex.
 
-**错误：**
+Ciphertexts without `keyId` fail decryption after key rotation — usually discovered on rotation day.
+
+
+### Never log keys or plaintext
+
+Log non-sensitive metadata (`keyId`, payload length) only — **never** log plaintext, private keys, symmetric keys, full ciphertexts, full signatures, or decrypted payloads. Logs are centralized, retained long-term, and readable by far more roles than prod databases, widening blast radius.
+
+Treat decryption failure, auth-tag mismatch, malformed ciphertext, and bad signature as **security errors**: return stable opaque business error code without exposing crypto failure details (prevents padding/tag oracles).
+
+**Wrong:**
 
 ```java
-log.error("解密失败, ciphertext={}, key={}", cipherText, keyHex, e); // ❌
+log.error("Decryption failed, ciphertext={}, key={}", cipherText, keyHex, e); // ❌
 ```
 
-**正确：**
+**Right:**
 
 ```java
-log.warn("解密失败, keyId={}, len={}", keyId, cipherText.length);
+log.warn("Decryption failed, keyId={}, len={}", keyId, cipherText.length);
 throw new BizException(ErrorCode.DECRYPT_FAILED);
 ```
 
-测试需覆盖：SM2 `C1C3C2` 加解密往返、签名验证的成功与失败、SM3 已知答案摘要、SM4 nonce 唯一性与篡改检测。
+Tests must cover: SM2 `C1C3C2` round-trip, signature verification pass/fail, SM3 known-answer digests, SM4 nonce uniqueness and tamper detection.
 
 
-### BouncyCastle Provider 注册一次
+### Register BouncyCastle Provider once at startup
 
-优先用 `org.bouncycastle:bcprov-jdk18on`，在应用启动时注册一次，不要在每次加解密时重复注册——`addProvider` 有同步开销，热路径上反复调用会成为瓶颈。
+Use `org.bouncycastle:bcprov-jdk18on` and register once at app startup — never inside per-request encrypt/decrypt calls. `Security.addProvider` takes global synchronization locks and bottlenecks hot paths.
 
-**正确：**
+**Right:**
 
 ```java
 @Configuration
@@ -342,70 +342,70 @@ public class CryptoConfig {
 }
 ```
 
-模块若已使用其他合规 provider，沿用即可，不要混装两个。
+If module already uses another compliant JCE provider, keep that single provider; never mount two.
 
 
-### 只对规范字节签名与摘要
+### Sign and hash canonical bytes only
 
-签名和摘要的输入必须是**确定性字节序列**。对 `Map.toString()`、对象 `toString()` 或字段顺序不固定的 JSON 签名，会产生同一份数据在不同 JVM、不同版本下签出不同结果——表现为验签随机失败，且极难复现。
+Pass **deterministic byte sequences** to signing and hashing. Signing `Map.toString()`, `Object.toString()`, or JSON without deterministic key order yields different bytes across JVMs or library versions — causing random, hard-to-reproduce verification failures.
 
-**错误：**
+**Wrong:**
 
 ```java
-byte[] data = payload.toString().getBytes(); // ❌ 顺序不保证
+byte[] data = payload.toString().getBytes(); // ❌ key order and charset unspecified
 byte[] sig = signSm2Sm3(privateKey, data);
 ```
 
-**正确（固定字段顺序的规范化序列化）：**
+**Right (canonical serialization with fixed field order and UTF-8):**
 
 ```java
-byte[] canonical = canonicalize(payload); // 字段排序 + 固定编码 + UTF-8
+byte[] canonical = canonicalize(payload); // sorted keys + fixed formatting + explicit UTF-8
 byte[] sig = signSm2Sm3(privateKey, canonical);
 ```
 
-对外来数据，**先验签再信任**。SM2 解密前先校验 `C1`、`C3`、`C2` 三段结构；`C1` 需含未压缩点前缀 `0x04`，除非对端协议明确不带。
+For untrusted external inputs, **verify signature before trusting payload**. Before SM2 decryption, validate `C1` / `C3` / `C2` segment lengths; `C1` requires uncompressed EC point prefix `0x04` unless peer protocol explicitly omits it.
 
-摘要比较用常量时间比较，不要用 `Arrays.equals` 之外的短路比较暴露时序信息。
+Compare digests in constant time (`MessageDigest.isEqual`), never short-circuiting byte comparisons that leak timing side channels.
 
 
-### IV / nonce 每次随机且唯一
+### Generate a fresh random IV / nonce per encryption
 
-- SM4 密钥必须恰好 128 位 / 16 字节
-- GCM nonce 96 位 / 12 字节，**每次加密唯一**
-- CBC IV 16 字节，每次用 `SecureRandom` 生成
+- SM4 key: exact 128 bits / 16 bytes.
+- GCM nonce: 96 bits / 12 bytes, **unique per encryption under same key**.
+- CBC IV: 16 bytes, generated fresh via `SecureRandom` per call.
 
-GCM 下重用 nonce 不只是削弱强度——它让攻击者能恢复认证密钥，从而伪造任意密文的标签，加密保护完全失效。
+GCM nonce reuse lets attackers XOR keystreams and recover GHASH authentication key, forging valid tags on arbitrary ciphertexts.
 
-**错误：**
+**Wrong:**
 
 ```java
-private static final byte[] IV = "1234567890123456".getBytes(); // ❌ 固定
+private static final byte[] IV = "1234567890123456".getBytes(); // ❌ static IV
 ```
 
-**正确：**
+**Right:**
 
 ```java
 byte[] nonce = new byte[12];
-SecureRandom.getInstanceStrong().nextBytes(nonce); // 每次新生成，随密文一起传输
+SecureRandom.getInstanceStrong().nextBytes(nonce); // fresh per call; transmit alongside ciphertext
 ```
 
-也不要靠截断字符串派生密钥——那会把密钥空间压缩到口令的熵，而非 128 位。
+Never derive keys by truncating or slicing password strings — collapses entropy from 128 bits to password entropy.
 
-## 3. 实体与持久化
+## 3. Entities & Persistence
 
 
-### 审计时间字段用 @TableField(fill)
+### Populate audit timestamps via @TableField(fill)
 
-不能依赖数据库的 `ON UPDATE CURRENT_TIMESTAMP`——该语法是 MySQL 特有的，迁移到 gauss 系时会被移除，字段随即变成 NULL 或永不更新。填充必须由应用层的 `MetaObjectHandler` 驱动。
+Populate audit timestamps in app layer via MyBatis-Plus `MetaObjectHandler` + `@TableField(fill = ...)` — never rely on DB `ON UPDATE CURRENT_TIMESTAMP` (MySQL-only; stripped on Gauss-family DBs, leaving `updated_at` `NULL` or frozen).
 
-**错误（指望数据库自动维护）：**
+**Wrong (relying on database DDL defaults/triggers):**
 
 ```java
-private LocalDateTime createdAt; // ❌ 无 fill，靠 DDL 默认值
+private LocalDateTime createdAt; // ❌ no fill; relies on DB default
 private LocalDateTime updatedAt;
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @TableField(fill = FieldFill.INSERT)
@@ -415,90 +415,86 @@ private LocalDateTime createdAt;
 private LocalDateTime updatedAt;
 ```
 
-规则固定：含 `createdAt` 必标 `INSERT`，含 `updatedAt` 必标 `INSERT_UPDATE`。
+Mark `createdAt` with `FieldFill.INSERT` and `updatedAt` with `FieldFill.INSERT_UPDATE`.
 
 
-### Mapper 不写 XML 和整句 SQL
+### No Mapper XML or raw full-statement SQL
 
-Mapper 继承 `MPJBaseMapper<Entity>`，查询优先用 MyBatis-Plus wrapper 与 MPJ API（`selectJoinPage`、`leftJoin`、`selectAs`）。手写整句 SQL 会绑死方言，在多数据库目标下必然分叉。
+Extend `MPJBaseMapper<Entity>` on Mappers and build queries with MyBatis-Plus wrappers and MPJ APIs (`selectJoinPage`, `leftJoin`, `selectAs`) — no Mapper XML or raw full-statement SQL. Handwritten full SQL binds to one dialect and forks across multi-DB targets.
 
-**错误：**
+**Wrong:**
 
 ```java
 @Mapper
 public interface UserMapper extends MPJBaseMapper<UserEntity> {
-    @Select("SELECT * FROM t_user WHERE status = #{status} LIMIT 10") // ❌ 方言绑定
+    @Select("SELECT * FROM t_user WHERE status = #{status} LIMIT 10") // ❌ dialect-specific SQL
     List<UserEntity> listByStatus(String status);
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @Mapper
 public interface UserMapper extends MPJBaseMapper<UserEntity> {
 }
 
-// Service 内用 wrapper
+// Build queries with wrappers inside the Service
 LambdaQueryWrapper<UserEntity> w = Wrappers.lambdaQuery(UserEntity.class)
         .eq(UserEntity::getStatus, status)
         .last("LIMIT 10");
 ```
 
-复杂投影/聚合确实无法用 wrapper 表达时，允许在 wrapper 内嵌小段 SQL 片段，但必须参数化，并在旁边用注释写出等价 SQL 形状供审查者阅读。
+When complex projections or aggregations cannot use wrappers alone, small bound SQL fragments inside wrappers are allowed — keep parameters bound (never concatenated) and comment equivalent SQL shape next to it.
 
 
-### 主键用 ASSIGN_ID，禁用 AUTO
+### Use ASSIGN_ID for primary keys, never AUTO
 
-`IdType.AUTO` 依赖数据库端的自增列。当目标库不是 MySQL 时（openGauss 的 `BIGSERIAL` 语义与 `AUTO_INCREMENT` 并不等价），应用层不填 ID，INSERT 撞上 NOT NULL 直接失败——而报错信息指向字段约束，与真正的根因（主键策略）相距很远，排查代价很高。
+Use `IdType.ASSIGN_ID` so app layer generates Snowflake IDs independent of DB engine — never `IdType.AUTO`. On non-MySQL DBs (e.g., openGauss `BIGSERIAL` differs from MySQL `AUTO_INCREMENT` under JDBC key generation), `AUTO` omits `id` and `INSERT` hits `NOT NULL`, throwing constraint errors far from root cause.
 
-用 `ASSIGN_ID` 由应用层雪花算法生成，与数据库无关。
-
-**错误：**
+**Wrong:**
 
 ```java
-@TableId(type = IdType.AUTO) // ❌ 绑死数据库自增
+@TableId(type = IdType.AUTO) // ❌ coupled to DB auto-increment
 private Long id;
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @TableId(type = IdType.ASSIGN_ID)
 private Long id;
 ```
 
-**例外**——主键直接复用业务 ID 时用 `INPUT`：
+**Exception** — use `IdType.INPUT` when primary key reuses external business ID:
 
 ```java
 @TableId(value = "app_id", type = IdType.INPUT)
 private Long appId;
 ```
 
-## 4. 数据库与迁移
+## 4. Database & Migrations
 
 
-### 列名与审计字段约定
+### Column naming and standard audit columns
 
-- 列名 `snake_case`（`order_no`）
-- 主键 `id`，`BIGINT` 或 `VARCHAR(32)`，与主键策略一致
-- 外键列 `fk_{ref}_id`
-- 布尔用语义名（`enabled`、`is_default`、`deleted`），类型 `TINYINT(1)`，`0=false / 1=true`
-- 审计四件套：`created_at`、`updated_at`、`created_by`、`updated_by`
-- 软删：`deleted TINYINT(1) NOT NULL DEFAULT 0`，`1` 为已删除
+- Column names: `snake_case` (`order_no`).
+- Primary key: `id`, `BIGINT` or `VARCHAR(32)` matching primary-key strategy.
+- Foreign-key columns: `fk_{ref}_id`.
+- Booleans: semantic names (`enabled`, `is_default`, `deleted`), `TINYINT(1)` (`0 = false` / `1 = true`).
+- Four audit columns: `created_at`, `updated_at`, `created_by`, `updated_by`.
+- Soft delete: `deleted TINYINT(1) NOT NULL DEFAULT 0` (`1` = deleted).
 
-布尔列不要用 `flag`、`type` 这类无语义名——半年后没人知道 `flag=1` 是启用还是禁用。
+Use semantic boolean names; never name columns `flag` or `type` where `flag = 1` loses meaning over time.
 
 
-### 分布式库的唯一约束必须含分布键，否则要全局索引
+### Distributed unique constraints must include the distribution key or use a global index
 
-分布式数据库（GaussDB Distributed、TiDB、OceanBase 等）把数据按分布键散到各个分片。**普通唯一索引是分片本地的**——只保证同一分片内不重复。若唯一列不是分布键，两条同值记录落在不同分片时，本地索引各自看不到对方，重复数据照样写得进去。
+Distributed DBs (GaussDB Distributed, TiDB, OceanBase) shard rows by distribution key. **Plain unique indexes are shard-local**: if unique column omits distribution key, identical values on different shards insert silently without error.
 
-这类故障最坏的形态是**静默**：不报错、不回滚，直到某天查出两条本该唯一的记录。
+Choose DDL by whether table is new in this migration:
 
-两种写法，按「表是不是本次新建」选：
-
-**新建表——写成表内联约束，两种形态共通：**
+**New table — inline table constraint (portable across topologies):**
 
 ```sql
 CREATE TABLE t_authcode_agreement (
@@ -508,115 +504,115 @@ CREATE TABLE t_authcode_agreement (
 );
 ```
 
-分布式下引擎自动建全局索引，单机下就是普通唯一约束——**一份 SQL 通吃**，无需在 overlay 里分叉（见 `db-migration-base-overlay`）。
+Distributed engines build a global index automatically; standalone engines build a normal unique constraint — **one SQL file works everywhere** without overlay fork (see `db-migration-base-overlay`).
 
-**对既有表追加——必须显式全局唯一索引：**
+**Existing table — explicit Global Unique Index (GSI):**
 
 ```sql
--- ❌ 分布式下只在分片内唯一，跨分片可写入重复值
+-- ❌ Shard-local on distributed DBs; duplicates slip in across shards
 CREATE UNIQUE INDEX uk_org_name ON t_org(org_name);
 
--- ✅ 分布式：GSI，DISTRIBUTE BY 列与索引列一致
+-- ✅ Distributed: GSI distributed on the indexed column
 CREATE GLOBAL UNIQUE INDEX uk_org_name ON t_org(org_name) DISTRIBUTE BY HASH(org_name);
 ```
 
-`CREATE GLOBAL UNIQUE INDEX` 语法在单机/集中式下不被认识，所以这一种情形——**且只有这一种**——需要分叉出集中式 overlay，改回普通 `CREATE UNIQUE INDEX`（无数据分布时它本身就是全表唯一）。
+Standalone/centralized engines reject `CREATE GLOBAL UNIQUE INDEX`, so **only this case** forks into topology overlays where centralized overlay uses plain `CREATE UNIQUE INDEX`.
 
-同理，`ALTER TABLE ... ADD UNIQUE` 在分布式下同样受「唯一键必须包含分布键」约束，不能当作绕过手段。
+`ALTER TABLE ... ADD UNIQUE` on existing distributed tables carries same distribution-key requirement and does not bypass this rule.
 
 
-### 索引命名 uk_ / idx_
+### Index naming with uk_ and idx_ prefixes
 
-- 唯一索引：`uk_{table}_{field...}`
-- 普通索引：`idx_{table}_{field...}`
+- Unique index: `uk_{table}_{field...}`
+- Non-unique index: `idx_{table}_{field...}`
 
-带表名是为了让索引名全库唯一——某些数据库的索引名是 schema 级而非表级，重名会在建表时直接冲突。
+Include `{table}` so index names stay unique schema-wide — DBs with schema-scoped index namespaces fail DDL on duplicate names across tables.
 
 ```sql
 CREATE UNIQUE INDEX uk_user_email ON t_user(email);
 CREATE INDEX idx_order_created_at ON t_order(created_at);
 ```
 
-新建表的唯一约束写成 `CREATE TABLE` 内联 `CONSTRAINT uk_x UNIQUE(...)`，而不是建表后再补索引——内联写法在分布式与单机部署下语义一致。
+On new tables, declare uniqueness inline in `CREATE TABLE` via `CONSTRAINT uk_x UNIQUE(...)` rather than adding a separate index afterward — inline constraints keep global-uniqueness semantics across distributed and standalone deployments.
 
 
-### 同库多形态用 base + overlay，不复制整套迁移
+### Use base + overlay for multi-topology databases instead of duplicating full migration sets
 
-同一个数据库产品有多种部署形态（分布式集群 / 集中式主备 / 单机），而某些 DDL 只在其中一种形态下合法时，**不要为每种形态各维护一份完整迁移集**。N 份完整副本里绝大多数文件逐字相同，改一条要同步改 N 处——漏改不会在本地报错，只在另一形态的环境启动时炸。
+When one DB family spans multiple deployment topologies (distributed cluster / centralized primary-standby / standalone) and only a few DDL statements diverge, split migrations into `base + overlay` — **never duplicate full migration trees per topology**. N full copies require N synchronized edits per change; missing one passes locally and fails only when another topology boots.
 
-拆成两层：
+Two tiers:
 
-| 层 | 放什么 |
+| Tier | Contents |
 |---|---|
-| `<db>-base` | **共通基线**：建表、种子、ALTER、注释——凡两种形态语法一致的，全部放这里 |
-| `<db>-<形态>` overlay | **只放确实分叉的那几条**，每种形态一份，版本号与名称严格一致 |
+| `<db>-base` | **Shared baseline**: `CREATE TABLE`, seed data, `ALTER`, comments — all DDL valid across topologies |
+| `<db>-<topology>` overlay | **Only divergent migrations**, one directory per topology with identical version numbers and names |
 
-**overlay 之间互斥**：激活的 location 恒为 `base + 恰好一个 overlay`，构建期与运行期都不得同时挂两个。因此同一版本号**只能出现在一个激活 location**——base 与 overlay 之间绝不能重复版本号，否则 Flyway 报重复版本直接启动失败。
+**Overlays are mutually exclusive**: active Flyway locations are always `base + one overlay`, never two overlays at build or runtime. Every version number **must appear in at most one active location** — duplicate versions across `base` and overlay abort Flyway startup.
 
-分层要回答两个不同的问题，别混为一谈：
+Keep two questions separate:
 
-**问题一：这条迁移放 base 还是 overlay？** 判据是「有没有两端共通的写法」，不是「这条迁移涉不涉及分布式概念」：
+**1. `base` or `overlay`?** Judge by whether portable syntax exists — not whether distributed concepts appear:
 
-- 有共通写法 → 留在 base。例：新建表的唯一约束写成表内联 `CONSTRAINT uk_x UNIQUE(...)`，分布式下自动建全局索引、单机下是普通约束，一份通吃。
-- 确无共通写法 → 才分叉。例：对**既有**表追加非分布键唯一索引，分布式必须用 `CREATE GLOBAL UNIQUE INDEX ... DISTRIBUTE BY HASH(...)`，而单机不认这个语法。
+- Portable syntax exists → keep in `base`. Example: inline `CONSTRAINT uk_x UNIQUE(...)` on new table builds global index on distributed DBs and regular constraint on standalone DBs.
+- No portable syntax → fork into `overlay`. Example: non-distribution-key unique index on **existing** table needs `CREATE GLOBAL UNIQUE INDEX ... DISTRIBUTE BY HASH(...)` on distributed clusters, rejected on standalone engines.
 
-**问题二：overlay 分几份？** 按**部署目标**分，一个目标一份——即便其中两份当下的可执行 SQL 完全相同。这与问题一的「能共通就别分」不矛盾：那条管的是 base 与 overlay 的边界，这条管的是 overlay 的粒度。
+**2. How many overlays?** One **per deployment target**, even if two targets execute identical SQL today. Question 1 sets `base` vs `overlay` boundary; Question 2 sets overlay granularity.
 
-理由是 profile ↔ location 保持一一对应。两个目标共用一个 overlay 时，目录名会对其中一个说谎（`gauss-centralized` 实际同时服务集中式 GaussDB 和单机 openGauss），运维改 `SPRING_FLYWAY_LOCATIONS` 时得先在脑子里做一次映射，而这个映射没有任何地方能校验。代价是多一份等价副本——用 `diff` 核可执行 SQL 一致即可，比一次接错 location 便宜。
+1-to-1 profile ↔ location parity prevents unverified mental remapping: if `gauss-centralized` secretly serves both centralized GaussDB and standalone openGauss, operators editing `SPRING_FLYWAY_LOCATIONS` guess a mapping nothing checks. One extra overlay file checked via `diff` costs far less than misrouting prod migrations.
 
-> 等价副本里**注释可以按产品归属分别写**（这往往正是拆分的直接动因），但改注释会改 Flyway checksum，见 `db-migration-immutable-after-apply`。
+> Equivalent overlays may differ in target-product SQL comments, but editing comments on applied migrations alters Flyway checksums — see `db-migration-immutable-after-apply`.
 
-**错误（同一张新表在两个 overlay 里各写一遍）：**
-
-```
-gauss-distributed/V25__add_authcode_agreement.sql   -- 建表 60 行 + 唯一索引 3 行
-gauss-centralized/V25__add_authcode_agreement.sql   -- 建表 60 行 + 唯一索引 2 行
-```
-
-60 行建表体重复两份。下次给这张表加字段，改一处漏一处。
-
-**正确（能共通的下沉到 base）：**
+**Wrong (duplicating new table across two overlays):**
 
 ```
-gauss-base/V25__add_authcode_agreement.sql          -- 建表，唯一约束写表内联 CONSTRAINT
+gauss-distributed/V25__add_authcode_agreement.sql   -- 60-line CREATE TABLE + 3-line GSI
+gauss-centralized/V25__add_authcode_agreement.sql   -- 60-line CREATE TABLE + 2-line index
 ```
 
-只有真的无法共通时才留在 overlay，且**各份 overlay 除分叉语句与产品归属注释外必须逐字一致**（建表体、ALTER、DROP 同步维护）。新增或修改 overlay 后逐对 `diff` 一遍是最省事的校验方式。
+60 duplicated DDL lines drift next time a column is added.
 
-配套见 `db-migration-parity`（多方言同版本同步）、`db-migration-locations-injection`（location 怎么注入）、`db-distributed-unique-index`（分叉的根因）、`db-migration-immutable-after-apply`（改已执行的迁移要 repair）。
+**Right (push portable DDL into `base`):**
+
+```
+gauss-base/V25__add_authcode_agreement.sql          -- CREATE TABLE with inline CONSTRAINT UNIQUE
+```
+
+Keep files in overlays only when syntax diverges, and keep sibling overlays **byte-identical outside divergent DDL and header comments**. Run pairwise `diff` after every overlay edit.
+
+See also `db-migration-parity`, `db-migration-locations-injection`, `db-distributed-unique-index`, `db-migration-immutable-after-apply`.
 
 
-### 已执行的迁移不可编辑，改注释也算改
+### Applied migrations are immutable — even comment edits change checksums
 
-Flyway 对每个迁移文件存一份 checksum，算的是**整个文件内容**——注释、空行、缩进全在内。改一个已经执行过的版本，下次启动 validate 阶段就会报 checksum 失配并拒绝继续，而**只在已经跑过该版本的环境上报**：新环境从零 migrate 一路绿灯，老环境（通常是生产）起不来。
+Flyway hashes **entire file contents** (comments, blank lines, indentation). Editing an applied migration fails `validate` on next boot — **only in environments that already ran it**: fresh environments migrate clean while existing environments (usually prod) fail to start.
 
-所以默认纪律是：**已执行的版本只读，要改就发新版本**。给列改类型、补索引、修数据，都写 `V<n+1>__fix_xxx.sql`。
+Default rule: **applied migrations are read-only; ship changes as `V<n+1>__fix_xxx.sql`**.
 
-例外只有一类：改动**不影响已执行结果**，纯粹是注释、格式、或产品归属标注（例如把一份 overlay 的注释从「集中式 GaussDB」改成「社区 openGauss」）。这时重发一个新版本毫无意义——它什么也不做。正确做法是接受 checksum 变化，然后让每个已执行过该版本的环境**先 repair 再 migrate**：
+Sole exception: non-functional edits that **do not change executed SQL** (comments, formatting, target-product labels). Do not ship an empty `V<n+1>`; accept checksum change and run `repair` before `migrate` on every environment that already applied that version:
 
 ```bash
-flyway repair   # 用当前文件内容重写 flyway_schema_history 里的 checksum
+flyway repair   # rewrites checksums in flyway_schema_history from current file contents
 flyway migrate
 ```
 
-Spring Boot 侧对应 `spring.flyway.repair-on-migrate`（或部署流程里先跑一次 repair 任务）。**这一步必须写进变更说明**——漏掉它的环境会在下一次滚动发布时才炸，那时已经和这次改动隔了很久。
+In Spring Boot, use `spring.flyway.repair-on-migrate` or a pre-deploy repair job, and **record the repair step in release notes** — skipping it crashes next rolling deploy long after the edit.
 
-**不要用关闭校验来绕过：**
+**Never disable validation to bypass checksum errors:**
 
 ```yaml
-# ❌ 把真实的结构漂移一起关掉了
+# ❌ Silences real schema drift alongside your comment edit
 spring.flyway.validate-on-migrate: false
 ```
 
-`validate-on-migrate: false` 不只放过你这次的注释改动，也放过「有人手工改过生产表结构」「某个版本文件被误删」这类真问题——而这些正是 validate 唯一能替你抓到的东西。若项目因历史原因已经关着它，那更要在变更说明里显式写清 repair 步骤：此时没有任何自动检查会提醒执行者。
+`validate-on-migrate: false` hides manual prod DDL drift and deleted migration files — the exact bugs validation catches. If a legacy project already disabled it, still document `repair` in release notes since no automatic check will warn operators.
 
 
-### locations 构建期注入，未激活的 overlay 也要打进产物
+### Inject Flyway locations at build time and package all inactive overlays
 
-Flyway 的 `spring.flyway.locations` 不要在配置文件里写死，用构建期 profile 注入占位符——哪套方言/形态由出包时决定，源码里保持单一写法。
+Inject `spring.flyway.locations` from Maven build profile placeholder instead of hardcoding in `application.yml`:
 
 ```xml
-<!-- 父 pom：一个部署目标一个 profile，各自注入自己的 locations -->
+<!-- Parent POM: one profile per deployment target, each injecting its own locations -->
 <profiles>
   <profile><id>distributed-gaussdb</id>
     <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-distributed</spring.flyway.locations></properties>
@@ -637,65 +633,65 @@ spring:
     locations: "@spring.flyway.locations@"
 ```
 
-**关键一条：注入的是「激活哪些 location」，不是「打包哪些文件」。** 所有 overlay 目录都在 `src/main/resources` 下，无论当次构建激不激活，都会一并进 jar 的 classpath。这不是冗余，而是运行期覆盖的前提：
+**Profile selects *active* locations, not *packaged* files.** Keep all overlay directories under `src/main/resources` so every overlay ships inside JAR classpath regardless of build profile — prerequisite for runtime overrides.
 
-profile 名字带上部署目标（`distributed-` / `centralized-`），比笼统的 `gaussdb` 更难接错——它和 location 目录名一一对应，肉眼就能核。
+Name profiles after exact deployment targets (`distributed-gaussdb`, `centralized-gaussdb`) rather than generic `gaussdb` so profile IDs match location directories 1-to-1.
 
-**错误（按 profile 裁剪资源目录）：**
+**Wrong (excluding inactive overlays from JAR):**
 
 ```xml
-<!-- ❌ 只把激活的 overlay 打进包 -->
+<!-- ❌ Packages only the build-time active overlay -->
 <resources><resource>
   <directory>src/main/resources</directory>
   <excludes><exclude>db/migration/gauss-centralized/**</exclude></excludes>
 </resource></resources>
 ```
 
-这样一来，同一个镜像换个形态的环境就跑不了，只能为该环境单独出一次包——而重新出包意味着上线的不是已经过测的那个产物。
+Stripping overlays breaks runtime topology switching, forcing a separate untested build per environment.
 
-**正确：全部打进去，部署时用环境变量覆盖。**
+**Right (package all overlays; override via env var at deploy time):**
 
 ```bash
-# 该环境形态与构建期 profile 不一致时，运行期改激活的 location 即可
+# Override active Flyway locations when an environment's topology differs from the build profile
 SPRING_FLYWAY_LOCATIONS=classpath:db/migration/gauss-base,classpath:db/migration/gauss-centralized
 ```
 
-典型场景：预发与生产用同一镜像，但预发是集中式主备、生产是分布式集群。构建期只能选一个 profile，差异靠部署清单里的这个 env 补齐。
+Example: staging runs centralized primary-standby while prod runs distributed cluster on identical image; `SPRING_FLYWAY_LOCATIONS` switches staging in deployment manifest.
 
 
-### 迁移必须多方言同步同版本
+### Keep multi-dialect migrations in lockstep at identical versions
 
-项目同时支持多个数据库时，每条 migration 必须为**每个激活的 location 各维护一份**，版本号与名称严格一致。漏一份的后果是：开发环境全绿，目标环境启动时 Flyway 报缺失版本或表结构不一致——而这通常发生在生产。
+In multi-DB projects, maintain every migration across **every active dialect location** with identical version numbers and names. Missing one dialect stays green locally while Flyway aborts startup or drifts schema in target environment — usually prod.
 
-关键约束：
+Invariants:
 
-- 同一版本号**只能出现在一个激活 location**，否则 Flyway 报重复版本
-- 各份之间除方言差异外，内容必须逐字一致（建表体、ALTER、注释同步维护）
-- 激活哪些 location 由构建期 profile 注入，不要在代码里硬编码
+- Each version number **appears in at most one active location**, else Flyway aborts on duplicate version.
+- Sibling dialect files match word-for-word outside SQL dialect differences (sync `CREATE TABLE`, `ALTER`, comments).
+- Inject active locations via build profiles; never hardcode in Java/YAML.
 
-**改动清单**——加一条迁移时，逐个确认每个方言目录都有对应文件，再确认版本号无冲突。
+**Checklist when adding migration** — confirm every dialect directory has matching file and no active location set collides on version numbers.
 
-同一数据库产品还有多种部署形态（分布式 / 集中式 / 单机）时，不要再按形态复制整套，见 `db-migration-base-overlay`。项目具体有几层 location、各层叫什么，以该项目 CLAUDE.md 为准。
+When one DB family spans multiple topologies (distributed / centralized / standalone), use `base + overlay` (`db-migration-base-overlay`). Follow project `CLAUDE.md` for exact location hierarchy.
 
 
-### openGauss 方言三定律
+### Three openGauss SQL dialect rules
 
-写 gauss 系迁移时，以下 PostgreSQL 语法**不可用**，必须改写：
+On Gauss-family DBs (openGauss / GaussDB), rewrite these **unsupported** PostgreSQL constructs:
 
-| 不支持 | 改写为 |
+| Unsupported | Rewrite as |
 |---|---|
-| `ON CONFLICT` | `INSERT ... WHERE NOT EXISTS`，或显式去重 |
-| `sys_guid()` / `gen_random_uuid()` | `md5(...)::uuid` 合成 |
-| `jsonb_build_object` | `'[...]'::jsonb` 字面量 |
+| `ON CONFLICT` | `INSERT ... SELECT ... WHERE NOT EXISTS`, or explicit deduplication |
+| `sys_guid()` / `gen_random_uuid()` | `md5(...)::uuid` |
+| `jsonb_build_object` | JSON literal cast: `'[...]'::jsonb` |
 
-**错误：**
+**Wrong:**
 
 ```sql
 INSERT INTO t_config(k, v) VALUES ('a', '1')
-ON CONFLICT (k) DO UPDATE SET v = '1'; -- ❌ openGauss 不支持
+ON CONFLICT (k) DO UPDATE SET v = '1'; -- ❌ unsupported on openGauss
 ```
 
-**正确：**
+**Right:**
 
 ```sql
 INSERT INTO t_config(k, v)
@@ -703,23 +699,23 @@ SELECT 'a', '1'
 WHERE NOT EXISTS (SELECT 1 FROM t_config WHERE k = 'a');
 ```
 
-这三条是踩坑实证，不是理论限制——写之前先对照，比迁移失败后回查便宜得多。
+All three come from real migration failures — check before writing SQL rather than debugging broken Flyway runs.
 
 
-### gauss 系跑 Flyway 须注册插件跳过 SET ROLE
+### Register a Flyway plugin on Gauss-family DBs to skip SET ROLE
 
-Flyway 把 openGauss / GaussDB 当 PostgreSQL，每次操作后执行 `SET ROLE '<CURRENT_USER>'` 还原角色。gauss 系拒绝非 sysadmin 执行 `SET ROLE`，即使切回自己也要 `PASSWORD`，报 SQLState 42602 `set role denied`。Flyway 随即以 `Unable to restore connection to its original state` 中止，这一步发生在查历史表时，任何迁移都跑不到。给账号 sysadmin 权限不是解法。应当用 Flyway Plugin SPI 换掉连接实现，只把还原步骤置空。
+Flyway treats openGauss / GaussDB as PostgreSQL and runs `SET ROLE '<CURRENT_USER>'` after each step to restore state. Gauss-family DBs deny `SET ROLE` to non-`sysadmin` users (even back to self without `PASSWORD`, SQLState `42602` `set role denied`), aborting Flyway with `Unable to restore connection to its original state` while reading history table — before any migration runs. Never grant `sysadmin`; register a Flyway Plugin SPI that turns role restoration into a no-op.
 
-**错误（沿用内置 PostgreSQL 类型，或在迁移脚本里切角色）：**
+**Wrong (relying on built-in PostgreSQL support or switching roles in SQL):**
 
 ```sql
-SET ROLE app_owner PASSWORD '...'; -- ❌ 连接还回池时仍是这个角色，会污染后续请求
+SET ROLE app_owner PASSWORD '...'; -- ❌ pooled connection retains this role and pollutes later requests
 ```
 
-**正确（三个类，依赖 `flyway-database-postgresql`，compile scope）：**
+**Right (three classes with `flyway-database-postgresql` in `compile` scope):**
 
 ```java
-// 1. DatabaseType：优先级高于内置 PostgreSQL（0），按产品名接管，否则回落父类
+// 1. DatabaseType: higher priority than built-in PostgreSQL (0); match product name or fall back to super
 public class GaussDBDatabaseType extends PostgreSQLDatabaseType {
     @Override public String getName() { return "GaussDB"; }
     @Override public int getPriority() { return 100; }
@@ -731,14 +727,14 @@ public class GaussDBDatabaseType extends PostgreSQLDatabaseType {
         return new GaussDBDatabase(cfg, f, si);
     }
 }
-// 2. Database：只替换连接实现
+// 2. Database: swap only the Connection wrapper
 public class GaussDBDatabase extends PostgreSQLDatabase {
-    // 构造器透传三个参数
+    // Constructor forwards all three arguments to super
     @Override protected PostgreSQLConnection doGetConnection(Connection c) { return new GaussDBConnection(this, c); }
 }
-// 3. Connection：置空角色还原
+// 3. Connection: make role restoration a no-op
 public class GaussDBConnection extends PostgreSQLConnection {
-    @Override protected void doRestoreOriginalState() { /* gauss 系拒绝 SET ROLE；无角色可还原 */ }
+    @Override protected void doRestoreOriginalState() { /* Gauss-family DBs reject SET ROLE; no role to restore */ }
 }
 ```
 
@@ -747,19 +743,19 @@ public class GaussDBConnection extends PostgreSQLConnection {
 com.example.config.GaussDBDatabaseType
 ```
 
-要点：
+Key constraints:
 
-- **只能按产品名识别，不能靠 URL。** Spring 交给 Flyway 的是 DataSource，用不到 URL 识别。openGauss 官方驱动 `getDatabaseProductName()` 返回 `PostgreSQL`，所以实际是靠「优先级 100 + 回落父类」命中的。副作用是普通 PostgreSQL 也会被这个类型接管，只支持 MySQL + gauss 系的项目可以接受。
-- **置空是安全的。** 父类的这个方法只做 `SET ROLE` 一件事，而 Flyway 自身不切换角色。schema、search_path、autocommit 由 `close()` 还原，与这里无关。前提是迁移脚本里禁写 `SET ROLE`。
-- **放在执行迁移的那个模块。** 通过 Starter 或库对外提供迁移时，插件也要跟着下沉，否则只有带插件的应用能在 gauss 系上迁移。
-- 插件依赖 `org.flywaydb.core.internal.*`，这些是内部 API，没有兼容承诺。代码里要标注：升级 Flyway 必须重跑 openGauss 的迁移 IT。
+- **Match product name, never JDBC URL.** Spring passes Flyway a `DataSource` without URL matching. Official openGauss driver returns `PostgreSQL` from `getDatabaseProductName()`, so matching relies on `priority = 100` + `super.handlesDatabaseProductNameAndVersion(...)` (plain PostgreSQL also hits this type, acceptable in MySQL + Gauss projects).
+- **No-op restore is safe** provided migrations never run `SET ROLE`: superclass method only runs `SET ROLE`, while `schema`, `search_path`, and `autocommit` reset on `close()`.
+- **Ship plugin in module that runs migrations.** Shared starters/libraries shipping migrations must bundle SPI registration too.
+- Plugin imports internal `org.flywaydb.core.internal.*` APIs: comment in code that Flyway upgrades require re-running openGauss migration ITs.
 
 
-### 表名 t_ 前缀 + snake_case + 单数
+### Table names use t_ prefix, snake_case, and singular nouns
 
-表名统一 `t_` 前缀、`snake_case`、**单数**：`t_order`、`t_user`、`t_order_item`。前缀把业务表与视图、中间表、框架表区分开；单数与实体类一一对应，避免 `t_users` ↔ `UserEntity` 这种单复数错位。
+Name domain tables `t_` + `snake_case` + **singular noun**: `t_order`, `t_user`, `t_order_item`. `t_` separates domain tables from views, staging tables, and framework tables; singular nouns match Entity classes 1-to-1 without `t_users` ↔ `UserEntity` mismatch.
 
-实体用 `@TableName` 显式映射，不依赖驼峰自动转换：
+Bind every Entity explicitly via `@TableName`, never implicit camel-to-snake conversion:
 
 ```java
 @Data
@@ -767,14 +763,14 @@ com.example.config.GaussDBDatabaseType
 public class OrderItemEntity { }
 ```
 
-## 5. 响应包装与错误码
+## 5. Response Envelopes & Error Codes
 
 
-### 用 BizException 表达业务失败，不返回 null
+### Signal business failures with BizException, never by returning null
 
-用 `null` 表示「没找到」会把判空责任推给每个调用点，漏一处就是 NPE，而且丢失了失败原因。
+Throw `BizException` on business failure — never return `null` for "not found". Returning `null` pushes null-checks onto every caller, where one missed check causes `NullPointerException` and drops failure reason.
 
-**错误：**
+**Wrong:**
 
 ```java
 public UserDetailResponse getById(Long id) {
@@ -783,7 +779,7 @@ public UserDetailResponse getById(Long id) {
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 public UserDetailResponse getById(Long id) {
@@ -795,20 +791,20 @@ public UserDetailResponse getById(Long id) {
 }
 ```
 
-由 `GlobalExceptionHandler` 统一转成带码的 `R`。仅当「不存在」本身是正常分支（如可选配置查询）时才返回 `Optional`。
+`GlobalExceptionHandler` converts `BizException` into coded `R` envelopes. Return `Optional` only when absence is a normal branch (e.g., optional feature config).
 
 
-### 错误码 6 位，前 3 位是 HTTP 状态
+### 6-digit error codes prefixed with the 3-digit HTTP status
 
-错误码固定 6 位，前 3 位复用对应的 HTTP 状态码，后 3 位是该状态下的序号。这样调用方不查表也能判断错误大类，网关和日志也能按前缀聚合。
+Use fixed 6-digit business error codes: first 3 digits mirror HTTP status code, last 3 digits sequence errors within that class. Callers identify failure category without lookup tables, and gateways/logs aggregate by prefix.
 
-**错误：**
+**Wrong:**
 
 ```java
-AUTH_INVALID(1001, "AK 或 SK 校验失败"), // ❌ 看不出属于哪类
+AUTH_INVALID(1001, "AK 或 SK 校验失败"), // ❌ category is opaque from the number
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @Getter
@@ -824,89 +820,89 @@ public enum ErrorCode {
 }
 ```
 
-每个码自带默认中文 message，调用点不重复写文案。
+Each enum constant carries default Chinese `defaultMessage` so throw sites never repeat copy.
 
 
-### 信封只用工厂方法构造
+### Construct response envelopes via static factories only
 
-`R` / `RList` / `RPage` 一律用静态工厂构造，不要 `new` 后逐字段赋值——手工赋值必然出现 code 取值不一致、message 漏填。
+Construct `R` / `RList` / `RPage` via static factories only — never `new` + setters, which causes `code` drift (`0` vs `200`) and missing `message` fields.
 
-**错误：**
+**Wrong:**
 
 ```java
 R<UserResponse> r = new R<>(); // ❌
-r.setCode(0);                  // 与工厂的 200 不一致
+r.setCode(0);                  // drifts from factory's 200
 r.setData(user);
 return r;
 ```
 
-**正确：**
+**Right:**
 
 ```java
-return R.ok(user);                        // 成功带数据
-return R.ok();                            // 成功无数据
-return R.error(ErrorCode.DUPLICATE_NAME); // 带码错误
-throw new BizException(ErrorCode.NOT_FOUND); // 交给全局处理器包装
+return R.ok(user);                           // success with payload
+return R.ok();                               // success without payload
+return R.error(ErrorCode.DUPLICATE_NAME);    // coded failure
+throw new BizException(ErrorCode.NOT_FOUND); // wrapped by GlobalExceptionHandler
 ```
 
-Controller 直接返回 `R<T>`，不要套 `ResponseEntity<R<T>>`。仅文件下载与重定向需要自定 HTTP 状态时才用 `ResponseEntity<Resource>` 或 `void` + `HttpServletResponse`。
+Return `R<T>` directly from Controllers, never `ResponseEntity<R<T>>`. Reserve `ResponseEntity<Resource>` or `void` + `HttpServletResponse` for file downloads and HTTP redirects needing custom status/headers.
 
 
-### 字段类型约定
+### Standard field types across payloads
 
-| 用途 | 用 | 不用 |
+| Domain | Use | Never use |
 |---|---|---|
-| 日期时间 | `LocalDate` / `LocalDateTime` / `OffsetDateTime` | `java.util.Date` |
-| 金额 | `BigDecimal`，标度固定 2 位 | `double` / `float` |
-| 主键与 ID | `Long`（雪花）**或** `String`（UUID） | 同一实体上两者混用 |
-| 枚举 | `@JsonValue` 显式指定序列化值 | 依赖 `name()` |
+| Dates & timestamps | `LocalDate` / `LocalDateTime` / `OffsetDateTime` | `java.util.Date` |
+| Monetary amounts | `BigDecimal` (fixed scale 2) | `double` / `float` |
+| Primary & foreign IDs | `Long` (Snowflake) **or** `String` (UUID) | Mixing both on one entity |
+| Enums | `@JsonValue` with explicit wire value | Implicit `name()` |
 
-三条理由：
+Why:
 
-- `Date` 同时携带日期与时区语义且可变，跨时区序列化行为不确定；`LocalDateTime` 由 commons 里的 Jackson 序列化器统一格式化为 `yyyy-MM-dd HH:mm:ss`。
-- 浮点数无法精确表示十进制小数，金额累加必然产生偏差——这类 bug 在对账时才暴露，且难以追溯。
-- 同一实体上 ID 类型混用（有的字段 `Long`、有的 `String`）会让调用方无法统一处理，序列化后前端还可能因 JS 数字精度截断长整型。
+- `java.util.Date` conflates instant and timezone while mutable, causing cross-timezone JSON drift; `LocalDateTime` formats as `yyyy-MM-dd HH:mm:ss` via shared Jackson serializer in `commons`.
+- Binary floats cannot represent base-10 decimals, causing money rounding drift caught only at reconciliation.
+- Mixing `Long` and `String` IDs on one entity breaks uniform client handling and risks JS IEEE-754 precision loss on unquoted 64-bit Snowflake IDs.
 
-**错误：**
+**Wrong:**
 
 ```java
 private Date createdAt;      // ❌
-private double amount;       // ❌ 精度丢失
+private double amount;       // ❌ loses decimal precision
 private Long id;
-private String parentId;     // ❌ 与 id 类型不一致
+private String parentId;     // ❌ inconsistent with id type
 ```
 
-**正确：**
+**Right:**
 
 ```java
 private LocalDateTime createdAt;
-private BigDecimal amount;   // 标度 2
+private BigDecimal amount;   // scale = 2
 private Long id;
 private Long parentId;
 ```
 
 
-### R / RList / RPage 按形状选型
+### Choose R, RList, or RPage by payload shape
 
-| 返回形状 | 类型 |
+| Payload shape | Return type |
 |---|---|
-| 单对象 | `R<{Name}Response>` |
-| 不分页列表 | `RList<{Name}Response>` |
-| 分页列表 | `RPage<{Name}Response>` |
-| 仅成功/失败 | `R<Boolean>` |
-| 成功无数据 | `R<Void>` + `R.ok()` |
+| Single object | `R<{Name}Response>` |
+| Unpaginated list | `RList<{Name}Response>` |
+| Paginated list | `RPage<{Name}Response>` |
+| Success/failure flag | `R<Boolean>` |
+| Empty success | `R<Void>` + `R.ok()` |
 
-选错类型会让前端拿不到 `total` / `pageNo`，或被迫解包多余的一层。
+Wrong wrapper strips `total` / `pageNo` metadata or forces callers to unwrap extra nesting.
 
-**错误：**
+**Wrong:**
 
 ```java
-public R<List<UserResponse>> page(UserPageQuery q) { // ❌ 分页信息丢失
+public R<List<UserResponse>> page(UserPageQuery q) { // ❌ drops pagination metadata
     return R.ok(userService.page(q).getData());
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 public RPage<UserResponse> page(@Valid UserPageQuery q) {
@@ -914,16 +910,16 @@ public RPage<UserResponse> page(@Valid UserPageQuery q) {
 }
 ```
 
-Service 层分页返回 `PageResult<T>`，由 Controller 转成 `RPage<T>`。
+Services return `PageResult<T>` for paginated queries; Controllers wrap via `RPage.ok(...)`.
 
-## 6. DTO 约定
+## 6. DTO Conventions
 
 
-### 用 MapStruct 转换，不手写赋值
+### Map objects with MapStruct, never manual setters
 
-Entity / Dto / Request / Response 之间的转换一律走 MapStruct。手写 `setXxx` 的问题是加字段时不会报错，只是静默丢值。
+Map `Entity`, `Dto`, `Request`, and `Response` via MapStruct — never handwritten `setXxx(...)` chains, which compile cleanly when new fields are added and silently drop them at runtime.
 
-每个功能一个 `{Feature}Converter`，标 `@Mapper(componentModel = "spring")`：
+Declare one `{Feature}Converter` per feature with `@Mapper(componentModel = "spring")`:
 
 ```java
 @Mapper(componentModel = "spring")
@@ -935,38 +931,38 @@ public interface UserConverter {
 }
 ```
 
-实际用到的每种转换都要显式声明方法，不要在 Service 里临时拼装。
+Declare explicit Converter methods for every conversion shape used — never assemble ad-hoc mappings inside Services.
 
 
-### Dto 不外露，双角色必须拆开
+### Keep Dto internal; split dual-purpose objects
 
-`{Name}Dto` 只用于 Service 之间、Service 内部方法之间，或 MQ 载荷。Controller **既不接收也不返回** Dto。
+Use `{Name}Dto` only across Services, between internal Service methods, and in MQ payloads. Controllers **neither accept nor return** `Dto` types.
 
-一个对象若同时承担「内部传输」和「接口返回」，必须拆成 Dto + Response 两个类。图省事合并的代价是：内部加一个字段就意外扩大了对外契约，且没有任何编译期提示。
+Split any dual-purpose internal/external class into `Dto` + `Response`. Sharing one class means adding an internal field silently widens public HTTP output with zero compile-time warning.
 
 ```
-Service ←→ Service     用 Dto
-MQ 载荷                用 Dto
-Controller ←→ 外部      用 Request / Response
+Service ←→ Service      use Dto
+MQ payload              use Dto
+Controller ←→ External  use Request / Response
 ```
 
 
-### 分页查询必须 extends PageQuery
+### Paginated queries must extend PageQuery
 
-`{Name}Query` 用于 GET，通过 `@Valid @ModelAttribute` 绑定查询串。**需要分页就必须 `extends PageQuery`**，拿到统一的 `pageNo` / `pageSize` 及其边界校验（页码 ≥ 1、每页 ≤ 200）。
+`{Name}Query` binds `GET` query strings via `@Valid @ModelAttribute`. **Paginated queries must `extends PageQuery`** to inherit `pageNo` / `pageSize` and their bounds (`pageNo >= 1`, `pageSize <= 200`).
 
-自己声明分页字段会漏掉上限校验，前端传 `pageSize=999999` 直接拖垮数据库。
+Redeclaring pagination fields by hand drops the upper-bound check, letting `pageSize=999999` overload the DB.
 
-**错误：**
+**Wrong:**
 
 ```java
 public class OrderPageQuery {
-    private Long pageNo;    // ❌ 无 @Min
-    private Long pageSize;  // ❌ 无上限
+    private Long pageNo;    // ❌ missing @Min
+    private Long pageSize;  // ❌ missing upper bound
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @Data
@@ -981,16 +977,16 @@ public class OrderPageQuery extends PageQuery {
 }
 ```
 
-不分页的查询用普通 `{Name}Query`，不要为了统一而硬加分页字段。
+Use plain `{Name}Query` for unpaginated endpoints — never inherit `PageQuery` without pagination.
 
 
-### Request 按动作命名并强制校验
+### Name Requests by action and enforce Jakarta Validation
 
-`{Name}{Action}Request`——`OrderCreateRequest`、`OrderUpdateRequest`、`OrderCancelRequest`。除非资源确实只有一个动作，否则不要用笼统的 `OrderRequest`：创建和更新的必填字段几乎从不相同，共用一个类就只能把校验全放宽。
+Name requests `{Name}{Action}Request` — `OrderCreateRequest`, `OrderUpdateRequest`, `OrderCancelRequest`. Avoid catch-all `OrderRequest` unless resource has only one write action: create and update differ in required fields, so sharing one class forces looser constraints on both.
 
-字段**必须**带 Jakarta Validation，`message` 用中文（会直接透给前端）。
+Every constrained field **must** carry Jakarta Validation annotations with Chinese `message` (returned directly to frontend).
 
-**正确：**
+**Right:**
 
 ```java
 @Data
@@ -1008,12 +1004,12 @@ public class OrderCreateRequest {
 }
 ```
 
-校验失败由 `GlobalExceptionHandler` 捕获 `MethodArgumentNotValidException` 统一处理，不在 Controller 里手写判空。
+Handle `MethodArgumentNotValidException` centrally in `GlobalExceptionHandler` — never write manual null/range `if` checks in Controllers.
 
 
-### Response 按视图命名
+### Name Responses by view
 
-按**使用场景**命名而非按实体：`OrderDetailResponse`、`OrderListItemResponse`、`OrderCreateResponse`。列表页和详情页需要的字段量差异往往很大，共用一个类会让列表接口传输大量无用字段。
+Name responses after **view / use case**, not entity alone: `OrderDetailResponse`, `OrderListItemResponse`, `OrderCreateResponse`. List and detail views need different field sets; reusing detail class for list rows ships heavy unused fields on every page load.
 
 ```java
 @Data
@@ -1024,48 +1020,48 @@ public class OrderDetailResponse {
 }
 ```
 
-每个字段都要有 `@Schema(description = ...)`，中文描述——这是 Knife4j 文档的唯一来源。
+Annotate every field with `@Schema(description = ...)` in Chinese — sole documentation source for Knife4j.
 
-## 7. 命名约定
+## 7. Naming Conventions
 
 
-### 类名后缀对照表
+### Class suffix reference table
 
-| 种类 | 模式 | 示例 | 位置 |
+| Role | Pattern | Example | Package |
 |---|---|---|---|
-| 启动类 | `{Project}Application` | `OrderServerApplication` | 根包 |
+| Entry point | `{Project}Application` | `OrderServerApplication` | root package |
 | Controller | `{Name}Controller` | `OrderController` | `controller/` |
-| Service 接口 | `{Name}Service` | `OrderService` | `service/` |
-| Service 实现 | `{Name}ServiceImpl` | `OrderServiceImpl` | `service/impl/` |
+| Service interface | `{Name}Service` | `OrderService` | `service/` |
+| Service implementation | `{Name}ServiceImpl` | `OrderServiceImpl` | `service/impl/` |
 | Mapper | `{Name}Mapper` | `OrderMapper` | `mapper/` |
 | Entity | `{Name}Entity` | `OrderEntity` | `entity/` |
-| 请求体 | `{Name}{Action}Request` | `OrderCreateRequest` | `dto/{业务}/` |
-| 响应体 | `{Name}{View}Response` | `OrderDetailResponse` | `dto/{业务}/` |
-| 查询参数 | `{Name}Query` / `{Name}PageQuery` | `OrderPageQuery` | `dto/{业务}/` |
-| 内部传输 | `{Name}Dto` | `OrderSummaryDto` | `dto/{业务}/` |
-| 异常 | `{Name}Exception` | `OrderLockedException` | `exception/` |
-| MapStruct | `{Name}Converter` | `OrderConverter` | `converter/` |
-| 配置 | `{Name}Config` / `{Name}Properties` | `RedisConfig` | `config/` |
-| 枚举 | 名词 | `OrderStatus` | `enums/` |
-| 常量 | `{Name}Constants` | `AuthConstants` | `constants/` |
-| 工具 | `{Name}Utils` | `DateUtils` | `utils/` |
+| Request body | `{Name}{Action}Request` | `OrderCreateRequest` | `dto/{domain}/` |
+| Response body | `{Name}{View}Response` | `OrderDetailResponse` | `dto/{domain}/` |
+| Query parameters | `{Name}Query` / `{Name}PageQuery` | `OrderPageQuery` | `dto/{domain}/` |
+| Internal DTO | `{Name}Dto` | `OrderSummaryDto` | `dto/{domain}/` |
+| Exception | `{Name}Exception` | `OrderLockedException` | `exception/` |
+| MapStruct converter | `{Name}Converter` | `OrderConverter` | `converter/` |
+| Configuration | `{Name}Config` / `{Name}Properties` | `RedisConfig` | `config/` |
+| Enum | Domain noun | `OrderStatus` | `enums/` |
+| Constants | `{Name}Constants` | `AuthConstants` | `constants/` |
+| Utilities | `{Name}Utils` | `DateUtils` | `utils/` |
 
-`{Name}` 是业务名词且**用单数**（`User` 而非 `Users`）；动词放方法名，不进类名（不要 `OrderCreator`）。除行业通用缩写外不缩写（`Order` 不写 `Ord`）。
+`{Name}` = **singular** domain noun (`User`, never `Users`); keep verbs on methods, not class names (never `OrderCreator`). Spell words in full outside standard industry acronyms (`Order`, never `Ord`).
 
 
-### Controller 方法名与排列顺序
+### Controller method names and declaration order
 
-标准 CRUD 用固定动词，**不带资源名**（用 `create` 而非 `createUser`——类名已经说明了资源）：
+Use fixed **resource-free** CRUD verbs (`create`, never `createUser` — Controller class already names resource):
 
-`page`（分页）/ `list`（全量）/ `select`（下拉选项）/ `get` / `create` / `update` / `delete`（硬删）/ `remove`（软删）
+`page` (paginated) / `list` (full list) / `select` (dropdown options) / `get` / `create` / `update` / `delete` (hard delete) / `remove` (soft delete)
 
-非 CRUD 用业务动词 + 资源名：`cancelProcess`、`resetPassword`。
+Use `{verb}{Resource}` for non-CRUD domain actions: `cancelProcess`, `resetPassword`.
 
-**排列顺序固定**：先全部 CRUD，再非 CRUD；CRUD 内部按 `page → list → select → get → create → update → delete/remove`。顺序固定后，翻任何一个 Controller 都能在相同位置找到相同种类的方法。
+**Fix declaration order**: all CRUD methods before non-CRUD actions, ordered `page → list → select → get → create → update → delete/remove` so every Controller reads in identical order.
 
 ```java
 @GetMapping                    public RPage<UserListItemResponse> page(...)
-@GetMapping("/all")            public RList<UserListItemResponse> list(...)  // 需限制最大条数防 OOM
+@GetMapping("/all")            public RList<UserListItemResponse> list(...)  // cap max rows to prevent OOM
 @GetMapping("/options")        public RList<UserOptionResponse> select()
 @GetMapping("/{id}")           public R<UserDetailResponse> get(...)
 @PostMapping                   public R<UserCreateResponse> create(...)
@@ -1073,15 +1069,15 @@ public class OrderDetailResponse {
 @DeleteMapping("/{id}")        public R<Boolean> remove(...)
 ```
 
-同一个 Controller 里不允许同时存在 `delete` 和 `remove`——两个删除语义并存必然被误用。
+Never declare both `delete` and `remove` on one Controller — mixing hard-delete and soft-delete verbs invites wrong deletion calls.
 
 
-### 枚举与常量命名
+### Enum and constant naming
 
-- 常量：`UPPER_SNAKE_CASE`，放在 `{Xxx}Constants` final 类里
-- 枚举类型：`PascalCase`；枚举值：`UPPER_SNAKE_CASE`
+- Constants: `UPPER_SNAKE_CASE` inside `final` `{Xxx}Constants` class.
+- Enum types: `PascalCase`; enum constants: `UPPER_SNAKE_CASE`.
 
-枚举若需序列化成业务字符串，用 `@JsonValue` + `@JsonCreator` 显式控制，不要依赖 `name()`——那会让 Java 侧改名直接破坏 API 契约。
+Control wire serialization explicitly via `@JsonValue` (and `@JsonCreator` when needed), never `Enum.name()` — else renaming a Java enum constant breaks HTTP/JSON contracts.
 
 ```java
 @Getter
@@ -1100,12 +1096,12 @@ public enum OrderStatus {
 ```
 
 
-### 包结构按类型分一级，按业务分二级
+### Package by technical role first, then by domain under dto
 
-- 一级子包按**类型**：`controller`、`service`、`mapper`、`entity`、`converter`、`config`、`constants`、`enums`、`exception`、`utils`
-- 二级子包按**业务名词**：只有 `dto` 需要再按业务分（`dto/order/`、`dto/user/`）
+- First-level subpackages by **technical role**: `controller`, `service`, `mapper`, `entity`, `converter`, `config`, `constants`, `enums`, `exception`, `utils`.
+- Second-level subpackages by **domain noun** under `dto` only (`dto/order/`, `dto/user/`).
 
-Controller、Service、Mapper 直接放在各自类型包根下，不再按业务嵌套——这类文件本就一个业务一个类，再套一层只增加路径深度。
+Keep Controllers, Services, and Mappers directly under role root without domain subpackages — one class per domain needs no extra directory depth.
 
 ```
 com.example.app
@@ -1118,86 +1114,86 @@ com.example.app
 ```
 
 
-### Service 与 Mapper 方法名
+### Service and Mapper method naming
 
-**Service** —— 与 Controller 不同，这里**带**资源名，因为一个 Service 可能被多处调用，脱离上下文也要可读：
+**Service** — **Include** resource nouns on Service methods so cross-domain call sites stay clear out of context:
 
-- 写：`create{Name}` / `update{Name}` / `remove{Name}`（软删）/ `delete{Name}`（硬删），业务动作用 `cancel{Name}` / `approve{Name}`
-- 读：`getById` / `getBy{Xxx}`（单个）、`listAll{Name}s`（全量）、`list{Name}Options`（下拉）、`list{Name}s`（分页）
-- 返回类型必须是 `Response` / `Dto` / 原始类型，**绝不是** Entity
+- Writes: `create{Name}` / `update{Name}` / `remove{Name}` (soft delete) / `delete{Name}` (hard delete); domain actions: `cancel{Name}` / `approve{Name}`.
+- Reads: `getById` / `getBy{Xxx}` (single), `listAll{Name}s` (unpaginated), `list{Name}Options` (dropdown), `list{Name}s` (paginated).
+- Return types: `Response`, `Dto`, or primitives — **never** `Entity`.
 
-**Mapper** —— 简单 CRUD 由 `MPJBaseMapper` 提供（`selectById`、`insert`…），自定义方法用 `selectBy{Xxx}` / `listBy{Xxx}` / `countBy{Xxx}` / `existsBy{Xxx}`，批量用 `insertBatch` / `updateBatchById`。
+**Mapper** — Use `MPJBaseMapper` for standard CRUD (`selectById`, `insert`, ...); name custom queries `selectBy{Xxx}` / `listBy{Xxx}` / `countBy{Xxx}` / `existsBy{Xxx}`, and batch writes `insertBatch` / `updateBatchById`.
 
 
-### URL 全小写 kebab-case 复数
+### Lowercase kebab-case plural URLs
 
-- 全小写，多词用 **kebab-case**：`/order-items`
-- 资源名用**复数**：`/orders`、`/users`、`/roles`
-- 单个资源 `GET /orders/{id}`，集合 `GET /orders`
-- 非 CRUD 动作：`POST /orders/{id}/cancel`，**不要** `/cancelOrder` 这种把动词塞进路径的写法
+- Lowercase **kebab-case** segments: `/order-items`.
+- **Plural** resource nouns: `/orders`, `/users`, `/roles`.
+- Single resource: `GET /orders/{id}`; collection: `GET /orders`.
+- Non-CRUD actions: `POST /orders/{id}/cancel` — **never** RPC-style verb paths like `/cancelOrder`.
 
-分页、全量、下拉三种查询的路径约定：
+Standard query paths:
 
-| 用途 | 路径 | 说明 |
+| Query shape | Path | Notes |
 |---|---|---|
-| 分页 | `GET /roles` | 不要 `/roles/page` |
-| 全量 | `GET /roles/all` | 必须限制最大返回条数防 OOM |
-| 下拉选项 | `GET /roles/options` | 只返回 `{id, name}` |
+| Paginated | `GET /roles` | Never `/roles/page` |
+| Full list | `GET /roles/all` | Cap max rows to prevent OOM |
+| Dropdown options | `GET /roles/options` | Return `{id, name}` pairs only |
 
-注意 URL 用复数，而类名和实体用单数——这不矛盾：URL 指的是资源集合，类指的是单个对象。
+URLs use plural nouns (resource collections) while Java classes/Entities use singular nouns (single instances).
 
-## 8. 技术栈基线
+## 8. Stack Baseline
 
 
-### 鉴权框架按项目规模选型
+### Choose the auth framework by project scale and scope
 
-Spring Security 与 Sa-Token 二选一，**一个项目只用一套**。
+Pick Spring Security or Sa-Token — **one auth framework per project**.
 
-| 项目类型 | 选型 | 判断依据 |
+| Project profile | Choice | Decision criteria |
 |---|---|---|
-| 基础设施平台、对外认证中心、多服务的中大型系统 | Spring Security | 要接 OAuth2 / OIDC / JWT 资源服务器，要过安全合规审计，生命周期以年计 |
-| 后台业务系统、内部管理端、单体或少量服务的中小项目 | Sa-Token | 自有登录体系 + RBAC 权限点，要的是踢人下线、账号封禁、同端互斥登录这类现成能力 |
+| Infra platforms, external IdPs, multi-service medium/large systems | Spring Security | Standard OAuth2 / OIDC / JWT resource servers, security compliance audits, multi-year lifecycle |
+| Admin consoles, internal back-office apps, monoliths or small clusters | Sa-Token | Custom login + RBAC needing turnkey kick-out, account ban, mutex login, or step-up auth |
 
-拿不准时看两个问题：**认证协议要不要对外标准化**（要 → Spring Security）、**登录态管理的花样是不是比协议更多**（是 → Sa-Token）。
+Two tie-breaker questions: **Must auth speak external standard protocols?** (Yes → Spring Security.) **Do session-management features outweigh protocol standards?** (Yes → Sa-Token.)
 
-为什么这么分：
+Why:
 
-- Spring Security 与 Spring Cloud Gateway、Spring Authorization Server、OAuth2 Resource Server 同源，令牌的签发、透传、校验都有官方实现，CSRF、会话固定、安全响应头、密码编码器默认成体系，CVE 响应也由 Spring 团队兜。代价是概念密度高——Filter Chain、AuthenticationManager、AuthorizationManager、SecurityContext 得先理顺，做个登录也要写一坨配置。中大型项目摊得起这份前期成本，而且合规审计和长期维护本来就需要它。
-- Sa-Token 把后台系统的高频需求做成了开箱 API：登录鉴权、踢人下线、账号封禁、同端互斥登录、二级认证、临时令牌，这些用 Spring Security 都得自己实现。代价是标准协议与生态整合弱，一旦要对外当认证中心就得补轮子。中小项目大多走不到那一步，先把业务跑起来更重要。
+- **Spring Security** integrates natively with Spring Cloud Gateway, Spring Authorization Server, and OAuth2 Resource Server — token issuance, propagation, validation, CSRF, session fixation, security headers, password encoders, and CVE patches are maintained by Spring team. Trade-off: high conceptual overhead (`SecurityFilterChain`, `AuthenticationManager`, `AuthorizationManager`, `SecurityContext`), which medium/large platforms amortize easily.
+- **Sa-Token** ships back-office session controls as one-line APIs (login checks, forced kick-out, account ban, single-device mutex login, step-up auth, temporary tokens) that require custom plumbing on Spring Security. Trade-off: weak standard-protocol integration once acting as federated identity provider.
 
-不要混用。两套都挂在过滤器链上时，放行与拒绝的判定顺序没人说得清，权限出事故时也难复盘——这种「两套都在但都不完整」的状态比任何一套单独用都危险。
+Never mount both in one app: overlapping filter chains obscure allow/deny order and turn permission incidents into guesswork.
 
-已有项目不因这条规则迁移：换鉴权框架要动登录态、令牌格式和全部权限注解，风险远大于收益。这条约束的是新项目和新拆出的服务。
+Apply to new projects and newly extracted services only — never migrate existing services solely for this rule.
 
-具体注解写法见 `layer-controller-auth-annotations`。
+See `layer-controller-auth-annotations` for annotation usage.
 
 
-### 技术栈基线
+### Backend stack baseline
 
-| 层面 | 选型 |
+| Layer | Choice |
 |---|---|
-| 基础 | Java 21 + Spring Boot 3.5 + Spring Cloud 2025.0（或兼容版本） |
-| 网关 | Spring Cloud Gateway（WebFlux / Netty） |
-| ORM | MyBatis Plus + mybatis-plus-join，**不用 XML 映射** |
-| 连接池 | HikariCP |
-| Web 容器 | Undertow |
-| 鉴权 | Spring Security 或 Sa-Token，按项目规模选，见 `stack-auth-framework` |
-| API 文档 | Knife4j（集成 SpringDoc OpenAPI 3） |
-| 对象映射 | MapStruct |
-| 样板消除 | Lombok |
-| 构建 | Maven 3.8+，附带 Wrapper |
-| 日志 | SLF4J + Logback，生产用 JSON 结构化输出 |
+| Runtime & framework | Java 21 + Spring Boot 3.5 + Spring Cloud 2025.0 (or compatible) |
+| API Gateway | Spring Cloud Gateway (WebFlux / Netty) |
+| ORM | MyBatis-Plus + `mybatis-plus-join`, **no XML mappers** |
+| Connection pool | HikariCP |
+| Embedded container | Undertow |
+| Auth | Spring Security or Sa-Token by project scale — see `stack-auth-framework` |
+| API docs | Knife4j (on SpringDoc OpenAPI 3) |
+| Object mapping | MapStruct |
+| Boilerplate reduction | Lombok |
+| Build | Maven 3.8+ with Maven Wrapper |
+| Logging | SLF4J + Logback, structured JSON output in prod |
 
-数据库与缓存的具体版本、以及多数据库支持策略，以项目自身的 CLAUDE.md 为准——这部分项目间差异大，不适合写死在通用规则里。
+DB/cache versions and multi-dialect targets live in project `CLAUDE.md` — too project-specific to hardcode here.
 
 
-### 避免复杂 lambda 表达式
+### Extract multi-line lambdas into named methods
 
-多行、嵌套或带副作用的 lambda 在异常栈轨迹里只显示为 `lambda$methodName$0`——这个名字既不表达意图，也不指向具体哪一行。方法里若有多个 lambda，序号还会随代码顺序变动，跨版本对比栈轨迹时对不上。
+Extract multi-line, nested, or side-effecting lambdas into named methods. In stack traces, lambdas appear only as `lambda$methodName$0` — hiding intent, obscuring failing lines, and shifting numeric suffixes across releases when code moves.
 
-抽成具名方法后，栈轨迹直接指向出错处，方法名本身也说明了在做什么。
+Named methods point stack traces directly at failing step while keeping logic reusable and unit-testable.
 
-**错误（异常只会报在 `lambda$process$0`，看不出是哪一步失败）：**
+**Wrong (exceptions report `lambda$process$0` without revealing which step failed):**
 
 ```java
 list.stream()
@@ -1212,7 +1208,7 @@ list.stream()
     .toList();
 ```
 
-**正确（栈轨迹指向 `toDTO`，且该方法可单独测试与复用）：**
+**Right (stack trace names `toDTO`, which is reusable and directly testable):**
 
 ```java
 list.stream()
@@ -1229,76 +1225,74 @@ private ItemDTO toDTO(Item item) {
 }
 ```
 
-**判据**：超过一行就提取。单表达式 lambda（`x -> x.getId()`、`x -> x > 0`）保持内联，方法引用优先于等价的 lambda。
+**Threshold**: extract anything > 1 line. Keep single-expression lambdas (`x -> x.getId()`, `x -> x > 0`) inline; prefer method references (`Item::getId`) over equivalent lambdas.
 
 
-### Lombok 注解约定
+### Lombok annotation conventions
 
-| 场景 | 注解 |
+| Target | Annotations |
 |---|---|
 | DTO | `@Data` + `@NoArgsConstructor` |
-| Spring bean | `@RequiredArgsConstructor` + `final` 字段做构造注入 |
-| 日志 | `@Slf4j`（禁止手写 `LoggerFactory.getLogger`） |
-| Enum 字段 | `@Getter` |
+| Spring bean | `@RequiredArgsConstructor` + `private final` fields for constructor injection |
+| Logger | `@Slf4j` (never handwrite `LoggerFactory.getLogger`) |
+| Enum fields | `@Getter` |
 
-构造注入优于 `@Autowired` 字段注入：`final` 字段保证依赖不可变，且缺依赖时在启动期就失败，而不是运行到那行才 NPE。
+Use constructor injection, never `@Autowired` field injection: `final` fields enforce immutability and fail fast at startup on missing dependencies instead of throwing `NullPointerException` at runtime.
 
-**保留显式实现**的两种情况：工具类（私有构造 + 全静态方法）、构造函数含参数校验的类——这两种情况 Lombok 生成的构造器反而会绕过约束。
+**Write explicit constructors** in two cases: static utility classes (`private` constructor + `static` methods) and classes with constructor invariant checks — Lombok constructors bypass those checks.
 
 
-### 根目录与每个模块都要有 README 文档
+### Maintain a README at the repository root and in every module
 
-多模块工程里，**项目根目录和每一个子模块都必须有 `README.md`**。根 README 描述整个项目是什么、提供哪些能力、由哪些模块组成；模块 README 描述这一个模块负责什么、对外提供什么、依赖谁。**单模块工程只需要根 README**，包结构在根 README 里用一节说清即可。
+In multi-module builds, **maintain `README.md` at repo root and in every submodule**. Root README covers system purpose, capabilities, and module map; submodule README covers what that module owns, exposes, and depends on. **Single-module projects need only root README** with a package-layout section.
 
-没有 README 时，模块边界只能靠读 `pom.xml` 的依赖和翻包结构反推。反推出来的边界是当前实现的样子，不是设计意图——于是新代码被放进"看起来差不多"的模块，分层和依赖方向就是这样一点点烂掉的。
+Without module READMEs, boundaries are reverse-engineered from `pom.xml` and package trees — mistaking current accidents for intended design until new code lands in wrong modules and erodes dependency direction.
 
-新增模块时同步新增 README；模块能力发生变化（新增对外接口、依赖关系调整、职责搬迁）时同步更新 README，与改代码在同一个提交里。
+Add `README.md` when creating a module, and update it in the **same commit** whenever public APIs, dependencies, or responsibilities change.
 
-文档引用项目或模块依赖（如 Maven/Gradle 坐标）时，不要直接写死项目或模块的当前版本号；优先引用构建配置中的统一版本管理，或使用 `${project.version}`、version catalog 占位符，避免版本升级后遗漏更新文档。
+When citing internal Maven/Gradle coordinates in docs, reference parent dependency management or use `${project.version}` / version-catalog placeholders — never hardcode current project version.
 
-**错误（模块只有代码，没有说明）：**
+**Wrong (code without boundary docs):**
 
 ```text
 myapp/
-├── README.md              ← 只写了 "mvn spring-boot:run"
-├── myapp-common/          ← 没有 README，谁都往里塞工具类
-├── myapp-user/            ← 没有 README，不知道是否允许被别的模块依赖
-└── myapp-gateway/         ← 没有 README
+├── README.md              ← only says "mvn spring-boot:run"
+├── myapp-common/          ← no README; becomes a dumping ground for random helpers
+├── myapp-user/            ← no README; unclear whether other modules may depend on it
+└── myapp-gateway/         ← no README
 ```
 
-**正确（每层都能自解释）：**
+**Right (self-explanatory at every level):**
 
 ```text
 myapp/
-├── README.md              ← 项目能力 + 模块清单 + 快速开始
+├── README.md              ← capabilities + module map + getting started
 ├── myapp-common/
-│   └── README.md          ← 只放无业务语义的通用能力，禁止依赖业务模块
+│   └── README.md          ← domain-agnostic utilities only; must never depend on domain modules
 ├── myapp-user/
-│   └── README.md          ← 用户域：注册、认证、组织关系；对外只经 UserService
+│   └── README.md          ← user domain: registration, auth, orgs; expose via UserService only
 └── myapp-gateway/
-    └── README.md          ← 路由、鉴权前置、限流；不含业务逻辑
+    └── README.md          ← routing, edge auth, rate limiting; zero domain logic
 ```
 
-根 README 至少包含：
+Root README minimum sections:
 
-| 小节 | 内容 |
+| Section | Content |
 |---|---|
-| 项目简介 | 一两句话说清这个系统解决什么问题 |
-| 核心能力 | 对外提供的主要能力清单 |
-| 模块清单 | 多模块：表格列出各模块及其一句话职责，链接到模块 README；单模块：一节"包结构"说明各包放什么 |
-| 技术栈 | 语言、框架、数据库、中间件的版本基线 |
-| 快速开始 | 环境要求、构建命令、启动命令、默认端口 |
+| Overview | 1–2 sentences: problem this system solves |
+| Capabilities | Main externally visible features |
+| Modules | Multi-module: module table with one-line responsibilities linked to module READMEs. Single-module: "Package layout" section |
+| Stack | Version baseline for Java, Spring Boot, DB, middleware |
+| Getting started | Prerequisites, build/start commands, default port |
 
-子模块 README（多模块工程）至少包含：
+Submodule README minimum sections (multi-module builds):
 
-| 小节 | 内容 |
+| Section | Content |
 |---|---|
-| 模块职责 | 这个模块负责什么，**以及明确不负责什么** |
-| 对外能力 | 提供的接口、Service、扩展点；供谁调用 |
-| 依赖说明 | 依赖了哪些内部模块与外部中间件，为什么 |
-| 本地运行 | 单独构建/启动/测试该模块的命令（如果可以单独跑） |
+| Responsibility | What module owns — **and what explicitly does not belong here** |
+| Public surface | Exposed endpoints, Services, extension points, and consumers |
+| Dependencies | Internal modules and external middleware depended on, plus why |
+| Local commands | Standalone build/run/test commands, where applicable |
 
-写法遵循 `doc-writing-best-practices`：示例可直接粘贴执行、写清为什么、中西文之间加空格。
-
-README 不是 `CLAUDE.md` 的替代品，两者受众不同：README 面向人，讲能力与边界；CLAUDE.md 面向 AI，讲当前项目锁定的决策与约束。不要把同一段内容抄两份。
+`README.md` does not replace `CLAUDE.md`: `README.md` explains capabilities and boundaries to humans; `CLAUDE.md` states locked project decisions for agents. Never duplicate text across both.
 

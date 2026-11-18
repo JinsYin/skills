@@ -1,15 +1,15 @@
 ---
-title: Service 与 Mapper 方法名
+title: Service and Mapper method naming
 impact: MEDIUM
 tags: naming, service, mapper
 ---
 
-## Service 与 Mapper 方法名
+## Service and Mapper method naming
 
-**Service** —— 与 Controller 不同，这里**带**资源名，因为一个 Service 可能被多处调用，脱离上下文也要可读：
+**Service** — **Include** resource nouns on Service methods so cross-domain call sites stay clear out of context:
 
-- 写：`create{Name}` / `update{Name}` / `remove{Name}`（软删）/ `delete{Name}`（硬删），业务动作用 `cancel{Name}` / `approve{Name}`
-- 读：`getById` / `getBy{Xxx}`（单个）、`listAll{Name}s`（全量）、`list{Name}Options`（下拉）、`list{Name}s`（分页）
-- 返回类型必须是 `Response` / `Dto` / 原始类型，**绝不是** Entity
+- Writes: `create{Name}` / `update{Name}` / `remove{Name}` (soft delete) / `delete{Name}` (hard delete); domain actions: `cancel{Name}` / `approve{Name}`.
+- Reads: `getById` / `getBy{Xxx}` (single), `listAll{Name}s` (unpaginated), `list{Name}Options` (dropdown), `list{Name}s` (paginated).
+- Return types: `Response`, `Dto`, or primitives — **never** `Entity`.
 
-**Mapper** —— 简单 CRUD 由 `MPJBaseMapper` 提供（`selectById`、`insert`…），自定义方法用 `selectBy{Xxx}` / `listBy{Xxx}` / `countBy{Xxx}` / `existsBy{Xxx}`，批量用 `insertBatch` / `updateBatchById`。
+**Mapper** — Use `MPJBaseMapper` for standard CRUD (`selectById`, `insert`, ...); name custom queries `selectBy{Xxx}` / `listBy{Xxx}` / `countBy{Xxx}` / `existsBy{Xxx}`, and batch writes `insertBatch` / `updateBatchById`.

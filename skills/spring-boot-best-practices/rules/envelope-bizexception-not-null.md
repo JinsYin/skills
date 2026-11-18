@@ -1,14 +1,14 @@
 ---
-title: 用 BizException 表达业务失败，不返回 null
+title: Signal business failures with BizException, never by returning null
 impact: HIGH
 tags: envelope, exception, error-handling
 ---
 
-## 用 BizException 表达业务失败，不返回 null
+## Signal business failures with BizException, never by returning null
 
-用 `null` 表示「没找到」会把判空责任推给每个调用点，漏一处就是 NPE，而且丢失了失败原因。
+Throw `BizException` on business failure — never return `null` for "not found". Returning `null` pushes null-checks onto every caller, where one missed check causes `NullPointerException` and drops failure reason.
 
-**错误：**
+**Wrong:**
 
 ```java
 public UserDetailResponse getById(Long id) {
@@ -17,7 +17,7 @@ public UserDetailResponse getById(Long id) {
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 public UserDetailResponse getById(Long id) {
@@ -29,4 +29,4 @@ public UserDetailResponse getById(Long id) {
 }
 ```
 
-由 `GlobalExceptionHandler` 统一转成带码的 `R`。仅当「不存在」本身是正常分支（如可选配置查询）时才返回 `Optional`。
+`GlobalExceptionHandler` converts `BizException` into coded `R` envelopes. Return `Optional` only when absence is a normal branch (e.g., optional feature config).

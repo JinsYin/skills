@@ -1,16 +1,16 @@
 ---
-title: 列名与审计字段约定
+title: Column naming and standard audit columns
 impact: HIGH
 tags: db, naming, audit, soft-delete
 ---
 
-## 列名与审计字段约定
+## Column naming and standard audit columns
 
-- 列名 `snake_case`（`order_no`）
-- 主键 `id`，`BIGINT` 或 `VARCHAR(32)`，与主键策略一致
-- 外键列 `fk_{ref}_id`
-- 布尔用语义名（`enabled`、`is_default`、`deleted`），类型 `TINYINT(1)`，`0=false / 1=true`
-- 审计四件套：`created_at`、`updated_at`、`created_by`、`updated_by`
-- 软删：`deleted TINYINT(1) NOT NULL DEFAULT 0`，`1` 为已删除
+- Column names: `snake_case` (`order_no`).
+- Primary key: `id`, `BIGINT` or `VARCHAR(32)` matching primary-key strategy.
+- Foreign-key columns: `fk_{ref}_id`.
+- Booleans: semantic names (`enabled`, `is_default`, `deleted`), `TINYINT(1)` (`0 = false` / `1 = true`).
+- Four audit columns: `created_at`, `updated_at`, `created_by`, `updated_by`.
+- Soft delete: `deleted TINYINT(1) NOT NULL DEFAULT 0` (`1` = deleted).
 
-布尔列不要用 `flag`、`type` 这类无语义名——半年后没人知道 `flag=1` 是启用还是禁用。
+Use semantic boolean names; never name columns `flag` or `type` where `flag = 1` loses meaning over time.

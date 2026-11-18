@@ -1,30 +1,30 @@
 ---
-title: R / RList / RPage 按形状选型
+title: Choose R, RList, or RPage by payload shape
 impact: HIGH
 tags: envelope, response, pagination
 ---
 
-## R / RList / RPage 按形状选型
+## Choose R, RList, or RPage by payload shape
 
-| 返回形状 | 类型 |
+| Payload shape | Return type |
 |---|---|
-| 单对象 | `R<{Name}Response>` |
-| 不分页列表 | `RList<{Name}Response>` |
-| 分页列表 | `RPage<{Name}Response>` |
-| 仅成功/失败 | `R<Boolean>` |
-| 成功无数据 | `R<Void>` + `R.ok()` |
+| Single object | `R<{Name}Response>` |
+| Unpaginated list | `RList<{Name}Response>` |
+| Paginated list | `RPage<{Name}Response>` |
+| Success/failure flag | `R<Boolean>` |
+| Empty success | `R<Void>` + `R.ok()` |
 
-选错类型会让前端拿不到 `total` / `pageNo`，或被迫解包多余的一层。
+Wrong wrapper strips `total` / `pageNo` metadata or forces callers to unwrap extra nesting.
 
-**错误：**
+**Wrong:**
 
 ```java
-public R<List<UserResponse>> page(UserPageQuery q) { // ❌ 分页信息丢失
+public R<List<UserResponse>> page(UserPageQuery q) { // ❌ drops pagination metadata
     return R.ok(userService.page(q).getData());
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 public RPage<UserResponse> page(@Valid UserPageQuery q) {
@@ -32,4 +32,4 @@ public RPage<UserResponse> page(@Valid UserPageQuery q) {
 }
 ```
 
-Service 层分页返回 `PageResult<T>`，由 Controller 转成 `RPage<T>`。
+Services return `PageResult<T>` for paginated queries; Controllers wrap via `RPage.ok(...)`.

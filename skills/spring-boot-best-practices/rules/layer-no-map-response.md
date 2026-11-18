@@ -1,14 +1,14 @@
 ---
-title: 不用 Map 当响应类型
+title: Never use Map as a response type
 impact: HIGH
 tags: layer, controller, response, openapi
 ---
 
-## 不用 Map 当响应类型
+## Never use Map as a response type
 
-`Map<String, Object>` 没有编译期约束，也生成不出 OpenAPI schema，调用方只能靠猜或翻源码。改字段时无任何提示。
+Return typed `Response` classes, never `Map<String, Object>`. `Map<String, Object>` lacks compile-time checks and renders empty OpenAPI schema, forcing callers to guess keys or read backend code. Renaming keys gives zero compiler warning.
 
-**错误：**
+**Wrong:**
 
 ```java
 @GetMapping("/stats")
@@ -16,11 +16,11 @@ public R<Map<String, Object>> stats() {
     Map<String, Object> m = new HashMap<>();
     m.put("total", 100);
     m.put("active", 80);
-    return R.ok(m); // ❌ 契约不可见
+    return R.ok(m); // ❌ invisible contract
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @Data
@@ -31,4 +31,4 @@ public class StatsResponse {
 }
 ```
 
-仅当 schema 真正动态（如用户自定义表单）时才例外，且仍应包一层带类型的信封。
+Sole exception: dynamic user-defined schemas (e.g., custom form builders), still wrapped inside typed envelope field.

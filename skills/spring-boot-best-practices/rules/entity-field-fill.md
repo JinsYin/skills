@@ -1,22 +1,22 @@
 ---
-title: 审计时间字段用 @TableField(fill)
+title: Populate audit timestamps via @TableField(fill)
 impact: CRITICAL
-impactDescription: 跨方言下时间字段为 NULL
+impactDescription: Audit timestamp columns become NULL or stale across dialects
 tags: entity, mybatis-plus, audit, opengauss
 ---
 
-## 审计时间字段用 @TableField(fill)
+## Populate audit timestamps via @TableField(fill)
 
-不能依赖数据库的 `ON UPDATE CURRENT_TIMESTAMP`——该语法是 MySQL 特有的，迁移到 gauss 系时会被移除，字段随即变成 NULL 或永不更新。填充必须由应用层的 `MetaObjectHandler` 驱动。
+Populate audit timestamps in app layer via MyBatis-Plus `MetaObjectHandler` + `@TableField(fill = ...)` — never rely on DB `ON UPDATE CURRENT_TIMESTAMP` (MySQL-only; stripped on Gauss-family DBs, leaving `updated_at` `NULL` or frozen).
 
-**错误（指望数据库自动维护）：**
+**Wrong (relying on database DDL defaults/triggers):**
 
 ```java
-private LocalDateTime createdAt; // ❌ 无 fill，靠 DDL 默认值
+private LocalDateTime createdAt; // ❌ no fill; relies on DB default
 private LocalDateTime updatedAt;
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @TableField(fill = FieldFill.INSERT)
@@ -26,4 +26,4 @@ private LocalDateTime createdAt;
 private LocalDateTime updatedAt;
 ```
 
-规则固定：含 `createdAt` 必标 `INSERT`，含 `updatedAt` 必标 `INSERT_UPDATE`。
+Mark `createdAt` with `FieldFill.INSERT` and `updatedAt` with `FieldFill.INSERT_UPDATE`.

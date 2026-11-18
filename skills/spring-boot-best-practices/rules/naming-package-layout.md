@@ -1,15 +1,15 @@
 ---
-title: 包结构按类型分一级，按业务分二级
+title: Package by technical role first, then by domain under dto
 impact: MEDIUM
 tags: naming, package, structure
 ---
 
-## 包结构按类型分一级，按业务分二级
+## Package by technical role first, then by domain under dto
 
-- 一级子包按**类型**：`controller`、`service`、`mapper`、`entity`、`converter`、`config`、`constants`、`enums`、`exception`、`utils`
-- 二级子包按**业务名词**：只有 `dto` 需要再按业务分（`dto/order/`、`dto/user/`）
+- First-level subpackages by **technical role**: `controller`, `service`, `mapper`, `entity`, `converter`, `config`, `constants`, `enums`, `exception`, `utils`.
+- Second-level subpackages by **domain noun** under `dto` only (`dto/order/`, `dto/user/`).
 
-Controller、Service、Mapper 直接放在各自类型包根下，不再按业务嵌套——这类文件本就一个业务一个类，再套一层只增加路径深度。
+Keep Controllers, Services, and Mappers directly under role root without domain subpackages — one class per domain needs no extra directory depth.
 
 ```
 com.example.app

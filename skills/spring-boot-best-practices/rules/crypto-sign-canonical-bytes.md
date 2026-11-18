@@ -1,28 +1,28 @@
 ---
-title: 只对规范字节签名与摘要
+title: Sign and hash canonical bytes only
 impact: CRITICAL
-impactDescription: 验签在对端随机失败
+impactDescription: Signature verification fails randomly across peers
 tags: crypto, sm2, sm3, signature, serialization
 ---
 
-## 只对规范字节签名与摘要
+## Sign and hash canonical bytes only
 
-签名和摘要的输入必须是**确定性字节序列**。对 `Map.toString()`、对象 `toString()` 或字段顺序不固定的 JSON 签名，会产生同一份数据在不同 JVM、不同版本下签出不同结果——表现为验签随机失败，且极难复现。
+Pass **deterministic byte sequences** to signing and hashing. Signing `Map.toString()`, `Object.toString()`, or JSON without deterministic key order yields different bytes across JVMs or library versions — causing random, hard-to-reproduce verification failures.
 
-**错误：**
+**Wrong:**
 
 ```java
-byte[] data = payload.toString().getBytes(); // ❌ 顺序不保证
+byte[] data = payload.toString().getBytes(); // ❌ key order and charset unspecified
 byte[] sig = signSm2Sm3(privateKey, data);
 ```
 
-**正确（固定字段顺序的规范化序列化）：**
+**Right (canonical serialization with fixed field order and UTF-8):**
 
 ```java
-byte[] canonical = canonicalize(payload); // 字段排序 + 固定编码 + UTF-8
+byte[] canonical = canonicalize(payload); // sorted keys + fixed formatting + explicit UTF-8
 byte[] sig = signSm2Sm3(privateKey, canonical);
 ```
 
-对外来数据，**先验签再信任**。SM2 解密前先校验 `C1`、`C3`、`C2` 三段结构；`C1` 需含未压缩点前缀 `0x04`，除非对端协议明确不带。
+For untrusted external inputs, **verify signature before trusting payload**. Before SM2 decryption, validate `C1` / `C3` / `C2` segment lengths; `C1` requires uncompressed EC point prefix `0x04` unless peer protocol explicitly omits it.
 
-摘要比较用常量时间比较，不要用 `Arrays.equals` 之外的短路比较暴露时序信息。
+Compare digests in constant time (`MessageDigest.isEqual`), never short-circuiting byte comparisons that leak timing side channels.

@@ -1,29 +1,29 @@
 ---
-title: 信封只用工厂方法构造
+title: Construct response envelopes via static factories only
 impact: HIGH
 tags: envelope, response, api
 ---
 
-## 信封只用工厂方法构造
+## Construct response envelopes via static factories only
 
-`R` / `RList` / `RPage` 一律用静态工厂构造，不要 `new` 后逐字段赋值——手工赋值必然出现 code 取值不一致、message 漏填。
+Construct `R` / `RList` / `RPage` via static factories only — never `new` + setters, which causes `code` drift (`0` vs `200`) and missing `message` fields.
 
-**错误：**
+**Wrong:**
 
 ```java
 R<UserResponse> r = new R<>(); // ❌
-r.setCode(0);                  // 与工厂的 200 不一致
+r.setCode(0);                  // drifts from factory's 200
 r.setData(user);
 return r;
 ```
 
-**正确：**
+**Right:**
 
 ```java
-return R.ok(user);                        // 成功带数据
-return R.ok();                            // 成功无数据
-return R.error(ErrorCode.DUPLICATE_NAME); // 带码错误
-throw new BizException(ErrorCode.NOT_FOUND); // 交给全局处理器包装
+return R.ok(user);                           // success with payload
+return R.ok();                               // success without payload
+return R.error(ErrorCode.DUPLICATE_NAME);    // coded failure
+throw new BizException(ErrorCode.NOT_FOUND); // wrapped by GlobalExceptionHandler
 ```
 
-Controller 直接返回 `R<T>`，不要套 `ResponseEntity<R<T>>`。仅文件下载与重定向需要自定 HTTP 状态时才用 `ResponseEntity<Resource>` 或 `void` + `HttpServletResponse`。
+Return `R<T>` directly from Controllers, never `ResponseEntity<R<T>>`. Reserve `ResponseEntity<Resource>` or `void` + `HttpServletResponse` for file downloads and HTTP redirects needing custom status/headers.

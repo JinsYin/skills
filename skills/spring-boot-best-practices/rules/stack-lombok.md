@@ -1,18 +1,18 @@
 ---
-title: Lombok 注解约定
+title: Lombok annotation conventions
 impact: LOW
 tags: stack, lombok, di
 ---
 
-## Lombok 注解约定
+## Lombok annotation conventions
 
-| 场景 | 注解 |
+| Target | Annotations |
 |---|---|
 | DTO | `@Data` + `@NoArgsConstructor` |
-| Spring bean | `@RequiredArgsConstructor` + `final` 字段做构造注入 |
-| 日志 | `@Slf4j`（禁止手写 `LoggerFactory.getLogger`） |
-| Enum 字段 | `@Getter` |
+| Spring bean | `@RequiredArgsConstructor` + `private final` fields for constructor injection |
+| Logger | `@Slf4j` (never handwrite `LoggerFactory.getLogger`) |
+| Enum fields | `@Getter` |
 
-构造注入优于 `@Autowired` 字段注入：`final` 字段保证依赖不可变，且缺依赖时在启动期就失败，而不是运行到那行才 NPE。
+Use constructor injection, never `@Autowired` field injection: `final` fields enforce immutability and fail fast at startup on missing dependencies instead of throwing `NullPointerException` at runtime.
 
-**保留显式实现**的两种情况：工具类（私有构造 + 全静态方法）、构造函数含参数校验的类——这两种情况 Lombok 生成的构造器反而会绕过约束。
+**Write explicit constructors** in two cases: static utility classes (`private` constructor + `static` methods) and classes with constructor invariant checks — Lombok constructors bypass those checks.

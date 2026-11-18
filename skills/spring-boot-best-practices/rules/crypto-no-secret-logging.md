@@ -1,27 +1,27 @@
 ---
-title: 密钥与明文不进日志
+title: Never log keys or plaintext
 impact: CRITICAL
-impactDescription: 日志系统通常权限更宽
+impactDescription: Log stores usually have far broader read access than databases
 tags: crypto, logging, secrets, error-handling
 ---
 
-## 密钥与明文不进日志
+## Never log keys or plaintext
 
-**禁止**记录明文、私钥、对称密钥、完整密文、完整签名、解密后载荷。日志往往被集中采集、长期留存，且访问权限比数据库宽得多——写进日志等于扩大了泄漏面。
+Log non-sensitive metadata (`keyId`, payload length) only — **never** log plaintext, private keys, symmetric keys, full ciphertexts, full signatures, or decrypted payloads. Logs are centralized, retained long-term, and readable by far more roles than prod databases, widening blast radius.
 
-解密失败、认证标签不匹配、密文格式非法、验签失败一律按**安全错误**处理：返回稳定的业务错误码，不要把密码学细节透给调用方（那等于给攻击者提供预言机）。
+Treat decryption failure, auth-tag mismatch, malformed ciphertext, and bad signature as **security errors**: return stable opaque business error code without exposing crypto failure details (prevents padding/tag oracles).
 
-**错误：**
+**Wrong:**
 
 ```java
-log.error("解密失败, ciphertext={}, key={}", cipherText, keyHex, e); // ❌
+log.error("Decryption failed, ciphertext={}, key={}", cipherText, keyHex, e); // ❌
 ```
 
-**正确：**
+**Right:**
 
 ```java
-log.warn("解密失败, keyId={}, len={}", keyId, cipherText.length);
+log.warn("Decryption failed, keyId={}, len={}", keyId, cipherText.length);
 throw new BizException(ErrorCode.DECRYPT_FAILED);
 ```
 
-测试需覆盖：SM2 `C1C3C2` 加解密往返、签名验证的成功与失败、SM3 已知答案摘要、SM4 nonce 唯一性与篡改检测。
+Tests must cover: SM2 `C1C3C2` round-trip, signature verification pass/fail, SM3 known-answer digests, SM4 nonce uniqueness and tamper detection.

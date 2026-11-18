@@ -1,51 +1,51 @@
 ---
-title: 同库多形态用 base + overlay，不复制整套迁移
+title: Use base + overlay for multi-topology databases instead of duplicating full migration sets
 impact: HIGH
-impactDescription: 整套复制必然漂移，漂移只在另一形态的环境暴露
+impactDescription: Duplicated migration trees inevitably drift and fail only in the other topology
 tags: db, migration, flyway, multi-dialect, overlay
 ---
 
-## 同库多形态用 base + overlay，不复制整套迁移
+## Use base + overlay for multi-topology databases instead of duplicating full migration sets
 
-同一个数据库产品有多种部署形态（分布式集群 / 集中式主备 / 单机），而某些 DDL 只在其中一种形态下合法时，**不要为每种形态各维护一份完整迁移集**。N 份完整副本里绝大多数文件逐字相同，改一条要同步改 N 处——漏改不会在本地报错，只在另一形态的环境启动时炸。
+When one DB family spans multiple deployment topologies (distributed cluster / centralized primary-standby / standalone) and only a few DDL statements diverge, split migrations into `base + overlay` — **never duplicate full migration trees per topology**. N full copies require N synchronized edits per change; missing one passes locally and fails only when another topology boots.
 
-拆成两层：
+Two tiers:
 
-| 层 | 放什么 |
+| Tier | Contents |
 |---|---|
-| `<db>-base` | **共通基线**：建表、种子、ALTER、注释——凡两种形态语法一致的，全部放这里 |
-| `<db>-<形态>` overlay | **只放确实分叉的那几条**，每种形态一份，版本号与名称严格一致 |
+| `<db>-base` | **Shared baseline**: `CREATE TABLE`, seed data, `ALTER`, comments — all DDL valid across topologies |
+| `<db>-<topology>` overlay | **Only divergent migrations**, one directory per topology with identical version numbers and names |
 
-**overlay 之间互斥**：激活的 location 恒为 `base + 恰好一个 overlay`，构建期与运行期都不得同时挂两个。因此同一版本号**只能出现在一个激活 location**——base 与 overlay 之间绝不能重复版本号，否则 Flyway 报重复版本直接启动失败。
+**Overlays are mutually exclusive**: active Flyway locations are always `base + one overlay`, never two overlays at build or runtime. Every version number **must appear in at most one active location** — duplicate versions across `base` and overlay abort Flyway startup.
 
-分层要回答两个不同的问题，别混为一谈：
+Keep two questions separate:
 
-**问题一：这条迁移放 base 还是 overlay？** 判据是「有没有两端共通的写法」，不是「这条迁移涉不涉及分布式概念」：
+**1. `base` or `overlay`?** Judge by whether portable syntax exists — not whether distributed concepts appear:
 
-- 有共通写法 → 留在 base。例：新建表的唯一约束写成表内联 `CONSTRAINT uk_x UNIQUE(...)`，分布式下自动建全局索引、单机下是普通约束，一份通吃。
-- 确无共通写法 → 才分叉。例：对**既有**表追加非分布键唯一索引，分布式必须用 `CREATE GLOBAL UNIQUE INDEX ... DISTRIBUTE BY HASH(...)`，而单机不认这个语法。
+- Portable syntax exists → keep in `base`. Example: inline `CONSTRAINT uk_x UNIQUE(...)` on new table builds global index on distributed DBs and regular constraint on standalone DBs.
+- No portable syntax → fork into `overlay`. Example: non-distribution-key unique index on **existing** table needs `CREATE GLOBAL UNIQUE INDEX ... DISTRIBUTE BY HASH(...)` on distributed clusters, rejected on standalone engines.
 
-**问题二：overlay 分几份？** 按**部署目标**分，一个目标一份——即便其中两份当下的可执行 SQL 完全相同。这与问题一的「能共通就别分」不矛盾：那条管的是 base 与 overlay 的边界，这条管的是 overlay 的粒度。
+**2. How many overlays?** One **per deployment target**, even if two targets execute identical SQL today. Question 1 sets `base` vs `overlay` boundary; Question 2 sets overlay granularity.
 
-理由是 profile ↔ location 保持一一对应。两个目标共用一个 overlay 时，目录名会对其中一个说谎（`gauss-centralized` 实际同时服务集中式 GaussDB 和单机 openGauss），运维改 `SPRING_FLYWAY_LOCATIONS` 时得先在脑子里做一次映射，而这个映射没有任何地方能校验。代价是多一份等价副本——用 `diff` 核可执行 SQL 一致即可，比一次接错 location 便宜。
+1-to-1 profile ↔ location parity prevents unverified mental remapping: if `gauss-centralized` secretly serves both centralized GaussDB and standalone openGauss, operators editing `SPRING_FLYWAY_LOCATIONS` guess a mapping nothing checks. One extra overlay file checked via `diff` costs far less than misrouting prod migrations.
 
-> 等价副本里**注释可以按产品归属分别写**（这往往正是拆分的直接动因），但改注释会改 Flyway checksum，见 `db-migration-immutable-after-apply`。
+> Equivalent overlays may differ in target-product SQL comments, but editing comments on applied migrations alters Flyway checksums — see `db-migration-immutable-after-apply`.
 
-**错误（同一张新表在两个 overlay 里各写一遍）：**
-
-```
-gauss-distributed/V25__add_authcode_agreement.sql   -- 建表 60 行 + 唯一索引 3 行
-gauss-centralized/V25__add_authcode_agreement.sql   -- 建表 60 行 + 唯一索引 2 行
-```
-
-60 行建表体重复两份。下次给这张表加字段，改一处漏一处。
-
-**正确（能共通的下沉到 base）：**
+**Wrong (duplicating new table across two overlays):**
 
 ```
-gauss-base/V25__add_authcode_agreement.sql          -- 建表，唯一约束写表内联 CONSTRAINT
+gauss-distributed/V25__add_authcode_agreement.sql   -- 60-line CREATE TABLE + 3-line GSI
+gauss-centralized/V25__add_authcode_agreement.sql   -- 60-line CREATE TABLE + 2-line index
 ```
 
-只有真的无法共通时才留在 overlay，且**各份 overlay 除分叉语句与产品归属注释外必须逐字一致**（建表体、ALTER、DROP 同步维护）。新增或修改 overlay 后逐对 `diff` 一遍是最省事的校验方式。
+60 duplicated DDL lines drift next time a column is added.
 
-配套见 `db-migration-parity`（多方言同版本同步）、`db-migration-locations-injection`（location 怎么注入）、`db-distributed-unique-index`（分叉的根因）、`db-migration-immutable-after-apply`（改已执行的迁移要 repair）。
+**Right (push portable DDL into `base`):**
+
+```
+gauss-base/V25__add_authcode_agreement.sql          -- CREATE TABLE with inline CONSTRAINT UNIQUE
+```
+
+Keep files in overlays only when syntax diverges, and keep sibling overlays **byte-identical outside divergent DDL and header comments**. Run pairwise `diff` after every overlay edit.
+
+See also `db-migration-parity`, `db-migration-locations-injection`, `db-distributed-unique-index`, `db-migration-immutable-after-apply`.

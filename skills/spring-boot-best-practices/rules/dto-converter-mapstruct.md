@@ -1,14 +1,14 @@
 ---
-title: 用 MapStruct 转换，不手写赋值
+title: Map objects with MapStruct, never manual setters
 impact: MEDIUM
 tags: dto, mapstruct, converter
 ---
 
-## 用 MapStruct 转换，不手写赋值
+## Map objects with MapStruct, never manual setters
 
-Entity / Dto / Request / Response 之间的转换一律走 MapStruct。手写 `setXxx` 的问题是加字段时不会报错，只是静默丢值。
+Map `Entity`, `Dto`, `Request`, and `Response` via MapStruct — never handwritten `setXxx(...)` chains, which compile cleanly when new fields are added and silently drop them at runtime.
 
-每个功能一个 `{Feature}Converter`，标 `@Mapper(componentModel = "spring")`：
+Declare one `{Feature}Converter` per feature with `@Mapper(componentModel = "spring")`:
 
 ```java
 @Mapper(componentModel = "spring")
@@ -20,4 +20,4 @@ public interface UserConverter {
 }
 ```
 
-实际用到的每种转换都要显式声明方法，不要在 Service 里临时拼装。
+Declare explicit Converter methods for every conversion shape used — never assemble ad-hoc mappings inside Services.

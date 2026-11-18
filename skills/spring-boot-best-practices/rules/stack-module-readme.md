@@ -1,62 +1,60 @@
 ---
-title: 根目录与每个模块都要有 README 文档
+title: Maintain a README at the repository root and in every module
 impact: MEDIUM
-impactDescription: 模块职责只存在于人脑和代码里，接手者靠翻包结构猜边界
+impactDescription: Module boundaries live only in tribal knowledge, forcing newcomers to guess from package trees
 tags: stack, structure, docs, readme
 ---
 
-## 根目录与每个模块都要有 README 文档
+## Maintain a README at the repository root and in every module
 
-多模块工程里，**项目根目录和每一个子模块都必须有 `README.md`**。根 README 描述整个项目是什么、提供哪些能力、由哪些模块组成；模块 README 描述这一个模块负责什么、对外提供什么、依赖谁。**单模块工程只需要根 README**，包结构在根 README 里用一节说清即可。
+In multi-module builds, **maintain `README.md` at repo root and in every submodule**. Root README covers system purpose, capabilities, and module map; submodule README covers what that module owns, exposes, and depends on. **Single-module projects need only root README** with a package-layout section.
 
-没有 README 时，模块边界只能靠读 `pom.xml` 的依赖和翻包结构反推。反推出来的边界是当前实现的样子，不是设计意图——于是新代码被放进"看起来差不多"的模块，分层和依赖方向就是这样一点点烂掉的。
+Without module READMEs, boundaries are reverse-engineered from `pom.xml` and package trees — mistaking current accidents for intended design until new code lands in wrong modules and erodes dependency direction.
 
-新增模块时同步新增 README；模块能力发生变化（新增对外接口、依赖关系调整、职责搬迁）时同步更新 README，与改代码在同一个提交里。
+Add `README.md` when creating a module, and update it in the **same commit** whenever public APIs, dependencies, or responsibilities change.
 
-文档引用项目或模块依赖（如 Maven/Gradle 坐标）时，不要直接写死项目或模块的当前版本号；优先引用构建配置中的统一版本管理，或使用 `${project.version}`、version catalog 占位符，避免版本升级后遗漏更新文档。
+When citing internal Maven/Gradle coordinates in docs, reference parent dependency management or use `${project.version}` / version-catalog placeholders — never hardcode current project version.
 
-**错误（模块只有代码，没有说明）：**
+**Wrong (code without boundary docs):**
 
 ```text
 myapp/
-├── README.md              ← 只写了 "mvn spring-boot:run"
-├── myapp-common/          ← 没有 README，谁都往里塞工具类
-├── myapp-user/            ← 没有 README，不知道是否允许被别的模块依赖
-└── myapp-gateway/         ← 没有 README
+├── README.md              ← only says "mvn spring-boot:run"
+├── myapp-common/          ← no README; becomes a dumping ground for random helpers
+├── myapp-user/            ← no README; unclear whether other modules may depend on it
+└── myapp-gateway/         ← no README
 ```
 
-**正确（每层都能自解释）：**
+**Right (self-explanatory at every level):**
 
 ```text
 myapp/
-├── README.md              ← 项目能力 + 模块清单 + 快速开始
+├── README.md              ← capabilities + module map + getting started
 ├── myapp-common/
-│   └── README.md          ← 只放无业务语义的通用能力，禁止依赖业务模块
+│   └── README.md          ← domain-agnostic utilities only; must never depend on domain modules
 ├── myapp-user/
-│   └── README.md          ← 用户域：注册、认证、组织关系；对外只经 UserService
+│   └── README.md          ← user domain: registration, auth, orgs; expose via UserService only
 └── myapp-gateway/
-    └── README.md          ← 路由、鉴权前置、限流；不含业务逻辑
+    └── README.md          ← routing, edge auth, rate limiting; zero domain logic
 ```
 
-根 README 至少包含：
+Root README minimum sections:
 
-| 小节 | 内容 |
+| Section | Content |
 |---|---|
-| 项目简介 | 一两句话说清这个系统解决什么问题 |
-| 核心能力 | 对外提供的主要能力清单 |
-| 模块清单 | 多模块：表格列出各模块及其一句话职责，链接到模块 README；单模块：一节"包结构"说明各包放什么 |
-| 技术栈 | 语言、框架、数据库、中间件的版本基线 |
-| 快速开始 | 环境要求、构建命令、启动命令、默认端口 |
+| Overview | 1–2 sentences: problem this system solves |
+| Capabilities | Main externally visible features |
+| Modules | Multi-module: module table with one-line responsibilities linked to module READMEs. Single-module: "Package layout" section |
+| Stack | Version baseline for Java, Spring Boot, DB, middleware |
+| Getting started | Prerequisites, build/start commands, default port |
 
-子模块 README（多模块工程）至少包含：
+Submodule README minimum sections (multi-module builds):
 
-| 小节 | 内容 |
+| Section | Content |
 |---|---|
-| 模块职责 | 这个模块负责什么，**以及明确不负责什么** |
-| 对外能力 | 提供的接口、Service、扩展点；供谁调用 |
-| 依赖说明 | 依赖了哪些内部模块与外部中间件，为什么 |
-| 本地运行 | 单独构建/启动/测试该模块的命令（如果可以单独跑） |
+| Responsibility | What module owns — **and what explicitly does not belong here** |
+| Public surface | Exposed endpoints, Services, extension points, and consumers |
+| Dependencies | Internal modules and external middleware depended on, plus why |
+| Local commands | Standalone build/run/test commands, where applicable |
 
-写法遵循 `doc-writing-best-practices`：示例可直接粘贴执行、写清为什么、中西文之间加空格。
-
-README 不是 `CLAUDE.md` 的替代品，两者受众不同：README 面向人，讲能力与边界；CLAUDE.md 面向 AI，讲当前项目锁定的决策与约束。不要把同一段内容抄两份。
+`README.md` does not replace `CLAUDE.md`: `README.md` explains capabilities and boundaries to humans; `CLAUDE.md` states locked project decisions for agents. Never duplicate text across both.

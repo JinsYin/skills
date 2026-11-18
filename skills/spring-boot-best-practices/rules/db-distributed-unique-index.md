@@ -1,19 +1,17 @@
 ---
-title: 分布式库的唯一约束必须含分布键，否则要全局索引
+title: Distributed unique constraints must include the distribution key or use a global index
 impact: HIGH
-impactDescription: 普通唯一索引只在分片内唯一，跨分片重复数据能写进去
+impactDescription: Plain unique indexes enforce uniqueness per shard only, allowing cross-shard duplicates
 tags: db, migration, distributed, unique-index, gaussdb
 ---
 
-## 分布式库的唯一约束必须含分布键，否则要全局索引
+## Distributed unique constraints must include the distribution key or use a global index
 
-分布式数据库（GaussDB Distributed、TiDB、OceanBase 等）把数据按分布键散到各个分片。**普通唯一索引是分片本地的**——只保证同一分片内不重复。若唯一列不是分布键，两条同值记录落在不同分片时，本地索引各自看不到对方，重复数据照样写得进去。
+Distributed DBs (GaussDB Distributed, TiDB, OceanBase) shard rows by distribution key. **Plain unique indexes are shard-local**: if unique column omits distribution key, identical values on different shards insert silently without error.
 
-这类故障最坏的形态是**静默**：不报错、不回滚，直到某天查出两条本该唯一的记录。
+Choose DDL by whether table is new in this migration:
 
-两种写法，按「表是不是本次新建」选：
-
-**新建表——写成表内联约束，两种形态共通：**
+**New table — inline table constraint (portable across topologies):**
 
 ```sql
 CREATE TABLE t_authcode_agreement (
@@ -23,18 +21,18 @@ CREATE TABLE t_authcode_agreement (
 );
 ```
 
-分布式下引擎自动建全局索引，单机下就是普通唯一约束——**一份 SQL 通吃**，无需在 overlay 里分叉（见 `db-migration-base-overlay`）。
+Distributed engines build a global index automatically; standalone engines build a normal unique constraint — **one SQL file works everywhere** without overlay fork (see `db-migration-base-overlay`).
 
-**对既有表追加——必须显式全局唯一索引：**
+**Existing table — explicit Global Unique Index (GSI):**
 
 ```sql
--- ❌ 分布式下只在分片内唯一，跨分片可写入重复值
+-- ❌ Shard-local on distributed DBs; duplicates slip in across shards
 CREATE UNIQUE INDEX uk_org_name ON t_org(org_name);
 
--- ✅ 分布式：GSI，DISTRIBUTE BY 列与索引列一致
+-- ✅ Distributed: GSI distributed on the indexed column
 CREATE GLOBAL UNIQUE INDEX uk_org_name ON t_org(org_name) DISTRIBUTE BY HASH(org_name);
 ```
 
-`CREATE GLOBAL UNIQUE INDEX` 语法在单机/集中式下不被认识，所以这一种情形——**且只有这一种**——需要分叉出集中式 overlay，改回普通 `CREATE UNIQUE INDEX`（无数据分布时它本身就是全表唯一）。
+Standalone/centralized engines reject `CREATE GLOBAL UNIQUE INDEX`, so **only this case** forks into topology overlays where centralized overlay uses plain `CREATE UNIQUE INDEX`.
 
-同理，`ALTER TABLE ... ADD UNIQUE` 在分布式下同样受「唯一键必须包含分布键」约束，不能当作绕过手段。
+`ALTER TABLE ... ADD UNIQUE` on existing distributed tables carries same distribution-key requirement and does not bypass this rule.

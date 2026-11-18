@@ -1,33 +1,33 @@
 ---
-title: 禁止静默吞异常
+title: Never silently swallow exceptions
 impact: HIGH
-impactDescription: 故障无声传播
+impactDescription: Failures propagate silently
 tags: layer, exception, error-handling
 ---
 
-## 禁止静默吞异常
+## Never silently swallow exceptions
 
-`catch` 后不处理也不重抛，会把失败伪装成成功：调用方收到 200 和空数据，故障延后到下游才暴露，且现场已丢失。
+Translate caught exceptions into domain errors or rethrow — never catch without handling or rethrowing. Silent `catch` masks failure as 200 OK with empty/partial state, pushing crash downstream after root-cause context is lost.
 
-**错误：**
+**Wrong:**
 
 ```java
 try {
     userMapper.insert(entity);
 } catch (Exception e) {
-    // ❌ 什么都不做，调用方以为成功
+    // ❌ does nothing; caller assumes insert succeeded
 }
 ```
 
-**正确（要么转成有业务含义的错误，要么交给全局处理器）：**
+**Right (translate to domain error or let global handler wrap):**
 
 ```java
 try {
     externalClient.sync(entity);
 } catch (RestClientException e) {
-    log.warn("上游同步失败, entityId={}", entity.getId(), e);
+    log.warn("Upstream sync failed, entityId={}", entity.getId(), e);
     throw new BizException(ErrorCode.UPSTREAM_UNAVAILABLE);
 }
 ```
 
-只有明确「失败可忽略」的旁路逻辑（如埋点上报）才允许吞，且必须留日志并注释原因。
+Swallowing allowed only on non-critical side channels (e.g., telemetry), and must log warning plus comment explaining why failure is safe to ignore.

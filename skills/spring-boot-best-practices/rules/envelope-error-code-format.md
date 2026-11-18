@@ -1,20 +1,20 @@
 ---
-title: 错误码 6 位，前 3 位是 HTTP 状态
+title: 6-digit error codes prefixed with the 3-digit HTTP status
 impact: HIGH
 tags: envelope, error-code, api
 ---
 
-## 错误码 6 位，前 3 位是 HTTP 状态
+## 6-digit error codes prefixed with the 3-digit HTTP status
 
-错误码固定 6 位，前 3 位复用对应的 HTTP 状态码，后 3 位是该状态下的序号。这样调用方不查表也能判断错误大类，网关和日志也能按前缀聚合。
+Use fixed 6-digit business error codes: first 3 digits mirror HTTP status code, last 3 digits sequence errors within that class. Callers identify failure category without lookup tables, and gateways/logs aggregate by prefix.
 
-**错误：**
+**Wrong:**
 
 ```java
-AUTH_INVALID(1001, "AK 或 SK 校验失败"), // ❌ 看不出属于哪类
+AUTH_INVALID(1001, "AK 或 SK 校验失败"), // ❌ category is opaque from the number
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @Getter
@@ -30,4 +30,4 @@ public enum ErrorCode {
 }
 ```
 
-每个码自带默认中文 message，调用点不重复写文案。
+Each enum constant carries default Chinese `defaultMessage` so throw sites never repeat copy.

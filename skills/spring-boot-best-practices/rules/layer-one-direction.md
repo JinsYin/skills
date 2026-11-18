@@ -1,26 +1,26 @@
 ---
-title: 分层单向依赖
+title: One-way layered dependencies
 impact: CRITICAL
 tags: layer, architecture, controller, service, mapper
 ---
 
-## 分层单向依赖
+## One-way layered dependencies
 
-`Controller → Service → Mapper`，每层只依赖紧邻的下一层。反向或跨层调用会同时破坏事务边界、可测性与复用性。
+`Controller → Service → Mapper`: each layer depends only on adjacent lower layer. Reverse or skip-layer calls break transaction boundaries, unit testability, and reuse at once.
 
-| 层 | 职责 | 禁止 |
+| Layer | Responsibility | Forbidden |
 |---|---|---|
-| Controller | HTTP 契约：路径、参数、校验、鉴权 | 访问 Mapper、调用其他 Controller |
-| Service | 业务逻辑、事务、编排、外部调用、缓存 | 处理视图关注点、直接调别的 Service 的 Mapper |
-| Mapper | 数据库访问、ORM 映射 | 业务逻辑、校验、事务 |
+| Controller | HTTP contract: routing, binding, validation, auth | Calling Mappers; calling other Controllers |
+| Service | Business logic, transactions, orchestration, external calls, caching | HTTP/view concerns; injecting another domain's Mapper |
+| Mapper | Database access and ORM mapping | Business rules, validation, transaction control |
 
-**错误（Controller 直连 Mapper，绕过事务与业务校验）：**
+**Wrong (Controller injects Mapper directly, bypassing transactions and domain checks):**
 
 ```java
 @RestController
 @RequiredArgsConstructor
 public class UserController {
-    private final UserMapper userMapper; // ❌ 跨层
+    private final UserMapper userMapper; // ❌ skips Service layer
     @GetMapping("/users/{id}")
     public R<UserEntity> get(@PathVariable Long id) {
         return R.ok(userMapper.selectById(id));
@@ -28,7 +28,7 @@ public class UserController {
 }
 ```
 
-**正确：**
+**Right:**
 
 ```java
 @RestController

@@ -1,24 +1,24 @@
 ---
-title: Controller 不得返回 Entity
+title: Controllers must never return Entities
 impact: CRITICAL
-impactDescription: 敏感字段泄漏
+impactDescription: Leaks sensitive columns
 tags: layer, controller, entity, response, security
 ---
 
-## Controller 不得返回 Entity
+## Controllers must never return Entities
 
-Entity 映射数据库全字段，含密码散列、软删标记、内部审计列等。直接返回等于把这些字段暴露给调用方，且今后给表加一列就会静默扩大接口输出。
+Return view-specific `Response` types from Controllers, never `Entity`. Entity maps every table column (password hashes, soft-delete flags, internal audit fields); returning it exposes sensitive data, and adding table columns later silently widens public API output.
 
-**错误（把整行数据抛给前端）：**
+**Wrong (exposing raw table row):**
 
 ```java
 @GetMapping("/users/{id}")
 public R<UserEntity> get(@PathVariable Long id) {
-    return R.ok(userService.getEntityById(id)); // ❌ 含 password / deleted
+    return R.ok(userService.getEntityById(id)); // ❌ includes password / deleted
 }
 ```
 
-**正确（用视图专属 Response，字段显式列举）：**
+**Right (view-specific Response with explicit fields):**
 
 ```java
 @GetMapping("/users/{id}")
@@ -27,4 +27,4 @@ public R<UserDetailResponse> get(@PathVariable Long id) {
 }
 ```
 
-Service 的返回类型也必须是 `Response` / `Dto` / 原始类型，**不能**是 Entity——否则 Controller 只是把泄漏点上移一层。
+Service methods must also return `Response`, `Dto`, or primitives — **never** `Entity`, or leak risk shifts up into Controller.

@@ -1,16 +1,16 @@
 ---
-title: locations 构建期注入，未激活的 overlay 也要打进产物
+title: Inject Flyway locations at build time and package all inactive overlays
 impact: HIGH
-impactDescription: 同镜像换形态部署时无法运行期覆盖，只能重新出包
+impactDescription: Excluding inactive overlays prevents runtime topology overrides, forcing a rebuild per environment
 tags: db, migration, flyway, build, deploy
 ---
 
-## locations 构建期注入，未激活的 overlay 也要打进产物
+## Inject Flyway locations at build time and package all inactive overlays
 
-Flyway 的 `spring.flyway.locations` 不要在配置文件里写死，用构建期 profile 注入占位符——哪套方言/形态由出包时决定，源码里保持单一写法。
+Inject `spring.flyway.locations` from Maven build profile placeholder instead of hardcoding in `application.yml`:
 
 ```xml
-<!-- 父 pom：一个部署目标一个 profile，各自注入自己的 locations -->
+<!-- Parent POM: one profile per deployment target, each injecting its own locations -->
 <profiles>
   <profile><id>distributed-gaussdb</id>
     <properties><spring.flyway.locations>classpath:db/migration/gauss-base,classpath:db/migration/gauss-distributed</spring.flyway.locations></properties>
@@ -31,27 +31,27 @@ spring:
     locations: "@spring.flyway.locations@"
 ```
 
-**关键一条：注入的是「激活哪些 location」，不是「打包哪些文件」。** 所有 overlay 目录都在 `src/main/resources` 下，无论当次构建激不激活，都会一并进 jar 的 classpath。这不是冗余，而是运行期覆盖的前提：
+**Profile selects *active* locations, not *packaged* files.** Keep all overlay directories under `src/main/resources` so every overlay ships inside JAR classpath regardless of build profile — prerequisite for runtime overrides.
 
-profile 名字带上部署目标（`distributed-` / `centralized-`），比笼统的 `gaussdb` 更难接错——它和 location 目录名一一对应，肉眼就能核。
+Name profiles after exact deployment targets (`distributed-gaussdb`, `centralized-gaussdb`) rather than generic `gaussdb` so profile IDs match location directories 1-to-1.
 
-**错误（按 profile 裁剪资源目录）：**
+**Wrong (excluding inactive overlays from JAR):**
 
 ```xml
-<!-- ❌ 只把激活的 overlay 打进包 -->
+<!-- ❌ Packages only the build-time active overlay -->
 <resources><resource>
   <directory>src/main/resources</directory>
   <excludes><exclude>db/migration/gauss-centralized/**</exclude></excludes>
 </resource></resources>
 ```
 
-这样一来，同一个镜像换个形态的环境就跑不了，只能为该环境单独出一次包——而重新出包意味着上线的不是已经过测的那个产物。
+Stripping overlays breaks runtime topology switching, forcing a separate untested build per environment.
 
-**正确：全部打进去，部署时用环境变量覆盖。**
+**Right (package all overlays; override via env var at deploy time):**
 
 ```bash
-# 该环境形态与构建期 profile 不一致时，运行期改激活的 location 即可
+# Override active Flyway locations when an environment's topology differs from the build profile
 SPRING_FLYWAY_LOCATIONS=classpath:db/migration/gauss-base,classpath:db/migration/gauss-centralized
 ```
 
-典型场景：预发与生产用同一镜像，但预发是集中式主备、生产是分布式集群。构建期只能选一个 profile，差异靠部署清单里的这个 env 补齐。
+Example: staging runs centralized primary-standby while prod runs distributed cluster on identical image; `SPRING_FLYWAY_LOCATIONS` switches staging in deployment manifest.

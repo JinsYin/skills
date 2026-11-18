@@ -1,15 +1,15 @@
 ---
-title: 枚举与常量命名
+title: Enum and constant naming
 impact: MEDIUM
 tags: naming, enum, constants, jackson
 ---
 
-## 枚举与常量命名
+## Enum and constant naming
 
-- 常量：`UPPER_SNAKE_CASE`，放在 `{Xxx}Constants` final 类里
-- 枚举类型：`PascalCase`；枚举值：`UPPER_SNAKE_CASE`
+- Constants: `UPPER_SNAKE_CASE` inside `final` `{Xxx}Constants` class.
+- Enum types: `PascalCase`; enum constants: `UPPER_SNAKE_CASE`.
 
-枚举若需序列化成业务字符串，用 `@JsonValue` + `@JsonCreator` 显式控制，不要依赖 `name()`——那会让 Java 侧改名直接破坏 API 契约。
+Control wire serialization explicitly via `@JsonValue` (and `@JsonCreator` when needed), never `Enum.name()` — else renaming a Java enum constant breaks HTTP/JSON contracts.
 
 ```java
 @Getter
