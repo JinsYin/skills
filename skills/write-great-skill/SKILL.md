@@ -26,6 +26,6 @@ Steps 2–4 cover only agent-loaded files (`SKILL.md`, `references/*.md`, `rules
 2. **Polish** — `/writing-for-agents`, inline. Done when every finding applied or rejected with reason.
 3. **Compress** — `/caveman-compress` rules applied by hand to added/changed text only; untouched lines stay. Done when headings, code, URLs, paths unchanged.
 4. **Verify** — `/skill-optimizer` checks (activation, salience, regressions) statically. Done when every finding applied or rejected with reason.
-5. **Ship** — commit + push per project conventions, delegated to fresh subagent (`model: sonnet`, `effort: high`) with handoff (changed paths, convention file, branch, project ship/sync steps, trigger row): inline, every git call resends whole authoring context. Done when it reports `HEAD` equals remote branch; relay its summary.
+5. **Ship** — commit + push per project conventions, delegated to fresh subagent with handoff (changed paths, convention file, branch, project ship/sync steps, trigger row): inline, every git call resends whole authoring context. Done when it reports `HEAD` equals remote branch; relay its summary.
 
 Named skill unavailable → apply its intent inline, note in final report.

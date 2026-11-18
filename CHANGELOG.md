@@ -28,6 +28,7 @@
 
 ### Changed
 
+- **write-great-skill 移除 Ship 阶段模型硬编码**：交付 subagent 不再指定 `model: sonnet` 与 `effort: high`，交由各 Agent runtime 默认配置或项目策略决定，避免跨多端运行时参数不兼容或与模型策略冲突。
 - **spring-boot-best-practices 改用英文**：`SKILL.md`、`README.md`、`metadata.json`、`scripts/build.sh`、`rules/` 全部改写为精简英文并重新生成 `AGENTS.md`；保留目标项目的中文业务契约要求与示例字面量（Validation `message`、OpenAPI `@Schema` / `@Tag` / `@Operation`、`ErrorCode` 默认文案、枚举 `label`），`stack-module-readme` 移除对 `doc-writing-best-practices` 的重复交叉引述。
 - **setup-rules Cursor 模型**：统一更新为 `grok-4.7[reasoning_effort=xhigh]`，同步其余 Agent、模型策略与校验 hook；CLI 模型标识更新为 `cursor-grok-4.7-xhigh`。
 
