@@ -8,6 +8,7 @@
 
 ### Added
 
+- **nestjs-best-practices**：新增 NestJS 11 + Drizzle + GaussDB/openGauss 基线，54 条规则分 9 类。分层为 Controller → Service → Repository；认证为全局 JWT 默认拒绝；密码为 argon2id；国密走 `sm-crypto-v2@2`；主键为应用侧 Snowflake（`bigint`，线上 `string`）；驱动为 `pg` 别名指向 `gaussdb-nodejs@0.2.3`；迁移为 `drizzle-kit generate` 加拓扑 overlay，由一次性任务执行；响应信封与 6 位错误码对齐 Spring 的 `R` / `RList` / `RPage`。
 - **spring-boot-best-practices Gauss 驱动与依赖规则**：新增 `db-gauss-driver-selection`，列出 openGauss / GaussDB 的 JDBC 与 R2DBC 坐标白名单（含驱动类、URL 前缀、MyBatis-Plus `DbType`），禁用空 JAR 版本（`V2.0-8.218.0`、`505.2.1.SPC0800`）、第三方私服坐标 `com.huawei.gaussdb:gaussdb-jdbc`、`gaussdb-r2dbc:1.0.0.RC1` 与 `r2dbc-postgresql`，新项目 openGauss 用 `-og` 变体；新增 `db-gauss-dependency-scope`，驱动与 Flyway 只在使用的模块声明、版本由父 POM 与 `flyway.version` 统一管理，并说明 profile 依赖继承与 `activeByDefault` 抑制陷阱。
 - **setup-rules Git 提交约定**：省略 `Co-authored-by` 署名。
 - **setup-rules 原型模板约束**：原型工作区约束模板新增避免不必要的二级标签与说明文案，由排版布局表达含义。

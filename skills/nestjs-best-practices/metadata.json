@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "author": "JinsYin",
+  "date": "2026-11",
+  "abstract": "Coding conventions and architecture discipline for NestJS 11 + Node 22 + Drizzle backends on GaussDB/openGauss, designed for AI agents. 54 rules across 9 categories, ordered by consequence of violation rather than frequency: from CRITICAL (layering, default-deny JWT, ShangMi cryptography, Snowflake bigint ids and CLS transactions) to LOW (stack baseline). Gauss access goes through gaussdb-nodejs aliased as pg. Migrations are generated SQL plus per-topology overlays, applied by a one-shot job. The HTTP envelope matches the Spring R/RList/RPage contract. The index is separated from rule bodies so agents open individual rules on demand.",
+  "references": [
+    "https://docs.nestjs.com",
+    "https://orm.drizzle.team",
+    "https://github.com/huaweicloud-samples/database-gaussdb-node",
+    "https://github.com/huaweicloud-samples/database-gaussdb-drivers",
+    "https://www.npmjs.com/package/gaussdb-nodejs",
+    "https://papooch.github.io/nestjs-cls/plugins/available-plugins/transactional/drizzle-orm-adapter",
+    "https://github.com/cubelrti/sm-crypto-v2",
+    "https://github.com/ranisalt/node-argon2"
+  ]
+}
