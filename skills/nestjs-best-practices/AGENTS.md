@@ -1,7 +1,7 @@
 # NestJS Best Practices
 
 > Generated from `rules/` by `scripts/build.sh`. Do not edit by hand.
-> Generated at: 2026-11-18 19:14:30
+> Generated at: 2026-11-21 19:59:54
 
 ## 1. Layering Discipline
 
@@ -1320,7 +1320,7 @@ The global prefix (`api`) is set once in bootstrap, not repeated on each `@Contr
 
 | Layer | Choice |
 |---|---|
-| Runtime | Node 22 + NestJS 11 (`@nestjs/core` 11.x, `@nestjs/platform-express`) |
+| Runtime | Node 24 + NestJS 11 (`@nestjs/core` 11.x, `@nestjs/platform-express`) |
 | ORM | `drizzle-orm` 0.45.x via `drizzle-orm/node-postgres`, `drizzle-kit` 0.31.x |
 | Driver | `pg` aliased to `gaussdb-nodejs@0.2.3` — see `db-gauss-driver-selection` |
 | Transactions | `nestjs-cls` + `@nestjs-cls/transactional` + `@nestjs-cls/transactional-adapter-drizzle-orm` |

@@ -8,7 +8,7 @@ tags: stack, dependencies
 
 | Layer | Choice |
 |---|---|
-| Runtime | Node 22 + NestJS 11 (`@nestjs/core` 11.x, `@nestjs/platform-express`) |
+| Runtime | Node 24 + NestJS 11 (`@nestjs/core` 11.x, `@nestjs/platform-express`) |
 | ORM | `drizzle-orm` 0.45.x via `drizzle-orm/node-postgres`, `drizzle-kit` 0.31.x |
 | Driver | `pg` aliased to `gaussdb-nodejs@0.2.3` — see `db-gauss-driver-selection` |
 | Transactions | `nestjs-cls` + `@nestjs-cls/transactional` + `@nestjs-cls/transactional-adapter-drizzle-orm` |

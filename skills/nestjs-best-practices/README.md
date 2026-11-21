@@ -1,6 +1,6 @@
 # nestjs-best-practices
 
-NestJS 11 + Node 22 + Drizzle on GaussDB / openGauss. 54 rules, 9 categories.
+NestJS 11 + Node 24 + Drizzle on GaussDB / openGauss. 54 rules, 9 categories.
 
 Structure modeled after [spring-boot-best-practices](../spring-boot-best-practices/) and [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices).
 

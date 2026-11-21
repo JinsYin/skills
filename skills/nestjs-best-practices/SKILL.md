@@ -1,6 +1,6 @@
 ---
 name: nestjs-best-practices
-description: "NestJS 11 + Node 22 + Drizzle on GaussDB/openGauss: Controller/Service/Repository, JWT default-deny, argon2id, SM2/SM3/SM4 via sm-crypto-v2, Snowflake bigint ids, gaussdb-nodejs aliased as pg, drizzle-kit migrations, R/RList/RPage, class-validator. Use when changing Nest APIs, Drizzle schema, SQL migrations, auth, crypto, or module docs, or when Gauss login fails, SQL contains ON CONFLICT or gen_random_uuid(), JSON throws on bigint, or a route has no guard."
+description: "NestJS 11 + Node 24 + Drizzle on GaussDB/openGauss: Controller/Service/Repository, JWT default-deny, argon2id, SM2/SM3/SM4 via sm-crypto-v2, Snowflake bigint ids, gaussdb-nodejs aliased as pg, drizzle-kit migrations, R/RList/RPage, class-validator. Use when changing Nest APIs, Drizzle schema, SQL migrations, auth, crypto, or module docs, or when Gauss login fails, SQL contains ON CONFLICT or gen_random_uuid(), JSON throws on bigint, or a route has no guard."
 license: MIT
 metadata:
   author: JinsYin
@@ -144,7 +144,7 @@ Ordered by **consequence of violation**, not frequency. CRITICAL: immediate bug,
 
 ### 9. Stack baseline (LOW)
 
-- `stack-baseline` — Node 22, Nest 11, Drizzle, pnpm, and the pinned Gauss and SM libraries
+- `stack-baseline` — Node 24, Nest 11, Drizzle, pnpm, and the pinned Gauss and SM libraries
 - `stack-config-schema` — Zod-validated `@nestjs/config`; no scattered `process.env`
 - `stack-bootstrap` — Global prefix, pino logger, shutdown hooks, gated Swagger
 - `stack-logging` — `nestjs-pino` 4.x JSON logs with a redact list
