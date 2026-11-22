@@ -30,6 +30,7 @@
 
 ### Changed
 
+- **setup-rules 纵向切片约定移至 Development 并加强**：将「按特性纵向切片」从 Git 移动至 Development，强化为必须端到端按特性纵向切片并在进入下一特性前形成可测试单元，严禁跨特性横向分层开发。
 - **nestjs-best-practices Node 运行时基线**：Node 版本基线由 22 升级为 24。
 - **spring-boot-best-practices Gauss 规则统一命名**：`db-opengauss-dialect`、`db-opengauss-flyway-set-role` 更名为 `db-gauss-dialect`、`db-gauss-flyway-set-role`，与 `db-gauss-driver-selection`、`db-gauss-dependency-scope` 统一前缀；方言规则标题改为 Gauss-family，路由表改为列出具体规则名。
 - **spring-boot-best-practices Flyway SET ROLE 规则**：`db-gauss-flyway-set-role` 补充按 URL 直连时的 `handlesJDBCUrl` / `getDriverClass`，按实测修正各驱动上报的产品名，禁用 `db-migration-gauss-flyway` shadow 依赖与 `validate-on-migrate: false` 绕过。
