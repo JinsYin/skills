@@ -25,13 +25,6 @@
 - Log each notable change in Chinese.
 - Cut versions only via `version-release`, which closes `[Unreleased]`.
 
-### Development
-
-- MUST follow the rules matched by `*-best-practices` skills.
-- MUST slice development vertically by feature end-to-end: each slice implements one atomic capability across all necessary layers into a testable unit before starting the next; never slice horizontally across multiple features.
-- MUST add Chinese comments for non-obvious logic, constraints, public APIs, and test intent.
-- Shell commands run in the login shell (zsh on macOS): quote globs and `=`-leading words (`--include='*.java'`, `echo '====='`; `[ ]` takes `=`, not `==`), write `${var}` before `[`, never name a variable `path` — zsh ties it to `PATH`, so later commands vanish and checks pass empty.
-
 ### Skills
 
 - `skills-lock.json` is source of truth for installed skills, which may be gitignored. If it exists but `.agents/skills/` is missing (fresh clone, new worktree), restore before relying on skills: `./skillsw clean install`; without `skillsw`, `npx skills@latest experimental_install` (`.agents/skills/` only).

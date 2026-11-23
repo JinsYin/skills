@@ -32,6 +32,7 @@
 
 ### Changed
 
+- **setup-rules 约定结构与前端实现约束**：将 `core.md` 的 `Development` 章节迁移至 `devops.md`，`devops.md` 原环境与交付内容划分至 `Operation` 章节；`devops.md` 的 `Development` 章节新增约束：所有前端实现必须基于 `/design-to-code` 还原代码且不调整样式布局，缺失页面、弹窗、抽屉等代码时必须采访确认样式和布局。
 - **setup-rules 纵向切片约定移至 Development 并加强**：将「按特性纵向切片」从 Git 移动至 Development，强化为必须端到端按特性纵向切片并在进入下一特性前形成可测试单元，严禁跨特性横向分层开发。
 - **nestjs-best-practices Node 运行时基线**：Node 版本基线由 22 升级为 24。
 - **spring-boot-best-practices Gauss 规则统一命名**：`db-opengauss-dialect`、`db-opengauss-flyway-set-role` 更名为 `db-gauss-dialect`、`db-gauss-flyway-set-role`，与 `db-gauss-driver-selection`、`db-gauss-dependency-scope` 统一前缀；方言规则标题改为 Gauss-family，路由表改为列出具体规则名。
