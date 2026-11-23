@@ -13,7 +13,7 @@ Workflow requires an interactive interview: ask, wait, clarify, and confirm the 
 
 | Category | Source | Target | Condition |
 |---|---|---|---|
-| Conventions | `assets/conventions/*.md` | `CLAUDE.local.md` | core required; others independently selectable |
+| Conventions | `assets/conventions/**/*.md` | `CLAUDE.local.md` | core required; others independently selectable |
 | Subagents | `assets/adapters/<tool>/agents/` | `.<tool>/agents/` | per tool/workflow |
 | Cursor adapter | `assets/adapters/cursor/rules/`, `assets/adapters/cursor/hooks/`, `assets/adapters/cursor/hooks.json` | `.cursor/rules/`, `.cursor/hooks/`, `.cursor/hooks.json` | independently selectable |
 | Antigravity adapter | `assets/adapters/antigravity/gemini.md` | `GEMINI.md` | independently selectable |
@@ -30,10 +30,10 @@ Convention files:
 - `assets/conventions/ponytail.md`
 - `assets/conventions/karpathy.md`
 - `assets/conventions/devops.md`
-- `assets/conventions/gsd.md`
-- `assets/conventions/matt.md`
-- `assets/conventions/addy.md`
-- `assets/conventions/superpowers.md`
+- `assets/conventions/sdd/gsd.md`
+- `assets/conventions/sdd/matt.md`
+- `assets/conventions/sdd/addy.md`
+- `assets/conventions/sdd/superpowers.md`
 
 Subagent bundles:
 
