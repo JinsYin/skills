@@ -122,7 +122,7 @@ Bottom-up: primitives → shared components → one committed slice per page (do
 
 ### Step 4 — Verify
 
-Copy skill's `scripts/visual-check.mjs` to `<app>/scripts/`, gitignore `.visual-check/`. Serve built app; `full` or `restyle` also serve prototype built into `.visual-check/`, never under `products/`.
+Copy skill's `scripts/visual-check.mjs` to `<app>/scripts/`, ignore `.visual-check/` in `.gitignore` and linter config (flat `eslint.config.*` skips `.gitignore` and scans/OOMs on built assets). Serve built app; `full` or `restyle` also serve prototype built into `.visual-check/`, never under `products/`.
 
 1. `node scripts/visual-check.mjs smoke <appUrl>`: every class generates CSS, no console error, no horizontal overflow at 1280 and 1440. Fix or justify each finding. `lite` stops here
 2. `full`: `node scripts/visual-check.mjs diff <protoUrl> <appUrl>`, view diffs largest first, sort each: sanctioned → `progress.md`; defect → fix, measuring computed styles on that element only
@@ -226,7 +226,7 @@ Config files and stylesheet dir follow baseline. Skill adds only `products/` inp
 └── <app>/                  # the repo root itself in a single-package project;
     │                       # apps/<name> or packages/<name> in a monorepo
     ├── .design-to-code/    # index.md, progress.md — committed, reused on re-entry
-    ├── .visual-check/      # Step 4 dependencies, screenshots, report — gitignored
+    ├── .visual-check/      # Step 4 dependencies, screenshots, report — git/linter ignored
     ├── scripts/            # visual-check.mjs, visual-targets.mjs, visual-freeze.sh
     └── src/
         ├── components/

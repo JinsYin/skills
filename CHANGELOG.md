@@ -71,6 +71,7 @@
 
 ### Fixed
 
+- **design-to-code 自定义字号与 `.visual-check/` 忽略规则**：`references/design-md-mapping.md` 第 6 节补充将自定义 `fontSize` 键经 `extendTailwindMerge` 注册进 `cn()`，避免默认 `twMerge` 将未知 `text-*` 误判为文字色而丢弃配对颜色类；`SKILL.md` Step 4 要求在 `.gitignore` 与 linter 配置中同时忽略 `.visual-check/`，避免扁平 `eslint.config.*` 扫描构建产物触发 OOM（#50）。
 - **self-improve digest 按段统计 skill 开销**：`[skill-cost]`/`HEAVY-SKILL` 从每次 skill 调用记到下一个 skill 或本轮结束，同一轮的多个 skill 不再各自背上整轮开销而误报 HEAVY-SKILL。
 - **self-improve 分段计费边界**：乱序时间戳不再重复累加耗时；同时点名多个 skill 时，实际调用或加载前的开销保持未归属。
 - **setup-rules Core 约定 zsh 引号示例**：示例由 `'====='` 改为 `echo '====='`，对准实际出错的 echo 分隔符写法，避免规则在场仍报 `== not found`（#39）。
