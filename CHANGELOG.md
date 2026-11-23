@@ -8,6 +8,7 @@
 
 ### Added
 
+- **setup-rules Prompts 约定**：新增可选约定 `assets/conventions/sdd/prompts.md`，排在 DevOps 与 GSD 之间；在执行 SDD 工作流（Addy、GSD、Matt、Superpowers）或本项目（`jinsyin/skills`）技能时，将发送给 LLM 的提示词记录于项目根目录 `PROMPTS.md` 表格（`| Time | Prompt |`），仅做排版与错别字修正，多行用 `<br>` 换行，同一会话的补充意图直接就地融合成单一列表或段落。
 - **setup-rules Addy 约定**：新增可选约定 `addy.md`，集成 Addy Osmani agent-skills 规范并排在 Matt 与 Superpowers 之间；`/spec-driven-development`、`/planning-and-task-breakdown`、`/incremental-implementation`、`/test-driven-development`、`/code-simplification` 执行后提交，`/incremental-implementation` 与 `/code-simplification` 后触发 `self-improve` 复盘；当前 plan/todo 位于 `tasks/plan.md` 与 `tasks/todo.md`，已完成的归档至 `tasks/done/<module>-plan.md` 与 `tasks/done/<module>-todo.md`；每完成任务在 `todo.md` 打勾并同步 `plan.md` 状态与摘要，浏览器任务经 `/browser-testing-with-devtools` 验证；`devops.md` 表格补齐 Addy 的 Backfill 与 Delivery 链路。
 
 - **nestjs-best-practices**：新增 NestJS 11 + Drizzle + GaussDB/openGauss 基线，54 条规则分 9 类。分层为 Controller → Service → Repository；认证为全局 JWT 默认拒绝；密码为 argon2id；国密走 `sm-crypto-v2@2`；主键为应用侧 Snowflake（`bigint`，线上 `string`）；驱动为 `pg` 别名指向 `gaussdb-nodejs@0.2.3`；迁移为 `drizzle-kit generate` 加拓扑 overlay，由一次性任务执行；响应信封与 6 位错误码对齐 Spring 的 `R` / `RList` / `RPage`。
