@@ -9,7 +9,7 @@
 ### Added
 
 - **setup-rules Prompts 约定与 SDD 源解耦**：`core.md` 将 `### Changelog` 合并升级为 `### Changelog & Prompts`，统一定义根目录 `PROMPTS.md` 格式（`# PROMPTS`、`| Time | Prompt |`、`YYYY-MM-DD HH:mm`、`<br>` 换行与会话内追问融合）；移除独立的 `sdd/prompts.md`，由各 SDD 约定（Matt、Superpowers、GSD、Addy）按需基于 `skills-lock.json` 的 `source` 独立声明提示词记录条件，彻底消除多 SDD 间的规则交叉污染。
-- **setup-rules Addy 约定**：新增可选约定 `addy.md`，集成 Addy Osmani agent-skills 规范并排在 Matt 与 Superpowers 之间；`/spec-driven-development`、`/planning-and-task-breakdown`、`/incremental-implementation`、`/test-driven-development`、`/code-simplification` 执行后提交，`/incremental-implementation` 与 `/code-simplification` 后触发 `self-improve` 复盘；当前 plan/todo 位于 `tasks/plan.md` 与 `tasks/todo.md`，已完成的归档至 `tasks/done/<module>-plan.md` 与 `tasks/done/<module>-todo.md`；每完成任务在 `todo.md` 打勾并同步 `plan.md` 状态与摘要，浏览器任务经 `/browser-testing-with-devtools` 验证；`devops.md` 表格补齐 Addy 的 Backfill 与 Delivery 链路。
+- **setup-rules Addy 约定**：新增可选约定 `addy.md`，集成 Addy Osmani agent-skills 规范并排在 Matt 与 Superpowers 之间；`spec-driven-development`、`planning-and-task-breakdown`、`incremental-implementation`、`test-driven-development`、`code-simplification` 执行后提交，`incremental-implementation` 与 `code-simplification` 后触发 `self-improve` 复盘；当前 plan/todo 位于 `tasks/plan.md` 与 `tasks/todo.md`，已完成的归档至 `tasks/done/<module>-plan.md` 与 `tasks/done/<module>-todo.md`；每完成任务在 `todo.md` 打勾并同步 `plan.md` 状态与摘要，浏览器任务经 `browser-testing-with-devtools` 验证；`devops.md` 表格补齐 Addy 的 Backfill 与 Delivery 链路。
 
 - **nestjs-best-practices**：新增 NestJS 11 + Drizzle + GaussDB/openGauss 基线，54 条规则分 9 类。分层为 Controller → Service → Repository；认证为全局 JWT 默认拒绝；密码为 argon2id；国密走 `sm-crypto-v2@2`；主键为应用侧 Snowflake（`bigint`，线上 `string`）；驱动为 `pg` 别名指向 `gaussdb-nodejs@0.2.3`；迁移为 `drizzle-kit generate` 加拓扑 overlay，由一次性任务执行；响应信封与 6 位错误码对齐 Spring 的 `R` / `RList` / `RPage`。
 - **spring-boot-best-practices Gauss 驱动与依赖规则**：新增 `db-gauss-driver-selection`，列出 openGauss / GaussDB 的 JDBC 与 R2DBC 坐标白名单（含驱动类、URL 前缀、MyBatis-Plus `DbType`），禁用空 JAR 版本（`V2.0-8.218.0`、`505.2.1.SPC0800`）、第三方私服坐标 `com.huawei.gaussdb:gaussdb-jdbc`、`gaussdb-r2dbc:1.0.0.RC1` 与 `r2dbc-postgresql`，新项目 openGauss 用 `-og` 变体；新增 `db-gauss-dependency-scope`，驱动与 Flyway 只在使用的模块声明、版本由父 POM 与 `flyway.version` 统一管理，并说明 profile 依赖继承与 `activeByDefault` 抑制陷阱。
@@ -33,6 +33,7 @@
 
 ### Changed
 
+- **setup-rules Addy 约定去除冗余命令别名**：`addy.md` 与 `devops.md` 移除 `/spec`、`/plan`、`/build`、`/test`、`/code-simplify` 等命令别名及 skill 命名前置斜杠，直接对齐底层 skill 名称。
 - **setup-rules Design 约定与原型工作区解耦**：精简 master 分支的 `design.md` 规范，仅保留设计交付物契约（`products/design/DESIGN.md`）、原型管线与 Visual Freeze 约束；原型制作细则、`CHANGELOG.md`、图稿 `-v2/-v3` 规范等迁移至 `templates/proto/AGENTS.md`（安装至 `.worktrees/proto/products/prototype/AGENTS.md`）；`setup-rules` 增加对 `.worktrees/` 忽略与 `proto` 原型工作区 `AGENTS.md` 的安装与更新；`backfill-prototype` 优先从 `.worktrees/proto/products/prototype/` 定位原型。
 - **setup-rules SDD 约定集成 Ponytail 门禁**：在 Superpowers、GSD、Addy、Matt 的 SDD 约定中增加单行规约，在规划（plan/tickets）、执行（executing/build/implement）、TDD、调试（debug）和分支合并复审节点显式调用 `/ponytail full`；GSD 明确跳过 `--fast` 琐碎修改。
 - **setup-rules SDD 约定目录归拢**：将 `addy.md`、`gsd.md`、`matt.md` 与 `superpowers.md` 移入同级 `sdd/` 目录（`assets/conventions/sdd/`），`setup-rules/SKILL.md` 同步更新约定源路径匹配与文件清单。

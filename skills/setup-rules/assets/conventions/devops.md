@@ -21,5 +21,5 @@
 |---|---|---|
 | GSD | `gsdspec --quick` | new phase (`/gsd:add-phase`), then usual `gsdspec` chain |
 | Matt | `/implement` quick task | No UI pipeline: `/to-spec` → `/to-tickets <spec>` |
-| Addy | `/incremental-implementation` (`/build`) quick slice | `spec/SPEC-delivery.md` → `/planning-and-task-breakdown` (`/plan`) → `/incremental-implementation` (`/build`) |
+| Addy | `incremental-implementation` quick slice | `spec/SPEC-delivery.md` → `planning-and-task-breakdown` → `incremental-implementation` |
 | Superpowers | current session, own commit | amend SPEC with Delivery chapter → `reviewed` → `writing-plans` appends phase to current milestone's `ROADMAP.md`; overrides fixed roadmap scope |
