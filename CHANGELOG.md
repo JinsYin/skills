@@ -33,6 +33,7 @@
 
 ### Changed
 
+- **setup-rules SDD 约定集成 Ponytail 门禁**：在 Superpowers、GSD、Addy、Matt 的 SDD 约定中增加单行规约，在规划（plan/tickets）、执行（executing/build/implement）、TDD、调试（debug）和分支合并复审节点显式调用 `/ponytail full`；GSD 明确跳过 `--fast` 琐碎修改。
 - **setup-rules SDD 约定目录归拢**：将 `addy.md`、`gsd.md`、`matt.md` 与 `superpowers.md` 移入同级 `sdd/` 目录（`assets/conventions/sdd/`），`setup-rules/SKILL.md` 同步更新约定源路径匹配与文件清单。
 - **setup-rules 约定结构与前端实现约束**：将 `core.md` 的 `Development` 章节迁移至 `devops.md`，`devops.md` 原环境与交付内容划分至 `Operation` 章节；`devops.md` 的 `Development` 章节新增约束：所有前端实现必须基于 `/design-to-code` 还原代码且不调整样式布局，缺失页面、弹窗、抽屉等代码时必须采访确认样式和布局。
 - **setup-rules 纵向切片约定移至 Development 并加强**：将「按特性纵向切片」从 Git 移动至 Development，强化为必须端到端按特性纵向切片并在进入下一特性前形成可测试单元，严禁跨特性横向分层开发。
@@ -58,6 +59,10 @@
 - **self-improve 只复盘当前会话**：移除 `--sessions`，弱信号门槛计入历史复盘 Issue 中未过门槛的同类观察；Superpowers/GSD 约定改为每次运行后都复盘，取消里程碑联合复盘。
 - **setup-rules `.worktreeinclude` 注释**：写入的条目附单行英文注释，说明为何不含 `.claude/skills/`。
 - **version-release 无参数自动推断级别**：按 `[Unreleased]`（为空则按提交）推断 `minor`/`patch`，`major` 须显式指定，执行前先请用户确认。
+
+### Removed
+
+- **setup-rules 移除静态 Ponytail 规则**：删除 `assets/conventions/ponytail.md`，从固定约定顺序与安装问答中移除，避免 `CLAUDE.local.md` 全量常驻消耗上下文；改由独立技能（`DietrichGebert/ponytail`）在各 SDD 流程的关键节点按需调用。
 
 ### Fixed
 

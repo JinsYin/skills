@@ -4,6 +4,7 @@
 ### Paths
 
 - Do not auto-invoke `using-superpowers`, `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development` or `test-driven-development` unless invoked by another skill; commit after manual invocation.
+- Invoke `/ponytail full` upon `writing-plans` (pass to plan subagents), `executing-plans`, `subagent-driven-development` (prepend to implementer `task-brief`), `test-driven-development`, `systematic-debugging`, and `finishing-a-development-branch` whole-branch review.
 - Record user prompts to `PROMPTS.md` upon completion of skills with source `obra/superpowers` or `jinsyin/skills` in `skills-lock.json`.
 - Spec lives at `docs/superpowers/specs/<milestone>-<topic>.SPEC.md`; everything else under `docs/superpowers/plans/<milestone>/`.
 - Name files `ROADMAP.md`, `<phase-num>-<plan-num>-<feature-name>.PLAN.md`, `<phase-num>-00.PATTERN.md`, `<plan-basename>.SUMMARY.md`.
