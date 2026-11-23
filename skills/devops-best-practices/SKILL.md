@@ -9,7 +9,7 @@ metadata:
 
 # DevOps Best Practices
 
-容器化与部署的规范集，28 条规则分 6 类，按**违反后果**排序。
+容器化与部署的规范集，29 条规则分 6 类，按**违反后果**排序。
 
 ## 如何使用本 skill
 
@@ -64,7 +64,7 @@ Project-specific facts (registries, secret names, environments) come from its `d
 | 3 | 凭据与配置 | CRITICAL | `secret-` | 3 |
 | 4 | 本地依赖编排 | HIGH | `compose-` | 4 |
 | 5 | CI 流水线 | HIGH | `ci-` | 4 |
-| 6 | 本地进程编排 | MEDIUM | `proc-` | 4 |
+| 6 | 本地进程编排 | MEDIUM | `proc-` | 5 |
 
 ## 规则索引
 
@@ -113,6 +113,7 @@ Project-specific facts (registries, secret names, environments) come from its `d
 - `proc-guard-before-start` — 易错前提写成守护进程而非文档；违反后的症状通常远离根因
 - `proc-no-hardcoded-host-paths` — 不写死 `JAVA_HOME` 等本机路径，该文件是入库的
 - `proc-oneshot-restart-no` — 一次性进程必须 `restart:"no"`，否则成功退出后被无限拉起
+- `proc-uds-socket-path` — process-compose uses unix domain socket to prevent port conflicts; *.sock in .gitignore
 
 ## 与项目规范的关系
 

@@ -8,6 +8,8 @@
 
 ### Added
 
+- **devops-best-practices process-compose Unix Socket 规范与 .gitignore**：新增规则 `proc-uds-socket-path`，以项目级 Unix Domain Socket（`-u .process-compose.sock`）规避默认 9876 端口在多项目并行时的冲突，强调在 `.gitignore` 忽略 `*.sock`，并指出禁用 `--no-server` 与裸 `-U` 的踩坑点；`proc-deps-via-compose-wait` 与 `dev-env.md` 启动入口命令同步更新为 `-u .process-compose.sock`；`setup-rules` DevOps 约定同步更新开发环境单入口启动命令。
+
 - **setup-rules Prompts 约定与 SDD 源解耦**：`core.md` 将 `### Changelog` 合并升级为 `### Changelog & Prompts`，统一定义根目录 `PROMPTS.md` 格式（`# PROMPTS`、`| Time | Prompt |`、`YYYY-MM-DD HH:mm`、`<br>` 换行与会话内追问融合）；移除独立的 `sdd/prompts.md`，由各 SDD 约定（Matt、Superpowers、GSD、Addy）按需基于 `skills-lock.json` 的 `source` 独立声明提示词记录条件，彻底消除多 SDD 间的规则交叉污染。
 - **setup-rules Addy 约定**：新增可选约定 `addy.md`，集成 Addy Osmani agent-skills 规范并排在 Matt 与 Superpowers 之间；`spec-driven-development`、`planning-and-task-breakdown`、`incremental-implementation`、`test-driven-development`、`code-simplification` 执行后提交，`incremental-implementation` 与 `code-simplification` 后触发 `self-improve` 复盘；当前 plan/todo 位于 `tasks/plan.md` 与 `tasks/todo.md`，已完成的归档至 `tasks/done/<module>-plan.md` 与 `tasks/done/<module>-todo.md`；每完成任务在 `todo.md` 打勾并同步 `plan.md` 状态与摘要，浏览器任务经 `browser-testing-with-devtools` 验证；`devops.md` 表格补齐 Addy 的 Backfill 与 Delivery 链路。
 

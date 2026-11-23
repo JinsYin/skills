@@ -1,6 +1,6 @@
 # Dev Env: Create or Backfill
 
-Local dev environment = root `docker-compose.yml` (long-lived stateful deps: DB, cache, MQ, object store) + root `process-compose.yml` (dev processes: backend, frontend, workers, one-shot build/migrate steps). `process-compose up -D` = only start command (rule `proc-deps-via-compose-wait`).
+Local dev environment = root `docker-compose.yml` (long-lived stateful deps: DB, cache, MQ, object store) + root `process-compose.yml` (dev processes: backend, frontend, workers, one-shot build/migrate steps). `process-compose -u .process-compose.sock up -D` = only start command (rules `proc-deps-via-compose-wait`, `proc-uds-socket-path`). Runtime `*.sock` ignored in `.gitignore`.
 
 ## When
 
@@ -24,15 +24,15 @@ Local dev environment = root `docker-compose.yml` (long-lived stateful deps: DB,
    | Process | Command | Port | depends_on | Evidence |
    |---|---|---|---|---|
 
-   plus files to create (`docker-compose.yml`, `process-compose.yml`, `.env.example`), docs whose run steps change (README, `CLAUDE.md` run section), verification below. Ask: **backfill first, or skip and continue**; wait for answer before writing any file. Skip → continue original task; answer stands for rest of session.
+   plus files to create (`docker-compose.yml`, `process-compose.yml`, `.env.example`, `.gitignore` with `*.sock`), docs whose run steps change (README, `CLAUDE.md` run section), verification below. Ask: **backfill first, or skip and continue**; wait for answer before writing any file. Skip → continue original task; answer stands for rest of session.
 4. **Implement**: inside workflow via its quick path (convention names it), else directly; read `compose-*` and `proc-*` rules first.
 5. **Verify from cold**, then commit backfill alone:
 
    ```bash
    docker compose config -q
-   process-compose up -D
+   process-compose -u .process-compose.sock up -D
    # poll every process port / health endpoint until it answers, then:
-   process-compose down
+   process-compose -u .process-compose.sock down
    ```
 
 ## Skeletons
@@ -57,7 +57,7 @@ services:
 ```
 
 ```yaml
-# process-compose.yml — the only start command: process-compose up -D
+# process-compose.yml — the only start command: process-compose -u .process-compose.sock up -D
 version: "0.5"
 processes:
   deps:

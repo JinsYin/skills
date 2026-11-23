@@ -11,7 +11,7 @@
 
 ### Operation
 
-- Dev env = root `docker-compose.yml` (deps) + `process-compose.yml` (processes); `process-compose up -D` only start command. Delivery = `deploy/` (Dockerfiles, Kustomize + Helm kept in parity) + `.drone.yml`, facts in `deploy/README.md`. Load `devops-best-practices` for every item below.
+- Dev env = root `docker-compose.yml` (deps) + `process-compose.yml` (processes); `process-compose -u .process-compose.sock up -D` only start command (`*.sock` in `.gitignore`). Delivery = `deploy/` (Dockerfiles, Kustomize + Helm kept in parity) + `.drone.yml`, facts in `deploy/README.md`. Load `devops-best-practices` for every item below.
 - Task adds first dependency service → same task creates both dev env files.
 - Workflow step or task that runs the app starts, project has deps or processes but lacks either file → present backfill plan, ask: backfill first or skip. Skip holds for session.
 - Delivery (containerize, CI, deploy to k8s, release) = own unit of work: interview → `deploy/README.md` → pipeline skeleton → one module per plan/ticket.

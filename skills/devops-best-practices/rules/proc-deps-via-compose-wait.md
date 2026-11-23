@@ -28,9 +28,9 @@ processes:
 ```
 
 ```bash
-process-compose up -D      # whole stack, detached
-process-compose down       # app processes only; dependency containers keep running
-docker compose down        # stop dependencies explicitly (never -v unless resetting data)
+process-compose -u .process-compose.sock up -D      # whole stack, detached; -u avoids default port 9876 collision
+process-compose -u .process-compose.sock down       # app processes only; dependency containers keep running
+docker compose down                                 # stop dependencies explicitly (never -v unless resetting data)
 ```
 
 Deps long-lived: `deps` defines no `shutdown` command, so `process-compose down` leaves containers and data running; next `up` fast. `--wait` treats service without `healthcheck` as ready once container runs, so app may connect before service accepts connections; give every default service healthcheck.

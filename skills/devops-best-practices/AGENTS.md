@@ -1,7 +1,7 @@
 # DevOps Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-10-29 07:42:42
+> 生成时间：2026-11-23 17:28:27
 
 ## 1. 镜像构建
 
@@ -667,9 +667,9 @@ processes:
 ```
 
 ```bash
-process-compose up -D      # whole stack, detached
-process-compose down       # app processes only; dependency containers keep running
-docker compose down        # stop dependencies explicitly (never -v unless resetting data)
+process-compose -u .process-compose.sock up -D      # whole stack, detached; -u avoids default port 9876 collision
+process-compose -u .process-compose.sock down       # app processes only; dependency containers keep running
+docker compose down                                 # stop dependencies explicitly (never -v unless resetting data)
 ```
 
 Deps long-lived: `deps` defines no `shutdown` command, so `process-compose down` leaves containers and data running; next `up` fast. `--wait` treats service without `healthcheck` as ready once container runs, so app may connect before service accepts connections; give every default service healthcheck.
@@ -750,4 +750,34 @@ processes:
 `condition` 要选对：`process_completed_successfully` 才会等它**成功**结束；`process_started` 只等它开始，前置构建还没跑完服务就起来了，等于没配依赖。
 
 长驻服务用 `on_failure` 而非 `always`——`always` 会在你主动停掉某个进程时又把它拉起来，调试时很碍事。
+
+
+### process-compose uses unix domain socket to prevent port conflicts
+
+`process-compose` defaults to TCP port 9876 for its internal REST API server. When running multiple projects concurrently on the same machine, subsequent projects fail on startup:
+
+`FTL start http server on localhost:9876 failed error="listen tcp 127.0.0.1:9876: bind: address already in use"`
+
+In detached mode (`-D`), the CLI exits 0 immediately while the background daemon crashes, misleading agents and developers into thinking the stack started.
+
+Bind `process-compose` to a project-scoped Unix domain socket instead of a global TCP port:
+
+```bash
+process-compose -u .process-compose.sock up -D      # start stack detached
+process-compose -u .process-compose.sock down       # stop stack
+process-compose -u .process-compose.sock process list
+```
+
+Alternatively, set `PC_SOCKET_PATH=.process-compose.sock` in the shell or `.envrc` (`direnv`).
+
+**Ignore socket file in Git:**
+Runtime socket files are ephemeral machine-local endpoints and must never be tracked. Add `*.sock` to `.gitignore`:
+
+```gitignore
+*.sock
+```
+
+**Pitfalls to avoid:**
+- **Do not use `--no-server`:** Disabling the HTTP server prevents port conflicts but breaks IPC completely—`process-compose down`, `attach`, and `process restart` will fail.
+- **Do not use `-U` without path:** Bare `-U` creates `/tmp/process-compose-<pid>.sock` using the current client PID. A subsequent `process-compose -U down` runs under a different PID and fails to find the socket. Always specify a fixed path via `-u` or `PC_SOCKET_PATH`.
 
