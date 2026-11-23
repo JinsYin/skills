@@ -12,7 +12,7 @@ tags: compose, docker-compose, env, portability
 ```yaml
 services:
   opengauss:
-    image: opengauss/opengauss:${OPENGAUSS_IMAGE_TAG:-5.0.0}
+    image: ${BASE_REGISTRY:-docker.m.daocloud.io}/opengauss/opengauss:${OPENGAUSS_IMAGE_TAG:-5.0.0}
     ports:
       # 宿主已占 5432 时在 .env 中覆盖 OPENGAUSS_HOST_PORT=5433
       - "${OPENGAUSS_HOST_PORT:-5432}:5432"
@@ -20,7 +20,7 @@ services:
 
 三条配套要求：
 
-- **一律带默认值** `${VAR:-default}`，保证零配置可跑
+- **一律带默认值** `${VAR:-default}`，保证零配置可跑（镜像源默认 `${BASE_REGISTRY:-docker.m.daocloud.io}`）
 - **`.env` 入 gitignore，`.env.example` 入库**，后者列全所有可覆盖项及说明
 - **容器内端口不参数化**，只参数化宿主侧端口——容器内端口变化会牵动健康检查、服务间地址等一串配置
 

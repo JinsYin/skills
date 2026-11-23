@@ -35,6 +35,7 @@
 
 ### Changed
 
+- **devops-best-practices docker-compose 镜像源默认值更新**：`references/dev-env.md` 与规则 `compose-parameterize-env` 将 compose 文件的镜像源默认值更新为 `${BASE_REGISTRY:-docker.m.daocloud.io}`，并在参数化规则示例中明确镜像源参数化写法与默认值。
 - **setup-rules Addy 约定去除冗余命令别名**：`addy.md` 与 `devops.md` 移除 `/spec`、`/plan`、`/build`、`/test`、`/code-simplify` 等命令别名及 skill 命名前置斜杠，直接对齐底层 skill 名称。
 - **setup-rules Design 约定与原型工作区解耦**：精简 master 分支的 `design.md` 规范，仅保留设计交付物契约（`products/design/DESIGN.md`）、原型管线与 Visual Freeze 约束；原型制作细则、`CHANGELOG.md`、图稿 `-v2/-v3` 规范等迁移至 `templates/proto/AGENTS.md`（安装至 `.worktrees/proto/products/prototype/AGENTS.md`）；`setup-rules` 增加对 `.worktrees/` 忽略与 `proto` 原型工作区 `AGENTS.md` 的安装与更新；`backfill-prototype` 优先从 `.worktrees/proto/products/prototype/` 定位原型。
 - **setup-rules SDD 约定集成 Ponytail 门禁**：在 Superpowers、GSD、Addy、Matt 的 SDD 约定中增加单行规约，在规划（plan/tickets）、执行（executing/build/implement）、TDD、调试（debug）和分支合并复审节点显式调用 `/ponytail full`；GSD 明确跳过 `--fast` 琐碎修改。

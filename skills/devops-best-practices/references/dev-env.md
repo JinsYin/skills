@@ -42,7 +42,7 @@ Local dev environment = root `docker-compose.yml` (long-lived stateful deps: DB,
 # Default: postgres + redis. Optional: --profile mq (rabbitmq). Ports/tags via .env (see .env.example).
 services:
   postgres:
-    image: ${BASE_REGISTRY:-docker.io}/library/postgres:${POSTGRES_TAG:-16}
+    image: ${BASE_REGISTRY:-docker.m.daocloud.io}/library/postgres:${POSTGRES_TAG:-16}
     ports: ["${POSTGRES_HOST_PORT:-5432}:5432"]
     environment:
       POSTGRES_USER: app
