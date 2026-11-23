@@ -19,6 +19,7 @@ Workflow requires an interactive interview: ask, wait, clarify, and confirm the 
 | Antigravity adapter | `assets/adapters/antigravity/gemini.md` | `GEMINI.md` | independently selectable |
 | skillsw | `assets/skillsw` | `skillsw` (project root, executable) | independently selectable |
 | Sensitive-file restrictions | `references/sensitive-file-access.md` | native Agent configuration | default set plus optional extras |
+| Prototype template | `assets/templates/proto/AGENTS.md` | `.worktrees/proto/products/prototype/AGENTS.md` | when Design is selected and worktree exists |
 
 Convention order is fixed: core → design → vibecoding → karpathy → devops → gsd → matt → addy → superpowers. Skip unselected files.
 
@@ -73,7 +74,7 @@ The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the pr
 
 **8. Collect sensitive files.** Preselect every project file named `.env`, `.env.dev`, `.env.test`, or `.env.prod`. Ask for extra project-relative files or directories. Empty means only this set; remove it only by explicit opt-out. Never infer beyond it or read protected contents. Follow [sensitive-file access controls](references/sensitive-file-access.md).
 
-**9. Ask about Git tracking.** Default for each applicable `.<tool>/`, `.agent/` (Antigravity) and `.agents/`: track all except its `skills/` subtree—add those exact directories to `.gitignore`, untrack their tracked files. Ask only: keep default, or custom per directory; use custom only when user asks. If `skills-lock.json` exists and skills end up ignored, also plan these skills-lock entries:
+**9. Ask about Git tracking.** Default for each applicable `.<tool>/`, `.agent/` (Antigravity) and `.agents/`: track all except its `skills/` subtree—add those exact directories to `.gitignore`, untrack their tracked files. If Design was selected, also add `/.worktrees/` to `.gitignore`. Ask only: keep default, or custom per directory; use custom only when user asks. If `skills-lock.json` exists and skills end up ignored, also plan these skills-lock entries:
    - Keep `skills-lock.json` tracked and `git add` it; restores rebuild skills from it.
    - Add this block to `.worktreeinclude` so Claude Code/Codex copy skills into new worktrees; copying `.claude/skills/` too would stop Claude Code reading main checkout's. Entry exists uncommented → add comment:
 
@@ -87,7 +88,7 @@ The Antigravity adapter copies `assets/adapters/antigravity/gemini.md` to the pr
 
 **11. Assemble and write `CLAUDE.local.md`.** Always replace it with the selected files in fixed order; do not read or preserve the old file. Add the trailing blank line and verify the result matches the selected concatenation.
 
-**12. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. For the Antigravity adapter, copy `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. For skillsw, copy `assets/skillsw` to project-root `skillsw` and `chmod +x` it. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
+**12. Install selected subagents, adapters, and rules.** Copy only selected agent files and exact adapter mappings; never recursively copy an `assets/adapters/<tool>/` directory. Create target directories if needed and copy files byte-for-byte. For the Antigravity adapter, copy `assets/adapters/antigravity/gemini.md` to the project-root `GEMINI.md`. For skillsw, copy `assets/skillsw` to project-root `skillsw` and `chmod +x` it. If Design was selected and `.worktrees/proto` exists, copy `assets/templates/proto/AGENTS.md` to `.worktrees/proto/products/prototype/AGENTS.md`. Merge the selected Cursor hook into an existing `.cursor/hooks.json` without dropping unrelated hooks. Before replacing a different existing file, show the conflict and ask for confirmation; never silently overwrite active edits or delete unrelated files.
 
 **13. Apply Git decisions.** Add confirmed ignore entries and run `git rm -r --cached` on declined tracked files, preserving local files and unrelated rules. Apply step 9 skills-lock entries, merging into existing `.worktreeinclude`/`.cursor/worktrees.json` without dropping lines or commands. Stop for unmanaged active files; never rewrite history, delete worktree files, or commit/push without authorization.
 
@@ -110,6 +111,6 @@ Refresh only installed items from current assets, without asking: invoking `upda
 
 **2. Detect.** Match `CLAUDE.local.md` H2s to convention first H2s; existing targets mark installed subagents/adapters/`skillsw`; existing denies mark sensitive targets. Keep every unmatched H2 section, appended last in original order, so no user content is lost.
 
-**3. Write.** Diff targets against assets and skip identical ones. Rebuild `CLAUDE.local.md` in fixed order plus kept sections; copy agents/adapters/`skillsw` byte-for-byte, keeping `skillsw` executable; replace only this skill's hook in `.cursor/hooks.json`; re-merge existing sensitive targets. On unparseable config or incompatible policy, skip and report that target.
+**3. Write.** Diff targets against assets and skip identical ones. Rebuild `CLAUDE.local.md` in fixed order plus kept sections; copy agents/adapters/`skillsw` byte-for-byte, keeping `skillsw` executable; if Design was selected and `.worktrees/proto` exists, refresh `.worktrees/proto/products/prototype/AGENTS.md` from `assets/templates/proto/AGENTS.md`; replace only this skill's hook in `.cursor/hooks.json`; re-merge existing sensitive targets. On unparseable config or incompatible policy, skip and report that target.
 
 **4. Report.** As Workflow 16, plus overwritten files, kept unmatched sections, and skipped targets.

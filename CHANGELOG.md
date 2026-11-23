@@ -33,6 +33,7 @@
 
 ### Changed
 
+- **setup-rules Design 约定与原型工作区解耦**：精简 master 分支的 `design.md` 规范，仅保留设计交付物契约（`products/design/DESIGN.md`）、原型管线与 Visual Freeze 约束；原型制作细则、`CHANGELOG.md`、图稿 `-v2/-v3` 规范等迁移至 `templates/proto/AGENTS.md`（安装至 `.worktrees/proto/products/prototype/AGENTS.md`）；`setup-rules` 增加对 `.worktrees/` 忽略与 `proto` 原型工作区 `AGENTS.md` 的安装与更新；`backfill-prototype` 优先从 `.worktrees/proto/products/prototype/` 定位原型。
 - **setup-rules SDD 约定集成 Ponytail 门禁**：在 Superpowers、GSD、Addy、Matt 的 SDD 约定中增加单行规约，在规划（plan/tickets）、执行（executing/build/implement）、TDD、调试（debug）和分支合并复审节点显式调用 `/ponytail full`；GSD 明确跳过 `--fast` 琐碎修改。
 - **setup-rules SDD 约定目录归拢**：将 `addy.md`、`gsd.md`、`matt.md` 与 `superpowers.md` 移入同级 `sdd/` 目录（`assets/conventions/sdd/`），`setup-rules/SKILL.md` 同步更新约定源路径匹配与文件清单。
 - **setup-rules 约定结构与前端实现约束**：将 `core.md` 的 `Development` 章节迁移至 `devops.md`，`devops.md` 原环境与交付内容划分至 `Operation` 章节；`devops.md` 的 `Development` 章节新增约束：所有前端实现必须基于 `/design-to-code` 还原代码且不调整样式布局，缺失页面、弹窗、抽屉等代码时必须采访确认样式和布局。

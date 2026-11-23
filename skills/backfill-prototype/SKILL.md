@@ -33,7 +33,7 @@ Codex: `$ARGUMENTS` = text after command. No interactive picker → print number
 ## Workflow
 
 **1. Locate.**
-- Prototype: `products/prototype/`; product lines = its app dirs (`console/`, `portal/`).
+- Prototype: `.worktrees/proto/products/prototype/` if worktree exists, else `products/prototype/`; product lines = its app dirs (`console/`, `portal/`).
 - App: `$ARGUMENTS` if given; else dirs with `.design-to-code/` (repo root, `apps/*`, `packages/*`). Several → backfill each to its line, matched by `.design-to-code/index.md` or name; none → ask for frontend path.
 - Read project `CLAUDE.md` for outward terms and banned codenames: frontend copy using a codename → backfill outward term, report it.
 
