@@ -93,6 +93,8 @@ fontSize: {
 
 Use `className="text-page-title"`, not `text-[27px] font-bold leading-[1.15] tracking-tight`; spelled out invites typos, loses style name intent.
 
+Register custom `fontSize` keys in `cn()` via `extendTailwindMerge({ extend: { classGroups: { 'font-size': [{ text: ['page-title', ...] }] } } })`; default `twMerge` treats unknown `text-*` as text colour and drops paired colour classes (`text-primary-foreground`).
+
 `fontFamily` arrives comma-separated (`Inter, Noto Sans SC`). Split to array, append system fallbacks, register by role, load fonts in `index.html`:
 
 ```ts
