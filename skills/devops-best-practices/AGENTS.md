@@ -1,7 +1,7 @@
 # DevOps Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-11-23 17:43:29
+> 生成时间：2026-11-23 17:47:57
 
 ## 1. 镜像构建
 
@@ -498,7 +498,7 @@ docker compose --profile mysql up -d    # 显式追加备用库
 同时确保项目文档里的启动命令与此一致——文档说"起 MySQL"而实际默认起的是别的库，是最常见的一类文档漂移。
 
 
-### 镜像 tag、端口、镜像源用环境变量参数化并提供 .env.example
+### 镜像 tag、端口、镜像源用环境变量参数化并提供 .env.example，严禁使用 :?
 
 开发机之间总有差异：本机已经装了 PostgreSQL 占着 5432、公司网络只能走内网镜像源、需要临时试另一个版本的数据库。这些差异若只能通过改入库的 `docker-compose.yml` 解决，改动就会被误提交，或者反复出现在每个人的工作区里。
 
@@ -513,9 +513,29 @@ services:
 
 三条配套要求：
 
-- **一律带默认值** `${VAR:-default}`，保证零配置可跑（镜像源默认 `${BASE_REGISTRY:-docker.m.daocloud.io}`）
+- **一律带默认值 `${VAR:-default}`，严禁使用 `${VAR:?error}` 或 `${VAR?error}`**：保证克隆后零配置直接可跑（镜像源默认 `${BASE_REGISTRY:-docker.m.daocloud.io}`）。使用 `?` 会在未建 `.env` 时直接报错退出，破坏开箱即用。
 - **`.env` 入 gitignore，`.env.example` 入库**，后者列全所有可覆盖项及说明
 - **容器内端口不参数化**，只参数化宿主侧端口——容器内端口变化会牵动健康检查、服务间地址等一串配置
+
+**错误示例（使用 `?` 强制要求外部变量，缺少 `.env` 时无法启动）：**
+
+```yaml
+services:
+  postgres:
+    image: ${BASE_REGISTRY:?err}/library/postgres:${POSTGRES_TAG:?err}
+    ports:
+      - "${POSTGRES_HOST_PORT:?PORT must be set}:5432"
+```
+
+**正确示例（提供安全、可直接启动的默认值）：**
+
+```yaml
+services:
+  postgres:
+    image: ${BASE_REGISTRY:-docker.m.daocloud.io}/library/postgres:${POSTGRES_TAG:-16}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+```
 
 参数化的边界：只参数化**环境差异**，不要参数化架构决策。把服务名、网络拓扑也做成变量，会让文件失去可读性而收益甚微。
 

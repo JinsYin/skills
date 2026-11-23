@@ -97,7 +97,7 @@ Project-specific facts (registries, secret names, environments) come from its `d
 
 - `compose-healthcheck-start-period` — 必配 healthcheck 且探真实可服务性；`start_period` 按首次初始化给
 - `compose-optional-behind-profile` — 备用服务挂 `profiles`，默认不起
-- `compose-parameterize-env` — 宿主端口/tag/镜像源参数化并带默认值，配 `.env.example`
+- `compose-parameterize-env` — 宿主端口/tag/镜像源参数化并带默认值，严禁使用 :?，配 `.env.example`
 - `compose-platform-only-when-no-native` — `platform` 只在镜像确无原生架构时加，多余声明强制走模拟层
 
 ### 5. CI 流水线（HIGH）

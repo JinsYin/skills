@@ -40,6 +40,7 @@ Local dev environment = root `docker-compose.yml` (long-lived stateful deps: DB,
 ```yaml
 # docker-compose.yml
 # Default: postgres + redis. Optional: --profile mq (rabbitmq). Ports/tags via .env (see .env.example).
+# Every env var MUST provide a default value (${VAR:-default}); never use ${VAR:?err} or ${VAR?err}.
 services:
   postgres:
     image: ${BASE_REGISTRY:-docker.m.daocloud.io}/library/postgres:${POSTGRES_TAG:-16}
