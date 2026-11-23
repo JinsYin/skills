@@ -19,11 +19,12 @@
 - Prefer fast-forward merge then `rebase` to keep history linear.
 - Avoid `git reset --hard`.
 
-### Changelog
+### Changelog & Prompts
 
 - Keep root `CHANGELOG.md` using [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Log each notable change in Chinese.
 - Cut versions only via `version-release`, which closes `[Unreleased]`.
+- Record prompts to root `PROMPTS.md` (`# PROMPTS`, `| Time | Prompt |`, `YYYY-MM-DD HH:mm`) when required by workflow conventions. Fix typos/formatting only (`<br>` line breaks, list preferred); merge session follow-ups into a single cohesive entry.
 
 ### Skills
 
