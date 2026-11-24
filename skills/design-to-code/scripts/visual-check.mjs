@@ -79,7 +79,10 @@ function classCheck() {
   const css = walk('dist').filter((f) => f.endsWith('.css')).map((f) => readFileSync(f, 'utf8')).join('')
   if (!css) return ['dist/ 下没有 CSS，先构建']
   const esc = (c) => c.replace(/[^\w-]/g, (m) => '\\' + m)
-  const hit = (c) => css.includes('.' + esc(c)) || (/^\d/.test(c) && [' ', ''].some((s) => css.includes(`.\\3${c[0]}${s}${esc(c.slice(1))}`)))
+  const rx = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // 按完整选择器边界匹配，避免失效类名命中更长选择器的前缀子串（如 text-table-head 误命中 .text-table-header）
+  const has = (sel) => new RegExp(`(?<!\\\\)\\.${rx(sel)}(?![\\w\\\\-])`).test(css)
+  const hit = (c) => has(esc(c)) || (/^\d/.test(c) && [' ', ''].some((s) => has(`\\3${c[0]}${s}${esc(c.slice(1))}`)))
   const missing = []
   for (const f of (cfg.scan ?? ['src']).flatMap(walk).filter((f) => /\.tsx?$/.test(f) && !/\.(test|spec)\./.test(f)))
     for (const c of classesIn(readFileSync(f, 'utf8'))) if (!hit(c)) missing.push(`类名未生成样式 ${f}: ${c}`)
