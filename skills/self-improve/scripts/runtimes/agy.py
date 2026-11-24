@@ -15,8 +15,8 @@ from .common import Session, clip, epoch, skill_reads, tool_key
 ROOT = os.path.expanduser("~/.gemini/antigravity")
 EXIT = re.compile(r"exited with code (-?\d+)")
 # 已观察到的字段号（无官方 schema）：step_type 14 = 用户输入，15 = 模型回合（含工具调用），
-# 带 field 140 的 step = 工具结果
-USER, PLANNER = 14, 15
+# 23 = 上下文压缩摘要（field 30.5），带 field 140 的 step = 工具结果（metadata field 4.1 含 call_id）
+USER, PLANNER, COMPACT = 14, 15, 23
 
 
 def varint(b, i):
@@ -111,8 +111,10 @@ def gens(path):
         g = one(data, 1, default=b"")
         kv = {text(one(e, 1)): text(one(e, 2)) for e in get(g, 20)}
         u = one(g, 4, default=b"")
+        # u.2 为未命中缓存的输入 Token，u.5 为缓存命中输入 Token，合并后才是完整上下文 ctx
         out.append((int(kv.get("last_step_index") or -1), epoch(one(g, 11, 1, default=0)),
-                    text(one(g, 19)) or "unknown", one(u, 2, default=0), one(u, 3, default=0)))
+                    text(one(g, 19)) or "unknown",
+                    one(u, 2, default=0) + one(u, 5, default=0), one(u, 3, default=0)))
     return out
 
 
@@ -160,9 +162,12 @@ class AgySession(Session):
                     yield ev
                     for path, _ in skill_reads(f"{name} {raw}"):
                         yield {"k": "skill_loaded", "path": path}
+            elif st == COMPACT:
+                yield {"k": "compact", "text": text(one(p, 30, 5)) or "context compacted"}
             elif get(p, 140):
                 body = text(one(p, 140, 2, 1))
-                cid = pending.popleft()[0] if pending else f"s{idx}"
+                # 优先取结果步骤 metadata.4.1 的真实 call_id，避免流中断或未执行调用让 FIFO 队列永久错位
+                cid = text(one(meta or b"", 4, 1)) or (pending.popleft()[0] if pending else f"s{idx}")
                 codes = [int(c) for c in EXIT.findall(body)]
                 yield {"k": "result", "id": cid, "body": body, "error": bool(err) or any(c != 0 for c in codes)}
             for _, _, _, i, o in by_step.pop(idx, []):

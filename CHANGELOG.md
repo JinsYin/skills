@@ -74,6 +74,7 @@
 
 ### Fixed
 
+- **self-improve agy 适配器调用归属、缓存 Token 与压缩统计**：`runtimes/agy.py` 改用结果步骤 `metadata.4.1` 中的真实 `call_id` 关联工具结果，避免 API 流中断导致 FIFO 队列永久错位误报其他工具出错；输入 Token 合并缓存命中项 `u.5`，并识别 `step_type=23` 上下文压缩事件。
 - **self-improve digest 按段统计 skill 开销**：`[skill-cost]`/`HEAVY-SKILL` 从每次 skill 调用记到下一个 skill 或本轮结束，同一轮的多个 skill 不再各自背上整轮开销而误报 HEAVY-SKILL。
 - **self-improve 分段计费边界**：乱序时间戳不再重复累加耗时；同时点名多个 skill 时，实际调用或加载前的开销保持未归属。
 - **setup-rules Core 约定 zsh 引号示例**：示例由 `'====='` 改为 `echo '====='`，对准实际出错的 echo 分隔符写法，避免规则在场仍报 `== not found`（#39）。
