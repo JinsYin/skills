@@ -35,6 +35,7 @@
 
 ### Changed
 
+- **setup-rules Addy 阶段编排与交付链路约定**：`addy.md` 新增两条阶段约束——0→1 含 UI 项目在骨架与基础设施完成后、业务前端开发前插入独立 UI 还原阶段（仅执行 `spec-driven-development` 产出 `<spec.md>`，跳过 plan/build 直接调用 `/design-to-code <spec.md>` 按 `fspec` 还原 `proto` 分支/worktree 原型）；首个 SPEC 涉及部署交付时将其拆为所有业务完成后的独立阶段（`spec-driven-development` 产出 `spec/SPEC-delivery.md` → `planning-and-task-breakdown` → `incremental-implementation`），`devops.md` 同步补全该三步交付链路。
 - **devops-best-practices docker-compose 环境变量默认值与 :? 禁用**：`references/dev-env.md`、`compose-parameterize-env` 与 `setup-rules` DevOps 约定要求 `docker-compose.yml` 环境变量一律提供安全可启动的默认值（镜像源默认 `${BASE_REGISTRY:-docker.m.daocloud.io}`），严禁使用 `${VAR:?err}` 或 `${VAR?err}` 破坏开箱即用，并补充正反示例。
 - **setup-rules Addy 约定去除冗余命令别名**：`addy.md` 与 `devops.md` 移除 `/spec`、`/plan`、`/build`、`/test`、`/code-simplify` 等命令别名及 skill 命名前置斜杠，直接对齐底层 skill 名称。
 - **setup-rules Design 约定与原型工作区解耦**：精简 master 分支的 `design.md` 规范，仅保留设计交付物契约（`products/design/DESIGN.md`）、原型管线与 Visual Freeze 约束；原型制作细则、`CHANGELOG.md`、图稿 `-v2/-v3` 规范等迁移至 `templates/proto/AGENTS.md`（安装至 `.worktrees/proto/products/prototype/AGENTS.md`）；`setup-rules` 增加对 `.worktrees/` 忽略与 `proto` 原型工作区 `AGENTS.md` 的安装与更新；`backfill-prototype` 优先从 `.worktrees/proto/products/prototype/` 定位原型。
