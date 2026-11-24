@@ -8,6 +8,8 @@
 
 ### Added
 
+- **addyspec**：新增用户手动触发的 skill，`/addyspec <command> [args]` 等价于 addyosmani/agent-skills 的 `/<command> [args]`（`spec`、`plan`、`build`、`test`、`review`、`code-simplify`、`ship`、`constraints`、`a11y`、`webperf`，`planning` 为 `plan` 别名）；原样 vendor 上游 10 个 command 与 5 个 persona（快照 `e997ac5`，附上游 MIT `LICENSE`），执行前校验所需 agent-skills skill 已安装（缺失则停止并提示 `npx skills add addyosmani/agent-skills`），以 Adapter 映射 `agent-skills:<name>`、persona subagent 与上游路径；`scripts/sync.sh [ref]` 手动同步快照。
+
 - **devops-best-practices process-compose Unix Socket 规范与 .gitignore**：新增规则 `proc-uds-socket-path`，以项目级 Unix Domain Socket（`-u .process-compose.sock`）规避默认 9876 端口在多项目并行时的冲突，强调在 `.gitignore` 忽略 `*.sock`，并指出禁用 `--no-server` 与裸 `-U` 的踩坑点；`proc-deps-via-compose-wait` 与 `dev-env.md` 启动入口命令同步更新为 `-u .process-compose.sock`；`setup-rules` DevOps 约定同步更新开发环境单入口启动命令。
 
 - **setup-rules Prompts 约定与 SDD 源解耦**：`core.md` 将 `### Changelog` 合并升级为 `### Changelog & Prompts`，统一定义根目录 `PROMPTS.md` 格式（`# PROMPTS`、`| Time | Prompt |`、`YYYY-MM-DD HH:mm`、`<br>` 换行与会话内追问融合）；移除独立的 `sdd/prompts.md`，由各 SDD 约定（Matt、Superpowers、GSD、Addy）按需基于 `skills-lock.json` 的 `source` 独立声明提示词记录条件，彻底消除多 SDD 间的规则交叉污染。
