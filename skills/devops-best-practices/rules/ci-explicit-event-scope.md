@@ -1,31 +1,43 @@
 ---
-title: 每个步骤显式限定触发事件，不靠继承流水线级条件
+title: Scope both pipeline trigger (ref + event) and every step when.event explicitly
 impact: HIGH
-impactDescription: 新增事件类型时，未限定的步骤会被意外触发
-tags: ci, pipeline, trigger, event
+impactDescription: Missing trigger.ref builds every feature branch; missing step when.event re-runs image builds when trigger.event expands
+tags: ci, drone, trigger, event, promote
 ---
 
-## 每个步骤显式限定触发事件，不靠继承流水线级条件
+## Scope both pipeline trigger (ref + event) and every step when.event explicitly
 
-流水线级的 `trigger` 决定"这次要不要跑"，步骤级的 `when` 决定"这一步该不该参与这次跑"。只写前者时，所有步骤对所有事件一视同仁。
+Pipeline `trigger` gates whether pipeline runs; step `when` gates which steps participate.
 
-问题出在**新增事件类型的那一刻**：为了加一个只需执行轻量操作的事件（如 promote 一个部署标记、或手动触发一次数据同步），流水线级 `trigger` 被扩了一项，结果所有构建步骤跟着跑了一遍——重建镜像、重新推送、覆盖 tag。这不是假想，是每次扩 trigger 都会遇到的默认行为。
+- **Omitting `trigger.ref`** builds and pushes on every feature branch.
+- **Omitting step `when.event`** re-runs all image builds and overwrites tags when `trigger.event` adds lightweight events (`promote`).
 
-**正确（构建步骤只认 push/tag，轻量步骤只认它自己的事件）：**
+Enforce both layers:
+
+1. **Top-level `trigger:`** declares `ref:` (`refs/heads/master`, `refs/tags/*`) and `event:` (`push`, `tag`; add `promote` only when promote steps exist).
+2. **Every step** declares `when.event`; `promote` steps also scope `when.target`.
 
 ```yaml
 trigger:
-  event: [push, tag, promote]
+  ref:
+    - refs/heads/master
+    - refs/tags/*
+  event:
+    - push
+    - tag
+    - promote
 
 steps:
-  - name: build-image
+  - name: build-api
     when:
-      event: [push, tag]          # promote 时不重建
+      event:
+        - push
+        - tag                     # promote does not rebuild images
 
-  - name: write-deploy-marker
+  - name: write-sync-db-marker
     when:
-      event: [promote]
-      target: [sync-db-pre]       # 进一步限定 promote 的目标
+      event:
+        - promote
+      target:
+        - sync-db-pre             # scope promote to explicit target
 ```
-
-**新增任何步骤时，第一件事就是写 `when`。** 遗漏不会报错，只会在下一次非常规事件时以"为什么它又重新构建了"的形式暴露。

@@ -1,0 +1,49 @@
+---
+title: Build container images with pinned plugins/kaniko
+impact: CRITICAL
+impactDescription: Daemon-based or unpinned plugins fail on daemonless runners; missing DRONE_OUTPUT crashes Kaniko immediately
+tags: ci, drone, kaniko, image-build, build-args
+---
+
+## Build container images with pinned plugins/kaniko
+
+Build all Drone container images with `plugins/kaniko` (team default: `plugins/kaniko:1.13.7`). Rootless in-container build needs no `docker.sock` mount or privileged DinD. Never use `plugins/docker` or floating tags.
+
+**Required settings per Kaniko step:**
+
+- `image: plugins/kaniko:1.13.7` — pin patch version; override only per `deploy/README.md`.
+- `environment.DRONE_OUTPUT: *DRONE_OUTPUT` (`/tmp/drone-output` in `global-variables:`) — omitting crashes Kaniko with `open : no such file or directory`.
+- `settings.context: .` — explicit build context.
+- `settings.skip_tls_verify: true` — team default for internal registries; set `false` only if `deploy/README.md` requires verified CA.
+- `settings.username` / `settings.password` via `from_secret`; `registry`, `repo`, `tags`, `dockerfile` via `global-variables:` anchors (`ci-anchor-repeated-values`).
+- `settings.build_args` — pass `*BASE_REGISTRY_ARG` (`image-base-registry-arg`), `MODULE=<service>` for shared role Dockerfiles, and package mirror anchors (`*NPM_REGISTRY_ARG`, `*ALPINE_MIRROR_ARG`) when consumed.
+
+**Correct:**
+
+```yaml
+- name: build-api
+  image: plugins/kaniko:1.13.7
+  environment:
+    DRONE_OUTPUT: *DRONE_OUTPUT
+  settings:
+    registry: *DOCKER_REGISTRY
+    repo: *REPO_API
+    username:
+      from_secret: registry_username
+    password:
+      from_secret: registry_password
+    tags:
+      - *DOCKER_TAG
+    dockerfile: *DOCKERFILE_BACKEND
+    context: .
+    build_args:
+      - *BASE_REGISTRY_ARG
+      - MODULE=app-api
+    skip_tls_verify: true
+  when:
+    event:
+      - push
+      - tag
+```
+
+**Optional semi-offline archive:** when `deploy/README.md` requires file-server/air-gapped delivery, add `tar_path: /drone/src/dist/images/<service>-${DRONE_TAG:-latest}.tar` under `settings:` and consume archives in downstream `depends_on` step (`ci-drone-dag-parallelism`).

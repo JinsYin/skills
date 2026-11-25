@@ -38,7 +38,7 @@
 ## 5. CI 流水线 (ci)
 
 **Impact:** HIGH
-**Description:** 构建环境固定化、事件作用域、重复值收敛、tag 策略单一来源。CI 的错误只在推送后暴露，反馈周期以分钟计，因此约束要前移到写 YAML 的时刻。
+**Description:** Drone `.drone.yml` 强制 `plugins/kaniko` 构建、显式 `platform` 与 `trigger`/`when` 双层限定、顶部 `global-variables:` anchor 收敛、DAG 并行与 `depends_on`、注释规范及 tag 策略单一来源。CI 的错误只在推送后暴露，反馈周期以分钟计，因此约束要前移到写 YAML 的时刻。
 
 ## 6. 本地进程编排 (proc)
 

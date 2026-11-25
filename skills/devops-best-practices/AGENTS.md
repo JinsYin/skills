@@ -1,7 +1,7 @@
 # DevOps Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-11-23 17:47:57
+> 生成时间：2026-11-25 15:55:10
 
 ## 1. 镜像构建
 
@@ -565,29 +565,52 @@ docker manifest inspect <image>:<tag> | grep architecture
 ## 5. CI 流水线
 
 
-### 重复出现的仓库地址、tag 策略用 YAML anchor 收敛
+### Centralize repeated values in top-level global-variables YAML anchors
 
-同一个 registry 主机名在四个构建步骤里各写一遍，迁仓库时就要改四处。漏掉一处不会报错——那个步骤照常推送，只是推到了旧仓库，而清单从新仓库拉，表现为"镜像明明构建成功了但 Pod 拉不到"。
+Repeating registry host, tag strategy, Dockerfile path, or mirror `build_args` across steps causes silent partial edits—missed steps still succeed while pushing to stale registries or unreachable mirrors.
+
+Declare all YAML anchors under one top-level `global-variables:` mapping right after `platform:`, with brief purpose comments. Use `global-variables:` instead of top-level `x-*` keys or anchors scattered inside `steps:`.
+
+**Centralize values changing together:**
+
+- Registry and image repos: `DOCKER_REGISTRY`, `REPO_<SERVICE>`
+- Shared Dockerfile paths: `DOCKERFILE_<ROLE>`
+- Tag strategy: `DOCKER_TAG` (`${DRONE_TAG:-latest}`)
+- Mirror `build_args`: `BASE_REGISTRY_ARG`, plus `NPM_REGISTRY_ARG` / `ALPINE_MIRROR_ARG` (`'ALPINE_MIRROR=${ALPINE_MIRROR:-}'` for optional Drone env pass-through) when consumed
+- Kaniko output path: `DRONE_OUTPUT` (`/tmp/drone-output`)
+- Overridable external service endpoints/paths via `${VAR:-default}` when needed
+
+Keep single-use per-service args (`MODULE=app-api`) inline in step.
 
 ```yaml
+# 全局变量定义（YAML anchor，供各步骤复用，避免硬编码重复）
 global-variables:
-  DOCKER_REGISTRY: &DOCKER_REGISTRY registry.internal
-  REPO_ADMIN:      &REPO_ADMIN      registry.internal/org/app-admin
-  # tag 策略：push 落 latest，打 tag 落版本号
-  DOCKER_TAG:      &DOCKER_TAG      ${DRONE_TAG:-latest}
+  DOCKER_REGISTRY:     &DOCKER_REGISTRY     registry.example.com
+  REPO_API:            &REPO_API            registry.example.com/org/app-api
+  DOCKERFILE_BACKEND:  &DOCKERFILE_BACKEND  deploy/docker/Dockerfile.backend
+  # tag 策略：push 落 latest（预发），打 tag 落版本号（生产）
+  DOCKER_TAG:          &DOCKER_TAG          ${DRONE_TAG:-latest}
+  # 基础镜像与包源：CI 走内网镜像源；可选源通过 ${VAR:-} 透传 Drone 环境变量
+  BASE_REGISTRY_ARG:   &BASE_REGISTRY_ARG   'BASE_REGISTRY=registry.example.com/lib/'
+  ALPINE_MIRROR_ARG:   &ALPINE_MIRROR_ARG   'ALPINE_MIRROR=${ALPINE_MIRROR:-}'
+  NPM_REGISTRY_ARG:    &NPM_REGISTRY_ARG    'NPM_REGISTRY=https://npm.example.com'
+  # kaniko 插件输出文件路径（修复 "open : no such file or directory" 错误）
+  DRONE_OUTPUT:        &DRONE_OUTPUT        /tmp/drone-output
 
 steps:
-  - name: build-admin
+  - name: build-api
+    environment:
+      DRONE_OUTPUT: *DRONE_OUTPUT
     settings:
       registry: *DOCKER_REGISTRY
-      repo: *REPO_ADMIN
+      repo: *REPO_API
+      dockerfile: *DOCKERFILE_BACKEND
       tags:
         - *DOCKER_TAG
+      build_args:
+        - *BASE_REGISTRY_ARG
+        - MODULE=app-api
 ```
-
-收敛的判据是**是否会一起变**：registry 主机名、tag 策略、镜像源前缀会一起变，值得收敛；各服务的模块名不会一起变，不必收敛。
-
-anchor 定义要集中在文件顶部并加注释说明用途。散落在各步骤中间定义的 anchor 比重复写更难读——读者得先找到定义处才知道 `*DOCKER_TAG` 是什么。
 
 
 ### 构建在指定镜像内进行，不依赖 CI 节点自带环境
@@ -608,30 +631,178 @@ anchor 定义要集中在文件顶部并加注释说明用途。散落在各步�
 **基础镜像的版本也要与本地对齐**：CI 用 Node 24、本地用 Node 20，`pnpm install --frozen-lockfile` 可能因原生模块的预编译产物不同而结果不同。锁定版本的价值就在这里。
 
 
-### 每个步骤显式限定触发事件，不靠继承流水线级条件
+### Annotate pipeline header and every step in .drone.yml
 
-流水线级的 `trigger` 决定"这次要不要跑"，步骤级的 `when` 决定"这一步该不该参与这次跑"。只写前者时，所有步骤对所有事件一视同仁。
+`.drone.yml` hides conditional triggers (`push`/`tag`/`promote`), shared-Dockerfile `build_args`, and out-of-band Drone secrets. Add concise Chinese comments in two places:
 
-问题出在**新增事件类型的那一刻**：为了加一个只需执行轻量操作的事件（如 promote 一个部署标记、或手动触发一次数据同步），流水线级 `trigger` 被扩了一项，结果所有构建步骤跟着跑了一遍——重建镜像、重新推送、覆盖 tag。这不是假想，是每次扩 trigger 都会遇到的默认行为。
+1. **File header**: title (`<Project> CI Pipeline（Drone CI + kaniko）`), purpose, per-step overview, trigger summary.
+2. **Before each step**: 1–4 lines covering role, parallelism/`depends_on`, trigger scope (`promote`/tag-only), required Drone secret names, and caveats (`MODULE=` arg, Maven `-s`, etc.).
 
-**正确（构建步骤只认 push/tag，轻量步骤只认它自己的事件）：**
+```yaml
+# <Project> CI Pipeline（Drone CI + kaniko）
+# ========================================
+# 功能：单 pipeline 并行构建并推送各服务镜像至目标容器仓库。
+#   - build-api：后端服务，复用 Dockerfile.backend，通过 MODULE 区分模块。
+#   - build-frontend：前端构建，与后端并行。
+# 触发条件：推送到 master 或打 tag 时触发。
+
+steps:
+  # 构建并推送 app-api 镜像（后端 API）；无外部依赖，与其他构建步骤并行。
+  # 凭据：Drone secrets registry_username / registry_password。
+  - name: build-api
+    image: plugins/kaniko:1.13.7
+```
+
+
+### Run independent build steps in parallel and wire downstream steps with depends_on
+
+Drone switches execution mode implicitly across entire pipeline:
+
+- **Zero steps define `depends_on`** → all steps run **sequentially** in file order.
+- **Any step defines `depends_on`** → entire pipeline enters **DAG mode**; every step without `depends_on` launches immediately in parallel after implicit `clone`.
+
+Rules:
+
+1. **With fan-in step** (e.g. archive upload, manifest check): independent image builds (`build-<module>`) omit `depends_on` to run in parallel; fan-in step lists every upstream step in `depends_on`.
+2. **Without fan-in step**: add `depends_on: [clone]` on independent builds to enable DAG parallelism instead of sequential execution.
+3. **Mode-switch audit**: when adding first `depends_on` to sequential pipeline, audit remaining steps—every step reading prior workspace output must declare its own `depends_on`.
+
+**Example (semi-offline archive upload waiting on parallel Kaniko builds):**
+
+```yaml
+steps:
+  - name: build-api
+    image: plugins/kaniko:1.13.7
+    settings:
+      tar_path: /drone/src/dist/images/app-api-${DRONE_TAG:-latest}.tar
+      # ...other kaniko settings
+    when:
+      event: [push, tag]
+
+  - name: build-frontend
+    image: plugins/kaniko:1.13.7
+    settings:
+      tar_path: /drone/src/dist/images/app-frontend-${DRONE_TAG:-latest}.tar
+      # ...other kaniko settings
+    when:
+      event: [push, tag]
+
+  # 汇总所有镜像归档与 deploy 产物并上传文件服务；依赖全部镜像构建完成
+  - name: upload-artifacts
+    image: python:3.13-alpine
+    environment:
+      FILE_BROWSER_URL: *FILE_BROWSER_URL
+      FILE_BROWSER_USERNAME:
+        from_secret: file_browser_username
+      FILE_BROWSER_PASSWORD:
+        from_secret: file_browser_password
+    commands:
+      - python3 deploy/scripts/upload-artifacts.py --directory dist/images
+    depends_on:
+      - build-api
+      - build-frontend
+    when:
+      event: [push, tag]
+```
+
+
+### Declare top-level platform explicitly in .drone.yml
+
+Omitting `platform` defaults Drone to `linux/amd64`. On ARM64 runners, builds stall unscheduled or emit wrong-arch images that pass CI and crash on Kubernetes startup with `exec format error`.
+
+Declare top-level `platform` right after `name: default`. Team default: `linux/arm64`; override `arch` only per `deploy/README.md`.
+
+```yaml
+kind: pipeline
+type: docker
+name: default
+
+platform:
+  os: linux
+  arch: arm64
+```
+
+
+### Scope both pipeline trigger (ref + event) and every step when.event explicitly
+
+Pipeline `trigger` gates whether pipeline runs; step `when` gates which steps participate.
+
+- **Omitting `trigger.ref`** builds and pushes on every feature branch.
+- **Omitting step `when.event`** re-runs all image builds and overwrites tags when `trigger.event` adds lightweight events (`promote`).
+
+Enforce both layers:
+
+1. **Top-level `trigger:`** declares `ref:` (`refs/heads/master`, `refs/tags/*`) and `event:` (`push`, `tag`; add `promote` only when promote steps exist).
+2. **Every step** declares `when.event`; `promote` steps also scope `when.target`.
 
 ```yaml
 trigger:
-  event: [push, tag, promote]
+  ref:
+    - refs/heads/master
+    - refs/tags/*
+  event:
+    - push
+    - tag
+    - promote
 
 steps:
-  - name: build-image
+  - name: build-api
     when:
-      event: [push, tag]          # promote 时不重建
+      event:
+        - push
+        - tag                     # promote does not rebuild images
 
-  - name: write-deploy-marker
+  - name: write-sync-db-marker
     when:
-      event: [promote]
-      target: [sync-db-pre]       # 进一步限定 promote 的目标
+      event:
+        - promote
+      target:
+        - sync-db-pre             # scope promote to explicit target
 ```
 
-**新增任何步骤时，第一件事就是写 `when`。** 遗漏不会报错，只会在下一次非常规事件时以"为什么它又重新构建了"的形式暴露。
+
+### Build container images with pinned plugins/kaniko
+
+Build all Drone container images with `plugins/kaniko` (team default: `plugins/kaniko:1.13.7`). Rootless in-container build needs no `docker.sock` mount or privileged DinD. Never use `plugins/docker` or floating tags.
+
+**Required settings per Kaniko step:**
+
+- `image: plugins/kaniko:1.13.7` — pin patch version; override only per `deploy/README.md`.
+- `environment.DRONE_OUTPUT: *DRONE_OUTPUT` (`/tmp/drone-output` in `global-variables:`) — omitting crashes Kaniko with `open : no such file or directory`.
+- `settings.context: .` — explicit build context.
+- `settings.skip_tls_verify: true` — team default for internal registries; set `false` only if `deploy/README.md` requires verified CA.
+- `settings.username` / `settings.password` via `from_secret`; `registry`, `repo`, `tags`, `dockerfile` via `global-variables:` anchors (`ci-anchor-repeated-values`).
+- `settings.build_args` — pass `*BASE_REGISTRY_ARG` (`image-base-registry-arg`), `MODULE=<service>` for shared role Dockerfiles, and package mirror anchors (`*NPM_REGISTRY_ARG`, `*ALPINE_MIRROR_ARG`) when consumed.
+
+**Correct:**
+
+```yaml
+- name: build-api
+  image: plugins/kaniko:1.13.7
+  environment:
+    DRONE_OUTPUT: *DRONE_OUTPUT
+  settings:
+    registry: *DOCKER_REGISTRY
+    repo: *REPO_API
+    username:
+      from_secret: registry_username
+    password:
+      from_secret: registry_password
+    tags:
+      - *DOCKER_TAG
+    dockerfile: *DOCKERFILE_BACKEND
+    context: .
+    build_args:
+      - *BASE_REGISTRY_ARG
+      - MODULE=app-api
+    skip_tls_verify: true
+  when:
+    event:
+      - push
+      - tag
+```
+
+**Optional semi-offline archive:** when `deploy/README.md` requires file-server/air-gapped delivery, add `tar_path: /drone/src/dist/images/<service>-${DRONE_TAG:-latest}.tar` under `settings:` and consume archives in downstream `depends_on` step (`ci-drone-dag-parallelism`).
 
 
 ### 镜像 tag 策略单一来源，部署清单与 CI 对齐

@@ -1,30 +1,53 @@
 ---
-title: 重复出现的仓库地址、tag 策略用 YAML anchor 收敛
+title: Centralize repeated values in top-level global-variables YAML anchors
 impact: MEDIUM
-impactDescription: 散落的副本改一处漏一处，且漏改的那个步骤照常成功
-tags: ci, pipeline, yaml, dry
+impactDescription: Scattered registry, repo, Dockerfile, tag, or mirror copies drift silently and push to stale targets without failing CI
+tags: ci, drone, yaml, anchors, dry
 ---
 
-## 重复出现的仓库地址、tag 策略用 YAML anchor 收敛
+## Centralize repeated values in top-level global-variables YAML anchors
 
-同一个 registry 主机名在四个构建步骤里各写一遍，迁仓库时就要改四处。漏掉一处不会报错——那个步骤照常推送，只是推到了旧仓库，而清单从新仓库拉，表现为"镜像明明构建成功了但 Pod 拉不到"。
+Repeating registry host, tag strategy, Dockerfile path, or mirror `build_args` across steps causes silent partial edits—missed steps still succeed while pushing to stale registries or unreachable mirrors.
+
+Declare all YAML anchors under one top-level `global-variables:` mapping right after `platform:`, with brief purpose comments. Use `global-variables:` instead of top-level `x-*` keys or anchors scattered inside `steps:`.
+
+**Centralize values changing together:**
+
+- Registry and image repos: `DOCKER_REGISTRY`, `REPO_<SERVICE>`
+- Shared Dockerfile paths: `DOCKERFILE_<ROLE>`
+- Tag strategy: `DOCKER_TAG` (`${DRONE_TAG:-latest}`)
+- Mirror `build_args`: `BASE_REGISTRY_ARG`, plus `NPM_REGISTRY_ARG` / `ALPINE_MIRROR_ARG` (`'ALPINE_MIRROR=${ALPINE_MIRROR:-}'` for optional Drone env pass-through) when consumed
+- Kaniko output path: `DRONE_OUTPUT` (`/tmp/drone-output`)
+- Overridable external service endpoints/paths via `${VAR:-default}` when needed
+
+Keep single-use per-service args (`MODULE=app-api`) inline in step.
 
 ```yaml
+# 全局变量定义（YAML anchor，供各步骤复用，避免硬编码重复）
 global-variables:
-  DOCKER_REGISTRY: &DOCKER_REGISTRY registry.internal
-  REPO_ADMIN:      &REPO_ADMIN      registry.internal/org/app-admin
-  # tag 策略：push 落 latest，打 tag 落版本号
-  DOCKER_TAG:      &DOCKER_TAG      ${DRONE_TAG:-latest}
+  DOCKER_REGISTRY:     &DOCKER_REGISTRY     registry.example.com
+  REPO_API:            &REPO_API            registry.example.com/org/app-api
+  DOCKERFILE_BACKEND:  &DOCKERFILE_BACKEND  deploy/docker/Dockerfile.backend
+  # tag 策略：push 落 latest（预发），打 tag 落版本号（生产）
+  DOCKER_TAG:          &DOCKER_TAG          ${DRONE_TAG:-latest}
+  # 基础镜像与包源：CI 走内网镜像源；可选源通过 ${VAR:-} 透传 Drone 环境变量
+  BASE_REGISTRY_ARG:   &BASE_REGISTRY_ARG   'BASE_REGISTRY=registry.example.com/lib/'
+  ALPINE_MIRROR_ARG:   &ALPINE_MIRROR_ARG   'ALPINE_MIRROR=${ALPINE_MIRROR:-}'
+  NPM_REGISTRY_ARG:    &NPM_REGISTRY_ARG    'NPM_REGISTRY=https://npm.example.com'
+  # kaniko 插件输出文件路径（修复 "open : no such file or directory" 错误）
+  DRONE_OUTPUT:        &DRONE_OUTPUT        /tmp/drone-output
 
 steps:
-  - name: build-admin
+  - name: build-api
+    environment:
+      DRONE_OUTPUT: *DRONE_OUTPUT
     settings:
       registry: *DOCKER_REGISTRY
-      repo: *REPO_ADMIN
+      repo: *REPO_API
+      dockerfile: *DOCKERFILE_BACKEND
       tags:
         - *DOCKER_TAG
+      build_args:
+        - *BASE_REGISTRY_ARG
+        - MODULE=app-api
 ```
-
-收敛的判据是**是否会一起变**：registry 主机名、tag 策略、镜像源前缀会一起变，值得收敛；各服务的模块名不会一起变，不必收敛。
-
-anchor 定义要集中在文件顶部并加注释说明用途。散落在各步骤中间定义的 anchor 比重复写更难读——读者得先找到定义处才知道 `*DOCKER_TAG` 是什么。
