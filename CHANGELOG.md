@@ -45,6 +45,8 @@
 
 ### Changed
 
+- **setup-rules Addy 约定 `self-improve` 触发范围收窄**：`addy.md` 明确仅计划任务（`planned tasks`）的 `incremental-implementation` 与 `code-simplification` 完成后触发 `self-improve`，跳过 quick slice 与琐碎 fast 改动。
+
 - **addyspec `quick` 文档落盘工作流与 setup-rules Addy 约定联动**：新增 `skills/addyspec/references/quick.md`（不受 `scripts/sync.sh` 覆盖），为 `/addyspec quick` 引入参考 `gsd-quick` 的项目文档流——编码前访谈澄清并写入 `tasks/quick/<YYMMDD-xxx>-<slug>/plan.md`，经 `incremental-implementation` 独立提交代码后生成含 `status` frontmatter 与 code commit 的 `summary.md`、追加 `tasks/quick/README.md` 索引表并单独提交文档；`SKILL.md` 的 `Dispatch` 第 4 步改为按需读取 `local` 行标注的 `references/<command>.md` 并移除 `Supplements` 中的 `quick` 规则，`Sync` 注明保留 `references/<command>.md`；`setup-rules` 的 `addy.md` 同步说明 quick slice 记录于 `tasks/quick/` 且不触碰 `tasks/plan.md` 与 `tasks/todo.md`。
 
 - **addyspec `spec`/`plan`/`build` 补充指令**：在 `SKILL.md` 新增 `Supplements` 节并接入 `Dispatch` 第 4 步（随 `SKILL.md` 保留，不被 `scripts/sync.sh` 覆盖）；`spec` 与 `plan`（含 `build auto` Step 3）遇不明确需求先访谈确认；`build` 在实现前若 `tasks/plan.md` 状态未批准（非 `Approved`/`In Progress`/`Completed`），先更新为 `Approved` 并仅提交 `tasks/plan.md`（`build auto` 延至 Step 4 批准后执行，Step 3 新建的 plan 并入其 preparatory commit）。
