@@ -16,14 +16,14 @@ Snapshot: upstream `e997ac5` (2026-11-23).
 1. Split args: first word = command, rest = command's `$ARGUMENTS` (`/addyspec build auto` → `build`, `$ARGUMENTS` = `auto`). `planning` (upstream Gemini name) = `plan`.
 2. Command missing or not in table → print table, ask user to pick.
 3. Every skill in row's Skills column installed (in your available skills)? Any missing → stop, name them, print `npx skills add addyosmani/agent-skills`.
-4. `local` row → invoke row's skill directly with `$ARGUMENTS`, per Supplements; else read `references/commands/<command>.md`, execute as upstream `/<command>`, per Adapter and Supplements.
+4. `local` row → read its `references/<command>.md` (if listed) and execute with `$ARGUMENTS`; else invoke row's skill directly with `$ARGUMENTS`. Upstream row → read `references/commands/<command>.md`, execute as upstream `/<command>`, per Adapter and Supplements.
 
 | Command | Does | Skills | Personas |
 |---|---|---|---|
 | `spec` | `SPEC.md` (or delta `SPEC-<slug>.md`) before code | `spec-driven-development` | — |
 | `plan` | Spec → `tasks/plan.md` + `tasks/todo.md` | `planning-and-task-breakdown` | — |
 | `build` | Next task via TDD; `auto` = whole plan after one approval | `incremental-implementation`, `test-driven-development`, `planning-and-task-breakdown`, `debugging-and-error-recovery`, `doubt-driven-development` | — |
-| `quick` | Quick slice, no plan/todo (`local`) | `incremental-implementation` | — |
+| `quick` | Quick slice logged under `tasks/quick/` (`local`, `references/quick.md`) | `incremental-implementation` | — |
 | `test` | TDD; Prove-It for bugs | `test-driven-development`, `browser-testing-with-devtools` | — |
 | `debug` | Root-cause debugging (`local`) | `debugging-and-error-recovery` | — |
 | `review` | Five-axis code review | `code-review-and-quality`, `security-and-hardening`, `performance-optimization` | — |
@@ -45,12 +45,11 @@ Command files are upstream verbatim, written for Claude Code plugin install. Tra
 
 ## Supplements
 
-Local additions to commands (preserved by `scripts/sync.sh`):
+Local additions to upstream commands (preserved by `scripts/sync.sh`):
 
 - **`spec`, `plan`** (incl. `build auto` Step 3): Interview user to confirm any unclear requirement before drafting or finalizing.
 - **`build`**: If `tasks/plan.md` exists with unapproved status (not `Approved`/`In Progress`/`Completed`), update to `Approved` and commit `tasks/plan.md` alone before implementing (`build auto`: after Step 4 approval; fold into preparatory commit if Step 3 created plan).
-- **`quick`**: Interview user to confirm any unclear requirement before implementing. Run as standalone quick slice; leave `tasks/plan.md` and `tasks/todo.md` untouched (do not require, read, or update them).
 
 ## Sync
 
-Maintainers refresh snapshot: `scripts/sync.sh [ref]` (default `main`) re-vendors commands, personas, `LICENSE`, rewrites Snapshot line, reports added/removed commands and each command's `agent-skills:` refs; align upstream rows to report, keep `local` rows unless upstream adds command.
+Maintainers refresh snapshot: `scripts/sync.sh [ref]` (default `main`) re-vendors commands, personas, `LICENSE`, rewrites Snapshot line, reports added/removed commands and each command's `agent-skills:` refs; align upstream rows to report, keep `local` rows and `references/<command>.md` unless upstream adds command.
