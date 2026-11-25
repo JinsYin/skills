@@ -1,13 +1,13 @@
 ---
 name: addyspec
-description: "Run addyosmani/agent-skills slash commands and local aliases as subcommands: /addyspec <spec|plan|build|quick|test|debug|review|code-simplify|ship|constraints|a11y|webperf> [args]."
+description: "Run addyosmani/agent-skills slash commands and local commands as subcommands: /addyspec <spec|plan|build|quick|fast|test|debug|review|code-simplify|ship|constraints|a11y|webperf> [args]."
 disable-model-invocation: true
 argument-hint: "<command> [args]"
 ---
 
 # addyspec
 
-`/addyspec <command> [args]` = [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) `/<command> [args]` + local skill aliases. `npx skills add` installs only that pack's skills; this skill vendors its commands and personas.
+`/addyspec <command> [args]` = [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) `/<command> [args]` + local commands. `npx skills add` installs only that pack's skills; this skill vendors its commands and personas.
 
 Snapshot: upstream `e997ac5` (2026-11-23).
 
@@ -15,7 +15,7 @@ Snapshot: upstream `e997ac5` (2026-11-23).
 
 1. Split args: first word = command, rest = command's `$ARGUMENTS` (`/addyspec build auto` → `build`, `$ARGUMENTS` = `auto`). `planning` (upstream Gemini name) = `plan`.
 2. Command missing or not in table → print table, ask user to pick.
-3. Every skill in row's Skills column installed (in your available skills)? Any missing → stop, name them, print `npx skills add addyosmani/agent-skills`.
+3. Every skill in row's Skills column (if any) installed (in your available skills)? Any missing → stop, name them, print `npx skills add addyosmani/agent-skills`.
 4. `local` row → read its `references/<command>.md` (if listed) and execute with `$ARGUMENTS`; else invoke row's skill directly with `$ARGUMENTS`. Upstream row → read `references/commands/<command>.md`, execute as upstream `/<command>`, per Adapter and Supplements.
 
 | Command | Does | Skills | Personas |
@@ -24,6 +24,7 @@ Snapshot: upstream `e997ac5` (2026-11-23).
 | `plan` | Spec → `tasks/plan.md` + `tasks/todo.md` | `planning-and-task-breakdown` | — |
 | `build` | Next task via TDD; `auto` = whole plan after one approval | `incremental-implementation`, `test-driven-development`, `planning-and-task-breakdown`, `debugging-and-error-recovery`, `doubt-driven-development` | — |
 | `quick` | Quick slice logged under `tasks/quick/` (`local`, `references/quick.md`) | `incremental-implementation` | — |
+| `fast` | Trivial inline edit, ≤3 files (`local`, `references/fast.md`) | — | — |
 | `test` | TDD; Prove-It for bugs | `test-driven-development`, `browser-testing-with-devtools` | — |
 | `debug` | Root-cause debugging (`local`) | `debugging-and-error-recovery` | — |
 | `review` | Five-axis code review | `code-review-and-quality`, `security-and-hardening`, `performance-optimization` | — |

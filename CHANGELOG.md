@@ -8,6 +8,8 @@
 
 ### Added
 
+- **addyspec `fast` 子命令**：对标 `gsd-fast` 新增本地内联子命令 `/addyspec fast [args]`（无上游 skill 依赖，`references/fast.md` 不受 `scripts/sync.sh` 覆盖），面向 ≤3 文件的琐碎改动提供读代码门禁（超范围或涉及后端值语义时提示升级 `/addyspec quick`）、编辑前目标文件脏状态检查、精准文件原子提交，以及在 `tasks/quick/README.md` 已存在时追加单行 `fast` 记录并单独提交；`SKILL.md` 将 `description` 与引言统一为 `local commands`、`Dispatch` 第 3 步兼容空 `Skills` 列；`setup-rules` 的 `addy.md` 同步注明琐碎 fast 改动跳过 `/ponytail full`。
+
 - **addyspec `quick` 子命令**：新增本地直调子命令 `/addyspec quick [args]`，校验已安装后调用 `incremental-implementation` skill；`Dispatch` 第 4 步使 `local` 行同样遵循 `Supplements`，并在 `Supplements` 要求实现前遇不明确需求先访谈确认、按独立 quick slice 执行且不依赖、不读取、不修改 `tasks/plan.md` 与 `tasks/todo.md`。
 
 - **devops-best-practices Kubernetes Nginx Ingress 规范与双轨校验**：新增规则 `deploy-ingress-nginx`，统一使用 `networking.k8s.io/v1`、团队默认 `spec.ingressClassName: nginx`（取代旧 `kubernetes.io/ingress.class` annotation）、默认无 `spec.tls`（仅按 `deploy/README.md` 开启）、文件头保留 HuaweiCloud CCE 文档链接注释、路由含显式 `host` / `<path>` / `pathType: Prefix` / 数值型 `port.number`，并规范 Kustomize（base 省略环境 `namespace`、overlay patch 覆盖 `host`）与 Helm 双轨结构；同步更新 `references/delivery.md`（访谈项、`deploy/README.md` 清单及双轨 Ingress 骨架）、`scripts/k8s-parity.py`（增加 Ingress `ingressClassName`/`rules`/`tls` 一致性校验）、`deploy-kustomize-helm-parity`、`SKILL.md`（规则总数增至 34 条）、`rules/_sections.md` 并重建 `AGENTS.md`。

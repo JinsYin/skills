@@ -2,7 +2,7 @@
 ## Addy
 
 - Commit after `spec-driven-development`, `planning-and-task-breakdown`, `incremental-implementation`, `test-driven-development` or `code-simplification`.
-- Invoke `/ponytail full` upon `planning-and-task-breakdown`, `incremental-implementation`, `test-driven-development`, `code-simplification` and quick slices.
+- Invoke `/ponytail full` upon `planning-and-task-breakdown`, `incremental-implementation`, `test-driven-development`, `code-simplification` and quick slices (skip for trivial fast edits).
 - Once `incremental-implementation` or `code-simplification` finishes and commits, invoke `self-improve`, clean runs too: its record Issue keeps below-gate observations later runs count toward weak gate.
 - 0→1 with UI: after project skeleton and infrastructure, before frontend feature code, run standalone UI restoration stage — `spec-driven-development` (`<spec.md>`) only, then `/design-to-code <spec.md>` directly to restore `proto` branch/worktree prototype to frontend code per `fspec` (skip `planning-and-task-breakdown` and `incremental-implementation`).
 - First SPEC involves deployment/delivery → split delivery into standalone stage after all business features complete: `spec-driven-development` (`spec/SPEC-delivery.md`) → `planning-and-task-breakdown` → `incremental-implementation`.
