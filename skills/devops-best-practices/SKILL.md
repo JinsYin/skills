@@ -1,6 +1,6 @@
 ---
 name: devops-best-practices
-description: "Rules and playbooks for local dev env and delivery chain: Dockerfile, docker-compose.yml, process-compose.yml, Drone `.drone.yml` (Kaniko), Kubernetes Kustomize + Helm kept in parity, and `deploy/README.md` delivery facts. Use when writing, reviewing or planning any of these; when a task adds a database, cache, MQ or runnable process; when backfilling a missing dev env in an existing project; when planning or running a delivery phase (containerize, set up CI, deploy to k8s, release); or when adding a module, port, env var, config key or secret to a project that already has these files — even if no file is named."
+description: "Rules and playbooks for local dev env and delivery chain: Dockerfile, docker-compose.yml, process-compose.yml, Drone `.drone.yml` (Kaniko), Kubernetes manifests (Nginx Ingress, Kustomize + Helm kept in parity), and `deploy/README.md` delivery facts. Use when writing, reviewing or planning any of these; when a task adds a database, cache, MQ or runnable process; when backfilling a missing dev env in an existing project; when planning or running a delivery phase (containerize, set up CI, deploy to k8s, release); or when adding a module, port, env var, config key or secret to a project that already has these files — even if no file is named."
 license: MIT
 metadata:
   author: JinsYin
@@ -9,7 +9,7 @@ metadata:
 
 # DevOps Best Practices
 
-容器化与部署的规范集，33 条规则分 6 类，按**违反后果**排序。
+容器化与部署的规范集，34 条规则分 6 类，按**违反后果**排序。
 
 ## 如何使用本 skill
 
@@ -30,7 +30,7 @@ rules/deploy-three-probes.md
 | `docker-compose.yml` | `compose-*` |
 | `process-compose.yml` | `proc-*` |
 | CI 流水线（`.drone.yml` / Kaniko） | `ci-*`、`secret-ci-from-store-only` |
-| K8s 清单 / Kustomize overlay / Helm chart | `deploy-*`、`secret-*`、`deploy/README.md` |
+| K8s 清单 / Ingress / Kustomize overlay / Helm chart | `deploy-*`、`secret-*`、`deploy/README.md` |
 | 新增一个服务（端到端） | `image-*` + `deploy-*` + `ci-tag-strategy-single-source` |
 | 任何含凭据的文件 | `secret-*`（全部，只有 3 条） |
 | 排查"构建成功但部署跑的是旧版本" | `ci-tag-strategy-single-source`、`deploy-no-latest-in-prod` |
@@ -60,7 +60,7 @@ Project-specific facts (registries, secret names, environments) come from its `d
 | 优先级 | 分类 | 影响 | 前缀 | 条数 |
 |---|---|---|---|---|
 | 1 | 镜像构建 | CRITICAL | `image-` | 7 |
-| 2 | 部署清单 | CRITICAL | `deploy-` | 6 |
+| 2 | 部署清单 | CRITICAL | `deploy-` | 7 |
 | 3 | 凭据与配置 | CRITICAL | `secret-` | 3 |
 | 4 | 本地依赖编排 | HIGH | `compose-` | 4 |
 | 5 | CI 流水线 | HIGH | `ci-` | 8 |
@@ -82,6 +82,7 @@ Project-specific facts (registries, secret names, environments) come from its `d
 
 - `deploy-base-overlay-diff-only` — overlay 只放差量，复制整份清单会让 base 的修复不再传播
 - `deploy-config-secret-split` — 敏感值进 Secret；ConfigMap 明文出现在 `kubectl describe` 里
+- `deploy-ingress-nginx` — Use `networking.k8s.io/v1`, `spec.ingressClassName: nginx`, HuaweiCloud CCE doc comment, HTTP-only default (no `spec.tls`), `<path>` + numeric service port, and Kustomize/Helm parity
 - `deploy-kustomize-helm-parity` — Kustomize and Helm render the same resources and keys per env; check with `scripts/k8s-parity.py`
 - `deploy-no-latest-in-prod` — 生产用确定 tag，否则回滚回退了清单却拉到同一个镜像
 - `deploy-securitycontext-match-image` — `runAsUser` 必须等于镜像内创建的 UID，否则挂载卷写不进去
@@ -121,7 +122,7 @@ Project-specific facts (registries, secret names, environments) come from its `d
 
 ## 与项目规范的关系
 
-本 skill 是**跨项目通用基线**（含团队惯用默认如 `plugins/kaniko:1.13.7`、`platform: linux/arm64`、`skip_tls_verify: true`）。具体的仓库地址、secret 名称、模块名、镜像仓库主机名及对默认值的覆盖属于项目事实，应写在项目的 `deploy/README.md`（或 `CLAUDE.md` / `AGENTS.md`），不要写进这里。
+本 skill 是**跨项目通用基线**（含团队惯用默认如 `plugins/kaniko:1.13.7`、`platform: linux/arm64`、`skip_tls_verify: true`、Ingress `ingressClassName: nginx` 无 TLS）。具体的仓库地址、secret 名称、模块名、镜像仓库主机名及对默认值的覆盖属于项目事实，应写在项目的 `deploy/README.md`（或 `CLAUDE.md` / `AGENTS.md`），不要写进这里。
 
 冲突时以项目自身的约定为准。
 

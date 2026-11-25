@@ -32,7 +32,7 @@ deploy/
 | Kaniko settings (`plugins/kaniko:1.13.7`, `skip_tls_verify: true` defaults; confirm overrides & whether semi-offline `tar_path` archive upload is needed) | `ci-kaniko-image-build`, `ci-drone-dag-parallelism` |
 | Drone secret names that already exist | `secret-ci-from-store-only`, `ci-drone-annotated-steps` |
 | Trigger `ref` + `event` (`refs/heads/master`, `refs/tags/*`, `push`/`tag`, plus `promote` target if any) and tag strategy per env | `ci-explicit-event-scope`, `ci-tag-strategy-single-source`, `deploy-no-latest-in-prod` |
-| Environments, namespace, replicas, ingress host/TLS per env | overlays, values files |
+| Environments, namespace, replicas, ingress class (team default `nginx`), host, path, and TLS (default none) per env | `deploy-ingress-nginx`, overlays, values files |
 | Image pull policy and pull secret per env | overlays, values files |
 | Secret ownership per env (chart/overlay renders it vs ops applies it) | `deploy-config-secret-split`, `deploy-kustomize-helm-parity` |
 | Health endpoints and slow-start time | `deploy-three-probes` |
@@ -41,7 +41,7 @@ deploy/
 
 ## `deploy/README.md`
 
-Sections: **Layout** · **Environments** (table: env · namespace · tag source · pull policy · ingress · Secret owner) · **Registries** (target registry + base/package mirrors) · **CI** (`platform`, Kaniko version/TLS overrides, secret names, trigger `ref`/`event`, tag strategy, semi-offline archive if any) · **Parity exceptions** (each `--ignore` with its reason; normally empty) · **Commands** (build, render, deploy per env). Facts only: rationale for generic rules stays in this skill.
+Sections: **Layout** · **Environments** (table: env · namespace · tag source · pull policy · ingress [class/host/path/TLS] · Secret owner) · **Registries** (target registry + base/package mirrors) · **CI** (`platform`, Kaniko version/TLS overrides, secret names, trigger `ref`/`event`, tag strategy, semi-offline archive if any) · **Parity exceptions** (each `--ignore` with its reason; normally empty) · **Commands** (build, render, deploy per env). Facts only: rationale for generic rules stays in this skill.
 
 ## Keep In Sync
 
@@ -171,6 +171,28 @@ Optional `.drone.yml` patterns (only when `deploy/README.md` requires):
 - **`promote` operational step**: add `promote` to top-level `trigger.event`; scope step with `when: { event: [promote], target: [<target>] }`, keep builds `[push, tag]` (`ci-explicit-event-scope`).
 
 ```yaml
+# deploy/k8s/base/ingress.yaml
+# HuaweiCloud CCE: https://support.huaweicloud.com/usermanual-cce/cce_10_0364.html
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+spec:
+  ingressClassName: nginx # nginx ingress
+  rules:
+    - host: app.example.com             # overridden per env in overlays/<env>/
+      http:
+        paths:
+          - path: /                     # or service prefix (e.g. /api)
+            pathType: Prefix
+            backend:
+              service:
+                name: app-frontend
+                port:
+                  number: 80
+```
+
+```yaml
 # deploy/k8s/overlays/uat/kustomization.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -179,6 +201,37 @@ namespace: app-uat
 images:
   - name: registry.example.com/team/backend
     newTag: latest
+patches:
+  - target:
+      kind: Ingress
+      name: app-ingress
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: uat.example.com
+```
+
+```yaml
+# deploy/helm/chart/templates/ingress.yaml
+# HuaweiCloud CCE: https://support.huaweicloud.com/usermanual-cce/cce_10_0364.html
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: {{ .Values.namespace }}
+spec:
+  ingressClassName: {{ .Values.ingress.className | default "nginx" }} # nginx ingress
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.path | default "/" }}
+            pathType: Prefix
+            backend:
+              service:
+                name: app-frontend
+                port:
+                  number: 80
 ```
 
 ```yaml
@@ -186,4 +239,7 @@ images:
 namespace: app-uat
 image:
   tag: latest
+ingress:
+  host: uat.example.com
+  path: /
 ```

@@ -32,7 +32,7 @@ python3 deploy/scripts/k8s-parity.py              # all envs; exit 0 = in parity
 python3 deploy/scripts/k8s-parity.py --env uat    # one env
 ```
 
-Script ships with this skill as `scripts/k8s-parity.py`; copy into project's `deploy/scripts/` so CI and every agent run it. Renders both tracks per env, compares Kind/name sets, ConfigMap and Secret keys (never values), each container's env names and ports.
+Script ships with this skill as `scripts/k8s-parity.py`; copy into project's `deploy/scripts/` so CI and every agent run it. Renders both tracks per env, compares Kind/name sets, ConfigMap and Secret keys (never values), each container's env names and ports, and Ingress `ingressClassName`, `rules` (host/path/pathType/backend), and `tls`.
 
 Change aimed at one track = change to deployment: make both tracks agree. E.g. ops taking over prod Secret → `secrets.create: false` in `values-prod.yaml` **and** `$patch: delete` for that Secret in `overlays/prod/`; else `kubectl apply -k` overwrites real Secret with placeholders.
 

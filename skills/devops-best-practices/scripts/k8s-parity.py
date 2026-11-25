@@ -6,6 +6,7 @@
   - 资源 Kind/name 集合
   - ConfigMap data 键、Secret data/stringData 键（只比键，永不输出值）
   - 每个工作负载容器的 env 变量名与 containerPort
+  - Ingress 的 ingressClassName、rules（host/path/pathType/backend）与 tls
 
 用法：
   python3 k8s-parity.py [--deploy deploy] [--env uat ...] [--ignore [ENV:]Kind/name ...]
@@ -57,6 +58,23 @@ def summarize(docs):
             for c in pod_spec(d).get("containers") or []:
                 facets[f"container {c.get('name')} env"] = {e.get("name") for e in c.get("env") or []}
                 facets[f"container {c.get('name')} ports"] = {str(p.get("containerPort")) for p in c.get("ports") or []}
+        elif d["kind"] == "Ingress":
+            spec = d.get("spec") or {}
+            cls = spec.get("ingressClassName")
+            facets["ingressClassName"] = {cls} if cls else set()
+            routes = set()
+            for r in spec.get("rules") or []:
+                host = r.get("host") or "*"
+                for p in (r.get("http") or {}).get("paths") or []:
+                    svc = (p.get("backend") or {}).get("service") or {}
+                    port = svc.get("port") or {}
+                    port_val = port.get("number") if port.get("number") is not None else port.get("name")
+                    routes.add(f"{host}{p.get('path', '')} ({p.get('pathType')}) -> {svc.get('name')}:{port_val}")
+            facets["rules"] = routes
+            facets["tls"] = {
+                f"{','.join(sorted(t.get('hosts') or []))}:{t.get('secretName') or ''}"
+                for t in spec.get("tls") or []
+            }
         out[key] = facets
     return out
 

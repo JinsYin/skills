@@ -8,6 +8,8 @@
 
 ### Added
 
+- **devops-best-practices Kubernetes Nginx Ingress 规范与双轨校验**：新增规则 `deploy-ingress-nginx`，统一使用 `networking.k8s.io/v1`、团队默认 `spec.ingressClassName: nginx`（取代旧 `kubernetes.io/ingress.class` annotation）、默认无 `spec.tls`（仅按 `deploy/README.md` 开启）、文件头保留 HuaweiCloud CCE 文档链接注释、路由含显式 `host` / `<path>` / `pathType: Prefix` / 数值型 `port.number`，并规范 Kustomize（base 省略环境 `namespace`、overlay patch 覆盖 `host`）与 Helm 双轨结构；同步更新 `references/delivery.md`（访谈项、`deploy/README.md` 清单及双轨 Ingress 骨架）、`scripts/k8s-parity.py`（增加 Ingress `ingressClassName`/`rules`/`tls` 一致性校验）、`deploy-kustomize-helm-parity`、`SKILL.md`（规则总数增至 34 条）、`rules/_sections.md` 并重建 `AGENTS.md`。
+
 - **addyspec `debug` 子命令**：新增本地直调子命令 `/addyspec debug [args]`，校验已安装后纯透传调用 `debugging-and-error-recovery` skill；不写入 `references/commands/`，并在 `Sync` 注明同步上游快照时保留 `local` 行直至上游提供同名 command。
 
 - **addyspec**：新增用户手动触发的 skill，`/addyspec <command> [args]` 等价于 addyosmani/agent-skills 的 `/<command> [args]`（`spec`、`plan`、`build`、`test`、`review`、`code-simplify`、`ship`、`constraints`、`a11y`、`webperf`，`planning` 为 `plan` 别名）；原样 vendor 上游 10 个 command 与 5 个 persona（快照 `e997ac5`，附上游 MIT `LICENSE`），执行前校验所需 agent-skills skill 已安装（缺失则停止并提示 `npx skills add addyosmani/agent-skills`），以 Adapter 映射 `agent-skills:<name>`、persona subagent 与上游路径；`scripts/sync.sh [ref]` 手动同步快照。

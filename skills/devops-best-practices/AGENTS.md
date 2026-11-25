@@ -1,7 +1,7 @@
 # DevOps Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-11-25 15:55:10
+> 生成时间：2026-11-25 17:49:54
 
 ## 1. 镜像构建
 
@@ -247,6 +247,72 @@ envFrom:
 Secret 的清单文件本身**不入库**（见 `secret-never-commit-real`），仓库里只保留 `secret.example.yaml`。
 
 
+### Standardize Kubernetes Ingress on networking.k8s.io/v1 with Nginx ingressClassName
+
+Write Kubernetes Ingress manifests with `networking.k8s.io/v1` and `spec.ingressClassName: nginx` (HuaweiCloud CCE reference: https://support.huaweicloud.com/usermanual-cce/cce_10_0364.html). Omitting `spec.ingressClassName` or using legacy `kubernetes.io/ingress.class` annotation fails on newer clusters or lets CCE provision default ELB Ingress instead of Nginx, leaving routes unreachable even after `kubectl apply` succeeds.
+
+**Required fields and defaults:**
+
+- **Header comment** — put `# HuaweiCloud CCE: https://support.huaweicloud.com/usermanual-cce/cce_10_0364.html` at top of every generated `ingress.yaml`.
+- **API and class** — `apiVersion: networking.k8s.io/v1`, `kind: Ingress`, `spec.ingressClassName: nginx` (team default; override only per `deploy/README.md`). Replace legacy `kubernetes.io/ingress.class` annotation with `spec.ingressClassName`.
+- **HTTP-only default** — omit `spec.tls` (TLS terminates upstream or stays internal); add `spec.tls` only when `deploy/README.md` requires in-cluster TLS.
+- **Rules and backend** — set explicit `host`, `<path>`, `pathType: Prefix` (or `Exact` when needed), and numeric `backend.service.port.number` matching target Service `port`.
+- **Kustomize and Helm dual-track** — omit env `metadata.namespace` in `k8s/base/ingress.yaml` (`overlays/<env>/kustomization.yaml` injects `namespace:`) and patch per-env `host` in overlays (`deploy-base-overlay-diff-only`); render `metadata.namespace` and `spec.rules` from `values-<env>.yaml` in Helm (`deploy-kustomize-helm-parity`).
+
+**Wrong** — legacy annotation, unrequested `spec.tls`, hardcoded env namespace in Kustomize base:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: app-prod                       # hardcoded in k8s/base; breaks overlay reuse
+  annotations:
+    kubernetes.io/ingress.class: "nginx"    # deprecated; use spec.ingressClassName
+spec:
+  tls:                                      # unrequested TLS; breaks HTTP if Secret missing
+    - hosts: [app.example.com]
+      secretName: app-tls
+  rules:
+    - host: app.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app-frontend
+                port:
+                  number: 80
+```
+
+**Right** — rendered Ingress shape (Kustomize overlay and Helm template outputs match):
+
+```yaml
+# HuaweiCloud CCE: https://support.huaweicloud.com/usermanual-cce/cce_10_0364.html
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: <name>
+  namespace: <namespace>
+spec:
+  ingressClassName: nginx # nginx ingress
+  rules:
+    - host: <host>
+      http:
+        paths:
+          - path: <path>
+            pathType: Prefix
+            backend:
+              service:
+                name: <service_name>
+                port:
+                  number: <service_port>
+```
+
+Kustomize base, overlay patch, and Helm template skeletons: see `references/delivery.md`.
+
+
 ### Kustomize and Helm render the same resources for every environment
 
 `deploy/k8s/` (Kustomize) and `deploy/helm/chart/` (Helm) = two renderings of one deployment. Env var, config key or Secret key added to one track deploys fine there; other track ships without it, and Pod fails or silently falls back to default only in envs deployed by that tool.
@@ -274,7 +340,7 @@ python3 deploy/scripts/k8s-parity.py              # all envs; exit 0 = in parity
 python3 deploy/scripts/k8s-parity.py --env uat    # one env
 ```
 
-Script ships with this skill as `scripts/k8s-parity.py`; copy into project's `deploy/scripts/` so CI and every agent run it. Renders both tracks per env, compares Kind/name sets, ConfigMap and Secret keys (never values), each container's env names and ports.
+Script ships with this skill as `scripts/k8s-parity.py`; copy into project's `deploy/scripts/` so CI and every agent run it. Renders both tracks per env, compares Kind/name sets, ConfigMap and Secret keys (never values), each container's env names and ports, and Ingress `ingressClassName`, `rules` (host/path/pathType/backend), and `tls`.
 
 Change aimed at one track = change to deployment: make both tracks agree. E.g. ops taking over prod Secret → `secrets.create: false` in `values-prod.yaml` **and** `$patch: delete` for that Secret in `overlays/prod/`; else `kubectl apply -k` overwrites real Secret with placeholders.
 

@@ -23,7 +23,7 @@
 ## 2. 部署清单 (deploy)
 
 **Impact:** CRITICAL
-**Description:** K8s / Kustomize / Helm 的 base-overlay 分层、三探针、安全上下文、配置与密钥分离。清单错误直接表现为 Pod 起不来或反复重启，但探针配错的表现是"看起来正常"——流量打到没就绪的实例上。
+**Description:** K8s / Kustomize / Helm 的 base-overlay 分层、Nginx Ingress（`networking.k8s.io/v1` + `ingressClassName: nginx`、默认无 TLS）、三探针、安全上下文、配置与密钥分离。清单错误直接表现为 Pod 起不来、流量路由失败或反复重启，但探针配错的表现是"看起来正常"——流量打到没就绪的实例上。
 
 ## 3. 凭据与配置 (secret)
 
