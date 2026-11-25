@@ -27,10 +27,10 @@
     },
     "setup-rules": {
       "source": "JinsYin/skills",
-      "commit": "80f445e2ef0b5558723283a89fbeacfccefc41df",
+      "commit": "cd24c44b9d957bf02e67755eface4101ee7f90f5",
       "sourceType": "github",
       "skillPath": "skills/setup-rules/SKILL.md",
-      "computedHash": "3ee581bcba9ad7f243c8a9dea48d5d3b6ba18e4efdd49a38edc19ef5acc10061"
+      "computedHash": "37e207003d40334d5e2b5a173994cd8da478c9567e14ffcde56f3ece69ce4f25"
     },
     "skill-creator": {
       "source": "anthropics/skills",
