@@ -41,7 +41,7 @@ tasks/quick/
    - <Observable verification criteria / commands>
    ```
 
-3. **Implement and commit code.** Invoke `incremental-implementation` against `plan.md` (small verified slice, tests, build/checks, atomic code commit). Stage and commit code only — exclude `tasks/quick/` so code rollback stays clean and code commit hash exists before `summary.md`. User cancels or no code lands → stop without writing `summary.md` or updating `tasks/quick/README.md`.
+3. **Implement and commit code.** Invoke `incremental-implementation` against `plan.md` (small verified slice, tests, build/checks, atomic code commit). Stage session code and project-required logs (e.g. `CHANGELOG.md`, `PROMPTS.md`) — exclude `tasks/quick/` so code rollback stays clean and code commit hash exists before `summary.md`. User cancels or no code lands → stop without writing `summary.md` or updating `tasks/quick/README.md`.
 
 4. **Write `summary.md` and update index.** Capture code commit short hash (`git rev-parse --short HEAD`; multiple code commits → final short hash in frontmatter/table, list all in `Changes`):
    - Create `tasks/quick/<id>-<slug>/summary.md`:
