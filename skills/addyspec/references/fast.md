@@ -12,9 +12,9 @@ Run trivial edit inline in current context: atomic commit, zero planning artifac
 
 1. **Parse task.** Empty `$ARGUMENTS` → ask in one sentence what to change.
 
-2. **Check scope and cleanliness (read-only).** Inspect target file(s) to verify trivial scope and exact target paths:
-   - Exceeds guardrails → stop, suggest `/addyspec quick "<task description>"`.
-   - Run `git status --short` on target path(s): any target file has uncommitted changes → stop, ask user whether to stash/commit first or combine before editing.
+2. **Check scope and cleanliness (read-only).** Scope via grep/paths first; defer full-file reads and other skills until scope passes, so escalations stay cheap:
+   - Exceeds guardrails → stop immediately, suggest `/addyspec quick "<task description>"`.
+   - Within guardrails → run `git status --short` on target path(s): any target file has uncommitted changes → stop, ask user whether to stash/commit first or combine before editing.
 
 3. **Edit inline and verify.** Read target file(s), apply change directly, run minimal sanity check (relevant existing tests, typecheck, or build if applicable).
 
