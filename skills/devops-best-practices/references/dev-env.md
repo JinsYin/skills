@@ -43,7 +43,7 @@ Local dev environment = root `docker-compose.yml` (long-lived stateful deps: DB,
 # Every env var MUST provide a default value (${VAR:-default}); never use ${VAR:?err} or ${VAR?err}.
 services:
   postgres:
-    image: ${BASE_REGISTRY:-docker.m.daocloud.io}/library/postgres:${POSTGRES_TAG:-16}
+    image: ${DOCKER_REGISTRY_MIRROR:-docker.m.daocloud.io}/library/postgres:${POSTGRES_TAG:-16}
     ports: ["${POSTGRES_HOST_PORT:-5432}:5432"]
     environment:
       POSTGRES_USER: app

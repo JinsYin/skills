@@ -1,7 +1,7 @@
 # DevOps Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-11-25 17:49:54
+> 生成时间：2026-11-26 15:10:30
 
 ## 1. 镜像构建
 
@@ -11,6 +11,8 @@
 本地开发机和 CI 节点通常走**不同的镜像源**：本地走公网镜像加速，CI 走内网仓库（外网不可达）。把源硬编码进 `FROM`，必然有一方拉不到。
 
 写在第一条 `FROM` 之前的 `ARG` 是 **global ARG**，作用于本文件所有 `FROM`；写在 `FROM` 之后的 ARG 只在该阶段内有效。多阶段镜像里这个区别很容易踩错。
+
+**前缀必须含尾斜杠，且不把 `/library/` 写死在 `FROM`**：公网加速常见 `m.daocloud.io/docker.io/library/`，内网 SWR / Harbor 常见 `registry.internal/lib/`，路径层级不同。统一直接拼接 `${BASE_REGISTRY}image:tag` 才能无缝切换；切勿照抄 `docker-compose.yml` 无尾斜杠的主机名写法（见 `compose-parameterize-env`）。
 
 **错误（CI 节点无公网，构建直接失败）：**
 
@@ -149,7 +151,10 @@ ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 
 `useradd -r` 分配的是系统 UID（通常 100–999），而 K8s 的 `runAsUser: 1000` / `fsGroup: 1000` 期待 1000。两者不匹配时，`fsGroup` 对挂载卷执行 chown 后，进程反而失去写权限——报错是"权限拒绝"，根因却在 Dockerfile 里，排查代价很高。
 
-**基础镜像陷阱**：Ubuntu 24.04（noble）系基础镜像（含 `eclipse-temurin:21-jre`）已预置 `ubuntu` 用户占用 UID/GID 1000，直接 `groupadd -g 1000` 会因 GID 被占而失败（exit 4）。必须先释放。
+**基础镜像陷阱**：
+- Ubuntu 24.04（noble，含 `eclipse-temurin:21-jre`）已预置 `ubuntu` 占 UID/GID `1000`，直接 `groupadd -g 1000` 会失败（exit 4），需先释放再建。
+- 官方 `node:*` 镜像已预置 `node(1000:1000)`，直接复用并构建期断言 `[ "$(id -u node)" = "1000" ] && [ "$(id -g node)" = "1000" ]`，不必删了重建。
+- Alpine 使用 `addgroup -g 1000 -S app && adduser -u 1000 -G app -S -H -s /sbin/nologin app`（无 `groupadd`/`useradd`）。
 
 **错误（UID 由系统分配，值不可控）：**
 
@@ -158,7 +163,7 @@ RUN useradd -r -s /usr/sbin/nologin app
 USER app
 ```
 
-**正确（先释放占位用户，再钉死 1000）：**
+**正确（先释放占位用户，钉死 1000，并用数字 UID 切用户）：**
 
 ```dockerfile
 # userdel 对非 Ubuntu 基础镜像是无害 no-op
@@ -167,26 +172,29 @@ RUN userdel -r ubuntu 2>/dev/null || true \
  && useradd -u 1000 -g 1000 -m -s /usr/sbin/nologin app
 
 COPY --chown=1000:1000 --from=builder /build/target/app.jar app.jar
-USER app
+# 用数字 UID:GID 而非用户名：K8s runAsNonRoot: true 未覆写 runAsUser 时只认数字 UID，写 USER app 会报 CreateContainerConfigError
+USER 1000:1000
 ```
+
+**非 root Nginx 额外注意**：监听非特权端口（如 `8080`），将 `pid` 与临时目录指向 `/tmp`，并设置 `port_in_redirect off; absolute_redirect off;`，避免 Ingress 后方 301 重定向暴露容器内 `:8080`。
 
 部署清单侧必须同步（见 `deploy-securitycontext-match-image`）。
 
 
-### 显式声明时区，alpine 需额外装 tzdata
+### 显式声明时区，优先内置 tzdata 镜像实现零 OS 下包
 
 容器默认时区是 UTC，与宿主机无关。不显式声明，日志时间戳、定时任务触发点、以及任何依赖"当天"边界的业务逻辑都会偏移。
 
-**glibc 系镜像**（debian/ubuntu 基础，含 temurin）通常已内置 tzdata，设 `ENV TZ` 即可。**musl 系镜像**（alpine）默认不含 tzdata，只设 `TZ` 无效——必须显式安装。
+**优先零 OS 下包**：内网 CI 通常无法访问公网 `dl-cdn.alpinelinux.org`。选用已内置 `tzdata` 的基础镜像（glibc slim 系如 `node:24-bookworm-slim`、`eclipse-temurin`，或已预装 `tzdata` 的 `nginx:1.27-alpine`），设 `ENV TZ=Asia/Shanghai`，构建期断言时区文件存在并链接 `/etc/localtime`，彻底避免构建期 `apk`/`apt` 下包。
 
 ```dockerfile
-# glibc 系：设置即可
+# 推荐（内置 tzdata 的 glibc slim 或预装 tzdata 的 alpine，构建期零联网下包）
 ENV TZ=Asia/Shanghai
-
-# musl 系（alpine）：必须补装 tzdata
-ENV TZ=Asia/Shanghai
-RUN apk add --no-cache tzdata
+RUN [ -f /usr/share/zoneinfo/Asia/Shanghai ] \
+ && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 ```
+
+仅当基础镜像确实缺 `/usr/share/zoneinfo/Asia/Shanghai` **且**确认 CI 可达公网或有内网 OS 镜像源时，才换源后执行 `apk add --no-cache tzdata`。无内网 OS 源时，不要留空 `ALPINE_MIRROR` 回退公网（触发每源 60 秒超时或 `TLS: unspecified error`），也不要对已预装 `tzdata` 的镜像重复执行 `apk add`。
 
 **JVM 应用要额外注意**：JVM 读 `TZ` 决定默认时区，但一旦通过 `JAVA_OPTS` 传了 `-Duser.timezone`，后者优先。两处都设时必须一致，否则容器时区与 JVM 时区不同——日志（容器时区）和业务时间（JVM 时区）会对不上，这种不一致极难排查。
 
@@ -571,15 +579,16 @@ docker compose --profile mysql up -d    # 显式追加备用库
 ```yaml
 services:
   opengauss:
-    image: ${BASE_REGISTRY:-docker.m.daocloud.io}/opengauss/opengauss:${OPENGAUSS_IMAGE_TAG:-5.0.0}
+    image: ${DOCKER_REGISTRY_MIRROR:-docker.m.daocloud.io}/opengauss/opengauss:${OPENGAUSS_IMAGE_TAG:-5.0.0}
     ports:
       # 宿主已占 5432 时在 .env 中覆盖 OPENGAUSS_HOST_PORT=5433
       - "${OPENGAUSS_HOST_PORT:-5432}:5432"
 ```
 
-三条配套要求：
+四条配套要求：
 
-- **一律带默认值 `${VAR:-default}`，严禁使用 `${VAR:?error}` 或 `${VAR?error}`**：保证克隆后零配置直接可跑（镜像源默认 `${BASE_REGISTRY:-docker.m.daocloud.io}`）。使用 `?` 会在未建 `.env` 时直接报错退出，破坏开箱即用。
+- **一律带默认值 `${VAR:-default}`，严禁使用 `${VAR:?error}` 或 `${VAR?error}`**：保证克隆后零配置直接可跑（镜像站默认 `${DOCKER_REGISTRY_MIRROR:-docker.m.daocloud.io}`）。使用 `?` 会在未建 `.env` 时直接报错退出，破坏开箱即用。
+- **与 Dockerfile 的 `BASE_REGISTRY` 区分命名**：Compose 跨 `library/` 与非官方命名空间混用，只参数化无尾斜杠主机名（`DOCKER_REGISTRY_MIRROR`）；Dockerfile 需要含尾斜杠的路径前缀（`BASE_REGISTRY`，见 `image-base-registry-arg`），不复用同名变量以防误抄与 `.env` 冲突。
 - **`.env` 入 gitignore，`.env.example` 入库**，后者列全所有可覆盖项及说明
 - **容器内端口不参数化**，只参数化宿主侧端口——容器内端口变化会牵动健康检查、服务间地址等一串配置
 
@@ -588,7 +597,7 @@ services:
 ```yaml
 services:
   postgres:
-    image: ${BASE_REGISTRY:?err}/library/postgres:${POSTGRES_TAG:?err}
+    image: ${DOCKER_REGISTRY_MIRROR:?err}/library/postgres:${POSTGRES_TAG:?err}
     ports:
       - "${POSTGRES_HOST_PORT:?PORT must be set}:5432"
 ```
@@ -598,7 +607,7 @@ services:
 ```yaml
 services:
   postgres:
-    image: ${BASE_REGISTRY:-docker.m.daocloud.io}/library/postgres:${POSTGRES_TAG:-16}
+    image: ${DOCKER_REGISTRY_MIRROR:-docker.m.daocloud.io}/library/postgres:${POSTGRES_TAG:-16}
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432"
 ```
@@ -642,7 +651,7 @@ Declare all YAML anchors under one top-level `global-variables:` mapping right a
 - Registry and image repos: `DOCKER_REGISTRY`, `REPO_<SERVICE>`
 - Shared Dockerfile paths: `DOCKERFILE_<ROLE>`
 - Tag strategy: `DOCKER_TAG` (`${DRONE_TAG:-latest}`)
-- Mirror `build_args`: `BASE_REGISTRY_ARG`, plus `NPM_REGISTRY_ARG` / `ALPINE_MIRROR_ARG` (`'ALPINE_MIRROR=${ALPINE_MIRROR:-}'` for optional Drone env pass-through) when consumed
+- Mirror `build_args`: `BASE_REGISTRY_ARG` + consumed language mirrors (`NPM_REGISTRY_ARG`, Maven); add OS mirror (`ALPINE_MIRROR_ARG`) only if Dockerfile installs OS packages from verified internal mirror — omit empty `${ALPINE_MIRROR:-}` (air-gapped CI hits public `dl-cdn.alpinelinux.org` and times out)
 - Kaniko output path: `DRONE_OUTPUT` (`/tmp/drone-output`)
 - Overridable external service endpoints/paths via `${VAR:-default}` when needed
 
@@ -656,9 +665,8 @@ global-variables:
   DOCKERFILE_BACKEND:  &DOCKERFILE_BACKEND  deploy/docker/Dockerfile.backend
   # tag 策略：push 落 latest（预发），打 tag 落版本号（生产）
   DOCKER_TAG:          &DOCKER_TAG          ${DRONE_TAG:-latest}
-  # 基础镜像与包源：CI 走内网镜像源；可选源通过 ${VAR:-} 透传 Drone 环境变量
+  # 基础镜像与语言包源：CI 走内网源（构建期默认零 OS 下包）
   BASE_REGISTRY_ARG:   &BASE_REGISTRY_ARG   'BASE_REGISTRY=registry.example.com/lib/'
-  ALPINE_MIRROR_ARG:   &ALPINE_MIRROR_ARG   'ALPINE_MIRROR=${ALPINE_MIRROR:-}'
   NPM_REGISTRY_ARG:    &NPM_REGISTRY_ARG    'NPM_REGISTRY=https://npm.example.com'
   # kaniko 插件输出文件路径（修复 "open : no such file or directory" 错误）
   DRONE_OUTPUT:        &DRONE_OUTPUT        /tmp/drone-output
@@ -838,7 +846,7 @@ Build all Drone container images with `plugins/kaniko` (team default: `plugins/k
 - `settings.context: .` — explicit build context.
 - `settings.skip_tls_verify: true` — team default for internal registries; set `false` only if `deploy/README.md` requires verified CA.
 - `settings.username` / `settings.password` via `from_secret`; `registry`, `repo`, `tags`, `dockerfile` via `global-variables:` anchors (`ci-anchor-repeated-values`).
-- `settings.build_args` — pass `*BASE_REGISTRY_ARG` (`image-base-registry-arg`), `MODULE=<service>` for shared role Dockerfiles, and package mirror anchors (`*NPM_REGISTRY_ARG`, `*ALPINE_MIRROR_ARG`) when consumed.
+- `settings.build_args` — pass `*BASE_REGISTRY_ARG` (`image-base-registry-arg`), `MODULE=<service>` for shared Dockerfiles, and consumed language mirrors (`*NPM_REGISTRY_ARG`); add OS mirror only if Dockerfile installs OS packages from verified internal mirror (prefer zero OS downloads per `image-tz-explicit`).
 
 **Correct:**
 

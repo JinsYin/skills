@@ -1,6 +1,6 @@
 # Delivery Chain
 
-Delivery chain = `deploy/docker/Dockerfile.<role>`, root `.drone.yml`, `deploy/k8s/` (Kustomize) and `deploy/helm/chart/` (Helm), both always present and in parity (rule `deploy-kustomize-helm-parity`). Runs as own unit of work: GSD phase, Superpowers phase, Matt spec.
+Delivery chain = `deploy/docker/Dockerfile.<role>`, root `.drone.yml`, `deploy/k8s/` (Kustomize) and `deploy/helm/chart/` (Helm), both always present and in parity (rule `deploy-kustomize-helm-parity`). Runs as own unit of work: GSD phase, Superpowers phase, Matt spec, Addy spec.
 
 ## Layout
 
@@ -27,7 +27,8 @@ deploy/
 |---|---|
 | Deployable modules, their role, shared-Dockerfile build arg | `image-copy-artifact-exact-name`, layout |
 | Node arch (team default `linux/arm64`; confirm if different) | `ci-drone-platform-explicit`, `compose-platform-only-when-no-native`, image build platform |
-| Base-image & package mirrors (`BASE_REGISTRY`, `NPM_REGISTRY`, `ALPINE_MIRROR`) | `image-base-registry-arg`, `ci-anchor-repeated-values`, `ci-kaniko-image-build` |
+| CI network boundary (air-gapped? internal OS mirror?) & exact base `image:tag` in or uploadable to internal `BASE_REGISTRY` | `image-base-registry-arg`, `image-tz-explicit` |
+| Base-image & language mirrors (`BASE_REGISTRY` trailing-slash prefix, `NPM_REGISTRY` / Maven; OS mirror only if verified internal mirror exists) | `image-base-registry-arg`, `ci-anchor-repeated-values`, `ci-kaniko-image-build` |
 | Target registry host + namespace | `ci-anchor-repeated-values` |
 | Kaniko settings (`plugins/kaniko:1.13.7`, `skip_tls_verify: true` defaults; confirm overrides & whether semi-offline `tar_path` archive upload is needed) | `ci-kaniko-image-build`, `ci-drone-dag-parallelism` |
 | Drone secret names that already exist | `secret-ci-from-store-only`, `ci-drone-annotated-steps` |
@@ -41,7 +42,7 @@ deploy/
 
 ## `deploy/README.md`
 
-Sections: **Layout** · **Environments** (table: env · namespace · tag source · pull policy · ingress [class/host/path/TLS] · Secret owner) · **Registries** (target registry + base/package mirrors) · **CI** (`platform`, Kaniko version/TLS overrides, secret names, trigger `ref`/`event`, tag strategy, semi-offline archive if any) · **Parity exceptions** (each `--ignore` with its reason; normally empty) · **Commands** (build, render, deploy per env). Facts only: rationale for generic rules stays in this skill.
+Sections: **Layout** · **Environments** (table: env · namespace · tag source · pull policy · ingress [class/host/path/TLS] · Secret owner) · **Registries** (target registry + base `image:tag` + mirrors + CI OS-mirror/offline facts) · **CI** (`platform`, Kaniko version/TLS overrides, secret names, trigger `ref`/`event`, tag strategy, semi-offline archive if any) · **Parity exceptions** (each `--ignore` with its reason; normally empty) · **Commands** (build, render, deploy per env). Facts only: rationale for generic rules stays in this skill.
 
 ## Keep In Sync
 
@@ -58,10 +59,11 @@ Once any delivery file exists, task making change updates every existing file it
 ## Done Checks
 
 ```bash
-docker build -f deploy/docker/Dockerfile.<role> .        # each touched role
-kubectl kustomize deploy/k8s/overlays/<env> >/dev/null   # each env
+docker build --platform linux/arm64 -f deploy/docker/Dockerfile.<role> .  # each touched role (match target arch)
+docker run --rm --network none <image> sh -eu -c '[ "$(id -u)" = "1000" ] && [ "$(date +%Z)" = "CST" ]'  # offline UID/TZ smoke per deploy/README.md
+kubectl kustomize deploy/k8s/overlays/<env> >/dev/null                    # each env
 helm lint deploy/helm/chart -f deploy/helm/chart/values-<env>.yaml
-python3 deploy/scripts/k8s-parity.py                      # exit 0
+python3 deploy/scripts/k8s-parity.py                                      # exit 0
 ```
 
 Applying to real cluster or pushing images = outward-facing: ask first.
@@ -94,9 +96,8 @@ global-variables:
   DOCKERFILE_FRONTEND: &DOCKERFILE_FRONTEND deploy/docker/Dockerfile.frontend
   # tag 策略：push 落 latest（预发），打 tag 落版本号（生产）
   DOCKER_TAG:          &DOCKER_TAG          ${DRONE_TAG:-latest}
-  # 基础镜像与包源：CI 构建时走内网镜像源；可选源用 ${VAR:-} 透传 Drone 环境变量
+  # 基础镜像与语言包源：CI 走内网源（构建期默认零 OS 下包）
   BASE_REGISTRY_ARG:   &BASE_REGISTRY_ARG   'BASE_REGISTRY=registry.example.com/lib/'
-  ALPINE_MIRROR_ARG:   &ALPINE_MIRROR_ARG   'ALPINE_MIRROR=${ALPINE_MIRROR:-}'
   NPM_REGISTRY_ARG:    &NPM_REGISTRY_ARG    'NPM_REGISTRY=https://npm.example.com'
   # kaniko 插件输出文件路径（修复 "open : no such file or directory" 错误）
   DRONE_OUTPUT:        &DRONE_OUTPUT        /tmp/drone-output

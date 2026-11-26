@@ -45,6 +45,8 @@
 
 ### Changed
 
+- **devops-best-practices 内网零 OS 下包、镜像源变量隔离与非 root 细节加固**：`image-tz-explicit`（升为 HIGH）改为优先选用已内置 `tzdata` 的基础镜像实现构建期零 OS 下包并强断言 `/usr/share/zoneinfo/Asia/Shanghai` + `/etc/localtime`，明确断公网 CI 禁止空透传 `ALPINE_MIRROR` 或对预装镜像重复跑 `apk`；`ci-anchor-repeated-values`、`ci-kaniko-image-build` 与 `references/delivery.md` 移除默认的 `ALPINE_MIRROR_ARG` 空透传样板，仅在确认内网存在 OS 包源且确需下包时引入；`image-base-registry-arg` 明确 `BASE_REGISTRY` 含尾斜杠前缀且不把 `/library/` 写死在 `FROM`，`compose-parameterize-env` 与 `references/dev-env.md` 将 Compose 纯主机名镜像站变量更名为 `DOCKER_REGISTRY_MIRROR` 以消除同名语义冲突；`image-nonroot-explicit-uid` 将 `USER app` 改为数字 `USER 1000:1000`（规避 K8s `runAsNonRoot` 报错）、补充官方 `node` 复用与 Alpine `addgroup`/`adduser` 差异及非 root Nginx `port_in_redirect off; absolute_redirect off;` 提示；`references/delivery.md` 补全 Addy 流程、CI 网络边界与内网可用基础镜像 tag 访谈项以及 `--platform linux/arm64` / `--network none` 离线 UID/时区冒烟校验，同步更新 `SKILL.md` 并重建 `AGENTS.md`。
+
 - **setup-rules Addy 约定 `self-improve` 触发范围收窄**：`addy.md` 明确仅计划任务（`planned tasks`）的 `incremental-implementation` 与 `code-simplification` 完成后触发 `self-improve`，跳过 quick slice 与琐碎 fast 改动。
 
 - **addyspec `quick` 文档落盘工作流与 setup-rules Addy 约定联动**：新增 `skills/addyspec/references/quick.md`（不受 `scripts/sync.sh` 覆盖），为 `/addyspec quick` 引入参考 `gsd-quick` 的项目文档流——编码前访谈澄清并写入 `tasks/quick/<YYMMDD-xxx>-<slug>/plan.md`，经 `incremental-implementation` 独立提交代码后生成含 `status` frontmatter 与 code commit 的 `summary.md`、追加 `tasks/quick/README.md` 索引表并单独提交文档；`SKILL.md` 的 `Dispatch` 第 4 步改为按需读取 `local` 行标注的 `references/<command>.md` 并移除 `Supplements` 中的 `quick` 规则，`Sync` 注明保留 `references/<command>.md`；`setup-rules` 的 `addy.md` 同步说明 quick slice 记录于 `tasks/quick/` 且不触碰 `tasks/plan.md` 与 `tasks/todo.md`。

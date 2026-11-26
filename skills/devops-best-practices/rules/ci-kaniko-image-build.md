@@ -16,7 +16,7 @@ Build all Drone container images with `plugins/kaniko` (team default: `plugins/k
 - `settings.context: .` — explicit build context.
 - `settings.skip_tls_verify: true` — team default for internal registries; set `false` only if `deploy/README.md` requires verified CA.
 - `settings.username` / `settings.password` via `from_secret`; `registry`, `repo`, `tags`, `dockerfile` via `global-variables:` anchors (`ci-anchor-repeated-values`).
-- `settings.build_args` — pass `*BASE_REGISTRY_ARG` (`image-base-registry-arg`), `MODULE=<service>` for shared role Dockerfiles, and package mirror anchors (`*NPM_REGISTRY_ARG`, `*ALPINE_MIRROR_ARG`) when consumed.
+- `settings.build_args` — pass `*BASE_REGISTRY_ARG` (`image-base-registry-arg`), `MODULE=<service>` for shared Dockerfiles, and consumed language mirrors (`*NPM_REGISTRY_ARG`); add OS mirror only if Dockerfile installs OS packages from verified internal mirror (prefer zero OS downloads per `image-tz-explicit`).
 
 **Correct:**
 

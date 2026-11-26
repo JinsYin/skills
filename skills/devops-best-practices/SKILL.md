@@ -70,13 +70,13 @@ Project-specific facts (registries, secret names, environments) come from its `d
 
 ### 1. 镜像构建（CRITICAL）
 
-- `image-base-registry-arg` — 基础镜像前缀用 global ARG 参数化，否则本地或 CI 必有一方拉不到
+- `image-base-registry-arg` — 基础镜像含尾斜杠前缀用 global ARG 参数化（不写死 `/library/`），否则本地或 CI 必有一方拉不到
 - `image-copy-artifact-exact-name` — COPY 产物用确定文件名，通配匹配不到时在构建最后一步才失败
 - `image-entrypoint-exec-form-env` — exec 形态 ENTRYPOINT 不展开 `$JAVA_OPTS`，注入的参数静默失效
 - `image-layer-cache-manifest-first` — 先 COPY 依赖清单再装依赖，顺序反了每次改源码都重装
 - `image-multistage-split` — 构建与运行分阶段，单阶段会把编译器与私库凭据带进产线
-- `image-nonroot-explicit-uid` — 非 root 且 UID 显式指定；`useradd -r` 的系统 UID 与 K8s `runAsUser:1000` 不匹配
-- `image-tz-explicit` — 显式 `ENV TZ`；alpine 需补装 tzdata，否则设了也不生效
+- `image-nonroot-explicit-uid` — 非 root 且 `USER 1000:1000` 显式数字 UID；复用 `node` 或先释占位用户，非 root Nginx 关端口重定向
+- `image-tz-explicit` — 显式 `ENV TZ`；优先内置 tzdata 基础镜像实现零 OS 下包，断公网 CI 不盲跑 `apk`
 
 ### 2. 部署清单（CRITICAL）
 
@@ -98,18 +98,18 @@ Project-specific facts (registries, secret names, environments) come from its `d
 
 - `compose-healthcheck-start-period` — 必配 healthcheck 且探真实可服务性；`start_period` 按首次初始化给
 - `compose-optional-behind-profile` — 备用服务挂 `profiles`，默认不起
-- `compose-parameterize-env` — 宿主端口/tag/镜像源参数化并带默认值，严禁使用 :?，配 `.env.example`
+- `compose-parameterize-env` — 宿主端口/tag/镜像站（`DOCKER_REGISTRY_MIRROR`）参数化并带默认值，严禁使用 :?，配 `.env.example`
 - `compose-platform-only-when-no-native` — `platform` 只在镜像确无原生架构时加，多余声明强制走模拟层
 
 ### 5. CI 流水线（HIGH）
 
-- `ci-anchor-repeated-values` — Centralize registry, repo, Dockerfile, tag, mirror `build_args`, and `DRONE_OUTPUT` under top-level `global-variables:` anchors (no `x-*`)
+- `ci-anchor-repeated-values` — Centralize registry, repo, Dockerfile, tag, consumed mirror `build_args` (no empty `ALPINE_MIRROR`), and `DRONE_OUTPUT` under `global-variables:` anchors (no `x-*`)
 - `ci-build-inside-container` — 构建步骤显式指定镜像并钉版本，不依赖节点自带工具链
 - `ci-drone-annotated-steps` — Add file-top pipeline overview and per-step purpose, trigger, secret, and caveat comments in `.drone.yml`
 - `ci-drone-dag-parallelism` — Parallel independent builds (omit `depends_on` when fan-in step exists, else `depends_on: [clone]`); wire downstream steps with `depends_on`
 - `ci-drone-platform-explicit` — Declare top-level `platform` (`os: linux`, team default `arch: arm64`) so Drone never defaults to wrong arch
 - `ci-explicit-event-scope` — Scope both top-level `trigger` (`ref` + `event`) and every step `when.event` (plus `when.target` for `promote`)
-- `ci-kaniko-image-build` — Build all images with pinned `plugins/kaniko:1.13.7`, `DRONE_OUTPUT`, `context: .`, `skip_tls_verify: true`, and mirror `build_args`
+- `ci-kaniko-image-build` — Build all images with pinned `plugins/kaniko:1.13.7`, `DRONE_OUTPUT`, `context: .`, `skip_tls_verify: true`, and consumed mirror `build_args`
 - `ci-tag-strategy-single-source` — CI 与部署清单的 tag 策略同源，否则"构建成功、部署成功、跑的是旧版本"
 
 ### 6. 本地进程编排（MEDIUM）

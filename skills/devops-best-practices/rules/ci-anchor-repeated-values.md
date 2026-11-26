@@ -16,7 +16,7 @@ Declare all YAML anchors under one top-level `global-variables:` mapping right a
 - Registry and image repos: `DOCKER_REGISTRY`, `REPO_<SERVICE>`
 - Shared Dockerfile paths: `DOCKERFILE_<ROLE>`
 - Tag strategy: `DOCKER_TAG` (`${DRONE_TAG:-latest}`)
-- Mirror `build_args`: `BASE_REGISTRY_ARG`, plus `NPM_REGISTRY_ARG` / `ALPINE_MIRROR_ARG` (`'ALPINE_MIRROR=${ALPINE_MIRROR:-}'` for optional Drone env pass-through) when consumed
+- Mirror `build_args`: `BASE_REGISTRY_ARG` + consumed language mirrors (`NPM_REGISTRY_ARG`, Maven); add OS mirror (`ALPINE_MIRROR_ARG`) only if Dockerfile installs OS packages from verified internal mirror — omit empty `${ALPINE_MIRROR:-}` (air-gapped CI hits public `dl-cdn.alpinelinux.org` and times out)
 - Kaniko output path: `DRONE_OUTPUT` (`/tmp/drone-output`)
 - Overridable external service endpoints/paths via `${VAR:-default}` when needed
 
@@ -30,9 +30,8 @@ global-variables:
   DOCKERFILE_BACKEND:  &DOCKERFILE_BACKEND  deploy/docker/Dockerfile.backend
   # tag 策略：push 落 latest（预发），打 tag 落版本号（生产）
   DOCKER_TAG:          &DOCKER_TAG          ${DRONE_TAG:-latest}
-  # 基础镜像与包源：CI 走内网镜像源；可选源通过 ${VAR:-} 透传 Drone 环境变量
+  # 基础镜像与语言包源：CI 走内网源（构建期默认零 OS 下包）
   BASE_REGISTRY_ARG:   &BASE_REGISTRY_ARG   'BASE_REGISTRY=registry.example.com/lib/'
-  ALPINE_MIRROR_ARG:   &ALPINE_MIRROR_ARG   'ALPINE_MIRROR=${ALPINE_MIRROR:-}'
   NPM_REGISTRY_ARG:    &NPM_REGISTRY_ARG    'NPM_REGISTRY=https://npm.example.com'
   # kaniko 插件输出文件路径（修复 "open : no such file or directory" 错误）
   DRONE_OUTPUT:        &DRONE_OUTPUT        /tmp/drone-output
