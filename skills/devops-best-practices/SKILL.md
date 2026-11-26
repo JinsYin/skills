@@ -44,6 +44,7 @@ Read before acting, not only before editing file:
 |---|---|
 | First task needing a dependency or runnable process; project runs code but lacks `docker-compose.yml` or `process-compose.yml` | `references/dev-env.md` |
 | Delivery phase/spec (containerize, CI, deploy, release); new deployable module; any change to a project that already has delivery files | `references/delivery.md` |
+| Drone CI direct deploy to K8s without GitOps / Argo CD | `references/direct-deploy.md` |
 
 Project-specific facts (registries, secret names, environments) come from its `deploy/README.md`; missing → ask, never invent.
 
@@ -103,13 +104,13 @@ Project-specific facts (registries, secret names, environments) come from its `d
 
 ### 5. CI 流水线（HIGH）
 
-- `ci-anchor-repeated-values` — Centralize registry, repo, Dockerfile, tag, consumed mirror `build_args` (no empty `ALPINE_MIRROR`), and `DRONE_OUTPUT` under `global-variables:` anchors (no `x-*`)
-- `ci-build-inside-container` — 构建步骤显式指定镜像并钉版本，不依赖节点自带工具链
+- `ci-anchor-repeated-values` — Centralize registry, repo, Dockerfile, tag, step tool images (`KANIKO_IMAGE`/`DEPLOY_IMAGE` full refs — no prefix concatenation), consumed mirror `build_args` (no empty `ALPINE_MIRROR`), and `DRONE_OUTPUT` under `global-variables:` anchors (no `x-*`)
+- `ci-build-inside-container` — 构建与部署步骤显式指定镜像并钉版本；内网 CI 离线 `save/load/push` 中转并确保步骤镜像公开或 Runner 已鉴权
 - `ci-drone-annotated-steps` — Add file-top pipeline overview and per-step purpose, trigger, secret, and caveat comments in `.drone.yml`
 - `ci-drone-dag-parallelism` — Parallel independent builds (omit `depends_on` when fan-in step exists, else `depends_on: [clone]`); wire downstream steps with `depends_on`
 - `ci-drone-platform-explicit` — Declare top-level `platform` (`os: linux`, team default `arch: arm64`) so Drone never defaults to wrong arch
-- `ci-explicit-event-scope` — Scope both top-level `trigger` (`ref` + `event`) and every step `when.event` (plus `when.target` for `promote`)
-- `ci-kaniko-image-build` — Build all images with pinned `plugins/kaniko:1.13.7`, `DRONE_OUTPUT`, `context: .`, `skip_tls_verify: true`, and consumed mirror `build_args`
+- `ci-explicit-event-scope` — Scope top-level `trigger` (`ref` + `event`) and every step `when.event` (plus `when.target` and `when.ref: [refs/tags/*]` for tag-bound `promote`)
+- `ci-kaniko-image-build` — Build all images with pinned `*KANIKO_IMAGE` (`plugins/kaniko:1.13.7` or internal mirror), `DRONE_OUTPUT`, `context: .`, `skip_tls_verify: true`, and consumed mirror `build_args`
 - `ci-tag-strategy-single-source` — CI 与部署清单的 tag 策略同源，否则"构建成功、部署成功、跑的是旧版本"
 
 ### 6. 本地进程编排（MEDIUM）

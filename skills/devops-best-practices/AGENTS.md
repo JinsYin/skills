@@ -1,7 +1,7 @@
 # DevOps Best Practices
 
 > 本文件由 `scripts/build.sh` 从 `rules/` 自动生成，请勿手工编辑。
-> 生成时间：2026-11-26 15:10:30
+> 生成时间：2026-11-26 20:43:31
 
 ## 1. 镜像构建
 
@@ -653,6 +653,7 @@ Declare all YAML anchors under one top-level `global-variables:` mapping right a
 - Tag strategy: `DOCKER_TAG` (`${DRONE_TAG:-latest}`)
 - Mirror `build_args`: `BASE_REGISTRY_ARG` + consumed language mirrors (`NPM_REGISTRY_ARG`, Maven); add OS mirror (`ALPINE_MIRROR_ARG`) only if Dockerfile installs OS packages from verified internal mirror — omit empty `${ALPINE_MIRROR:-}` (air-gapped CI hits public `dl-cdn.alpinelinux.org` and times out)
 - Kaniko output path: `DRONE_OUTPUT` (`/tmp/drone-output`)
+- Step tool images: `KANIKO_IMAGE`, `DEPLOY_IMAGE` — full image refs; YAML anchors cannot concat strings and Drone `envsubst` expands built-in `DRONE_*` metadata only (ignores custom vars, `global-variables:`, secrets, `DRONE_RUNNER_ENVIRON`)
 - Overridable external service endpoints/paths via `${VAR:-default}` when needed
 
 Keep single-use per-service args (`MODULE=app-api`) inline in step.
@@ -670,9 +671,12 @@ global-variables:
   NPM_REGISTRY_ARG:    &NPM_REGISTRY_ARG    'NPM_REGISTRY=https://npm.example.com'
   # kaniko 插件输出文件路径（修复 "open : no such file or directory" 错误）
   DRONE_OUTPUT:        &DRONE_OUTPUT        /tmp/drone-output
+  # 工具镜像：留空前缀即走官方源；走私有仓库前缀时须确保镜像公开或配置 Runner 拉取凭据
+  KANIKO_IMAGE:        &KANIKO_IMAGE        registry.example.com/lib/plugins/kaniko:1.13.7
 
 steps:
   - name: build-api
+    image: *KANIKO_IMAGE
     environment:
       DRONE_OUTPUT: *DRONE_OUTPUT
     settings:
@@ -703,6 +707,10 @@ steps:
 同一条流水线里跨步骤的工具版本必须一致。后端用 temurin-21 构建、镜像里却是 temurin-17 运行，属于典型的跨步骤漂移。
 
 **基础镜像的版本也要与本地对齐**：CI 用 Node 24、本地用 Node 20，`pnpm install --frozen-lockfile` 可能因原生模块的预编译产物不同而结果不同。锁定版本的价值就在这里。
+
+**内网 / 离线 CI 步骤镜像**：内网或断公网 CI 中，构建与部署工具镜像（如 `plugins/kaniko`、`alpine/k8s`）须按目标架构离线中转至内网仓库（`docker pull --platform <arch>` → `docker save` → 传内网 → `docker load` → `docker tag` → `docker push`），保留上游 `<namespace>/<repo>` 路径（如 `registry.example.com/lib/plugins/kaniko:1.13.7`、`registry.example.com/lib/alpine/k8s:1.28.15`）。
+
+**镜像可见性与拉取鉴权**：Drone 插件的 `settings.username`/`password` 仅用于容器内推拉业务镜像，不作用于 Runner 宿主机拉取步骤 `image:`。私有仓库新推镜像默认私有，须在控制台设为公开（或配置 `image_pull_secrets` / Runner 宿主机登录），否则拉取步骤镜像时报错拒绝（如 `denied: You may not login yet`）。
 
 
 ### Annotate pipeline header and every step in .drone.yml
@@ -807,7 +815,7 @@ Pipeline `trigger` gates whether pipeline runs; step `when` gates which steps pa
 Enforce both layers:
 
 1. **Top-level `trigger:`** declares `ref:` (`refs/heads/master`, `refs/tags/*`) and `event:` (`push`, `tag`; add `promote` only when promote steps exist).
-2. **Every step** declares `when.event`; `promote` steps also scope `when.target`.
+2. **Every step** declares `when.event`; `promote` steps scope `when.target`, and tag-bound prod deploys also scope `when.ref: [refs/tags/*]` (prevents promoting `:latest` branch builds) with `depends_on: [clone]` to skip rebuilds.
 
 ```yaml
 trigger:
@@ -826,13 +834,18 @@ steps:
         - push
         - tag                     # promote does not rebuild images
 
-  - name: write-sync-db-marker
+  - name: deploy-prod
+    depends_on: [clone]
     when:
       event:
         - promote
       target:
-        - sync-db-pre             # scope promote to explicit target
+        - prod                    # scope promote to explicit target
+      ref:
+        - refs/tags/*             # tag-bound prod deploy only
 ```
+
+Drone `when:` fields AND-only (no OR per step); `drone/envsubst` omits `${var:+alt}`. Keep tag-only prod promote as one step; for branch promotes without extra build steps, push dual tags (`latest` + short commit SHA) + registry retention rules.
 
 
 ### Build container images with pinned plugins/kaniko
@@ -841,18 +854,18 @@ Build all Drone container images with `plugins/kaniko` (team default: `plugins/k
 
 **Required settings per Kaniko step:**
 
-- `image: plugins/kaniko:1.13.7` — pin patch version; override only per `deploy/README.md`.
+- `image: *KANIKO_IMAGE` — pin patch version (default `plugins/kaniko:1.13.7`); air-gapped/internal CI: mirror preserving upstream path (`registry.example.com/lib/plugins/kaniko:1.13.7`) + ensure Runner pull access (`ci-build-inside-container`).
 - `environment.DRONE_OUTPUT: *DRONE_OUTPUT` (`/tmp/drone-output` in `global-variables:`) — omitting crashes Kaniko with `open : no such file or directory`.
 - `settings.context: .` — explicit build context.
 - `settings.skip_tls_verify: true` — team default for internal registries; set `false` only if `deploy/README.md` requires verified CA.
-- `settings.username` / `settings.password` via `from_secret`; `registry`, `repo`, `tags`, `dockerfile` via `global-variables:` anchors (`ci-anchor-repeated-values`).
+- `settings.username` / `settings.password` via `from_secret`; `image`, `registry`, `repo`, `tags`, `dockerfile` via `global-variables:` anchors (`ci-anchor-repeated-values`).
 - `settings.build_args` — pass `*BASE_REGISTRY_ARG` (`image-base-registry-arg`), `MODULE=<service>` for shared Dockerfiles, and consumed language mirrors (`*NPM_REGISTRY_ARG`); add OS mirror only if Dockerfile installs OS packages from verified internal mirror (prefer zero OS downloads per `image-tz-explicit`).
 
 **Correct:**
 
 ```yaml
 - name: build-api
-  image: plugins/kaniko:1.13.7
+  image: *KANIKO_IMAGE
   environment:
     DRONE_OUTPUT: *DRONE_OUTPUT
   settings:

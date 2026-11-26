@@ -30,7 +30,8 @@ deploy/
 | CI network boundary (air-gapped? internal OS mirror?) & exact base `image:tag` in or uploadable to internal `BASE_REGISTRY` | `image-base-registry-arg`, `image-tz-explicit` |
 | Base-image & language mirrors (`BASE_REGISTRY` trailing-slash prefix, `NPM_REGISTRY` / Maven; OS mirror only if verified internal mirror exists) | `image-base-registry-arg`, `ci-anchor-repeated-values`, `ci-kaniko-image-build` |
 | Target registry host + namespace | `ci-anchor-repeated-values` |
-| Kaniko settings (`plugins/kaniko:1.13.7`, `skip_tls_verify: true` defaults; confirm overrides & whether semi-offline `tar_path` archive upload is needed) | `ci-kaniko-image-build`, `ci-drone-dag-parallelism` |
+| Step tool images & Kaniko settings (`plugins/kaniko:1.13.7`, `skip_tls_verify: true` defaults; confirm internal registry mirror + public/Runner pull auth for step images, and optional semi-offline `tar_path`) | `ci-build-inside-container`, `ci-kaniko-image-build`, `ci-anchor-repeated-values`, `ci-drone-dag-parallelism` |
+| CD mode (manual / GitOps / Drone CI direct deploy to K8s; if direct deploy, read `references/direct-deploy.md`) | `references/direct-deploy.md`, `ci-explicit-event-scope` |
 | Drone secret names that already exist | `secret-ci-from-store-only`, `ci-drone-annotated-steps` |
 | Trigger `ref` + `event` (`refs/heads/master`, `refs/tags/*`, `push`/`tag`, plus `promote` target if any) and tag strategy per env | `ci-explicit-event-scope`, `ci-tag-strategy-single-source`, `deploy-no-latest-in-prod` |
 | Environments, namespace, replicas, ingress class (team default `nginx`), host, path, and TLS (default none) per env | `deploy-ingress-nginx`, overlays, values files |
@@ -42,7 +43,7 @@ deploy/
 
 ## `deploy/README.md`
 
-Sections: **Layout** · **Environments** (table: env · namespace · tag source · pull policy · ingress [class/host/path/TLS] · Secret owner) · **Registries** (target registry + base `image:tag` + mirrors + CI OS-mirror/offline facts) · **CI** (`platform`, Kaniko version/TLS overrides, secret names, trigger `ref`/`event`, tag strategy, semi-offline archive if any) · **Parity exceptions** (each `--ignore` with its reason; normally empty) · **Commands** (build, render, deploy per env). Facts only: rationale for generic rules stays in this skill.
+Sections: **Layout** · **Environments** (table: env · namespace · tag source · pull policy · ingress [class/host/path/TLS] · Secret owner) · **Registries** (target registry + base `image:tag` + mirrors + CI OS-mirror/offline facts) · **CI** (`platform`, step tool images, Kaniko version/TLS overrides, secret names, trigger `ref`/`event`, tag strategy, CD mode, semi-offline archive if any) · **Parity exceptions** (each `--ignore` with its reason; normally empty) · **Commands** (build, render, deploy per env). Facts only: rationale for generic rules stays in this skill.
 
 ## Keep In Sync
 
@@ -101,6 +102,8 @@ global-variables:
   NPM_REGISTRY_ARG:    &NPM_REGISTRY_ARG    'NPM_REGISTRY=https://npm.example.com'
   # kaniko 插件输出文件路径（修复 "open : no such file or directory" 错误）
   DRONE_OUTPUT:        &DRONE_OUTPUT        /tmp/drone-output
+  # 工具镜像：留空前缀即走官方源；走私有仓库前缀时须确保镜像公开或配置 Runner 拉取凭据
+  KANIKO_IMAGE:        &KANIKO_IMAGE        registry.example.com/lib/plugins/kaniko:1.13.7
 
 trigger:
   ref:
@@ -114,7 +117,7 @@ steps:
   # 构建并推送 app-api 镜像（后端 API）；无外部依赖，与其他构建步骤并行。
   # 凭据：Drone secrets registry_username / registry_password。
   - name: build-api
-    image: plugins/kaniko:1.13.7
+    image: *KANIKO_IMAGE
     environment:
       DRONE_OUTPUT: *DRONE_OUTPUT
     settings:
@@ -140,7 +143,7 @@ steps:
 
   # 构建并推送 app-frontend 镜像（前端）；与后端步骤并行。
   - name: build-frontend
-    image: plugins/kaniko:1.13.7
+    image: *KANIKO_IMAGE
     environment:
       DRONE_OUTPUT: *DRONE_OUTPUT
     settings:
@@ -169,7 +172,8 @@ Optional `.drone.yml` patterns (only when `deploy/README.md` requires):
 
 - **Semi-offline archive upload**: add `tar_path: /drone/src/dist/images/<svc>-${DRONE_TAG:-latest}.tar` on Kaniko steps; wire downstream upload step with `depends_on: [build-api, build-frontend]` and drop `[clone]` on builds (`ci-drone-dag-parallelism`).
 - **Non-plugin `commands:` secrets**: inject via `environment.<VAR>: { from_secret: <name> }`, reference `$VAR` in shell (`secret-ci-from-store-only`).
-- **`promote` operational step**: add `promote` to top-level `trigger.event`; scope step with `when: { event: [promote], target: [<target>] }`, keep builds `[push, tag]` (`ci-explicit-event-scope`).
+- **`promote` operational step**: add `promote` to top-level `trigger.event`; scope step with `when: { event: [promote], target: [<target>] }` (plus `ref: [refs/tags/*]` for tag-bound prod deploys), keep builds `[push, tag]` (`ci-explicit-event-scope`).
+- **Direct K8s deploy (no GitOps)**: read `references/direct-deploy.md` for 4-step pipeline, CI-secret `.env` auto-split, and namespace-scoped RBAC.
 
 ```yaml
 # deploy/k8s/base/ingress.yaml

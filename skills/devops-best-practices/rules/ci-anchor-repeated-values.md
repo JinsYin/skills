@@ -18,6 +18,7 @@ Declare all YAML anchors under one top-level `global-variables:` mapping right a
 - Tag strategy: `DOCKER_TAG` (`${DRONE_TAG:-latest}`)
 - Mirror `build_args`: `BASE_REGISTRY_ARG` + consumed language mirrors (`NPM_REGISTRY_ARG`, Maven); add OS mirror (`ALPINE_MIRROR_ARG`) only if Dockerfile installs OS packages from verified internal mirror — omit empty `${ALPINE_MIRROR:-}` (air-gapped CI hits public `dl-cdn.alpinelinux.org` and times out)
 - Kaniko output path: `DRONE_OUTPUT` (`/tmp/drone-output`)
+- Step tool images: `KANIKO_IMAGE`, `DEPLOY_IMAGE` — full image refs; YAML anchors cannot concat strings and Drone `envsubst` expands built-in `DRONE_*` metadata only (ignores custom vars, `global-variables:`, secrets, `DRONE_RUNNER_ENVIRON`)
 - Overridable external service endpoints/paths via `${VAR:-default}` when needed
 
 Keep single-use per-service args (`MODULE=app-api`) inline in step.
@@ -35,9 +36,12 @@ global-variables:
   NPM_REGISTRY_ARG:    &NPM_REGISTRY_ARG    'NPM_REGISTRY=https://npm.example.com'
   # kaniko 插件输出文件路径（修复 "open : no such file or directory" 错误）
   DRONE_OUTPUT:        &DRONE_OUTPUT        /tmp/drone-output
+  # 工具镜像：留空前缀即走官方源；走私有仓库前缀时须确保镜像公开或配置 Runner 拉取凭据
+  KANIKO_IMAGE:        &KANIKO_IMAGE        registry.example.com/lib/plugins/kaniko:1.13.7
 
 steps:
   - name: build-api
+    image: *KANIKO_IMAGE
     environment:
       DRONE_OUTPUT: *DRONE_OUTPUT
     settings:

@@ -11,18 +11,18 @@ Build all Drone container images with `plugins/kaniko` (team default: `plugins/k
 
 **Required settings per Kaniko step:**
 
-- `image: plugins/kaniko:1.13.7` — pin patch version; override only per `deploy/README.md`.
+- `image: *KANIKO_IMAGE` — pin patch version (default `plugins/kaniko:1.13.7`); air-gapped/internal CI: mirror preserving upstream path (`registry.example.com/lib/plugins/kaniko:1.13.7`) + ensure Runner pull access (`ci-build-inside-container`).
 - `environment.DRONE_OUTPUT: *DRONE_OUTPUT` (`/tmp/drone-output` in `global-variables:`) — omitting crashes Kaniko with `open : no such file or directory`.
 - `settings.context: .` — explicit build context.
 - `settings.skip_tls_verify: true` — team default for internal registries; set `false` only if `deploy/README.md` requires verified CA.
-- `settings.username` / `settings.password` via `from_secret`; `registry`, `repo`, `tags`, `dockerfile` via `global-variables:` anchors (`ci-anchor-repeated-values`).
+- `settings.username` / `settings.password` via `from_secret`; `image`, `registry`, `repo`, `tags`, `dockerfile` via `global-variables:` anchors (`ci-anchor-repeated-values`).
 - `settings.build_args` — pass `*BASE_REGISTRY_ARG` (`image-base-registry-arg`), `MODULE=<service>` for shared Dockerfiles, and consumed language mirrors (`*NPM_REGISTRY_ARG`); add OS mirror only if Dockerfile installs OS packages from verified internal mirror (prefer zero OS downloads per `image-tz-explicit`).
 
 **Correct:**
 
 ```yaml
 - name: build-api
-  image: plugins/kaniko:1.13.7
+  image: *KANIKO_IMAGE
   environment:
     DRONE_OUTPUT: *DRONE_OUTPUT
   settings:

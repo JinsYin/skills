@@ -15,7 +15,7 @@ Pipeline `trigger` gates whether pipeline runs; step `when` gates which steps pa
 Enforce both layers:
 
 1. **Top-level `trigger:`** declares `ref:` (`refs/heads/master`, `refs/tags/*`) and `event:` (`push`, `tag`; add `promote` only when promote steps exist).
-2. **Every step** declares `when.event`; `promote` steps also scope `when.target`.
+2. **Every step** declares `when.event`; `promote` steps scope `when.target`, and tag-bound prod deploys also scope `when.ref: [refs/tags/*]` (prevents promoting `:latest` branch builds) with `depends_on: [clone]` to skip rebuilds.
 
 ```yaml
 trigger:
@@ -34,10 +34,15 @@ steps:
         - push
         - tag                     # promote does not rebuild images
 
-  - name: write-sync-db-marker
+  - name: deploy-prod
+    depends_on: [clone]
     when:
       event:
         - promote
       target:
-        - sync-db-pre             # scope promote to explicit target
+        - prod                    # scope promote to explicit target
+      ref:
+        - refs/tags/*             # tag-bound prod deploy only
 ```
+
+Drone `when:` fields AND-only (no OR per step); `drone/envsubst` omits `${var:+alt}`. Keep tag-only prod promote as one step; for branch promotes without extra build steps, push dual tags (`latest` + short commit SHA) + registry retention rules.
