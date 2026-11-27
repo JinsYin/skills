@@ -13,7 +13,7 @@ from urllib.parse import quote
 from .common import Session, clip, epoch, skill_reads, tool_key
 
 ROOT = os.path.expanduser("~/.gemini/antigravity")
-EXIT = re.compile(r"exited with code (-?\d+)")
+EXIT = re.compile(r"^Command exited with code (-?\d+)\.?$", re.M)
 # 已观察到的字段号（无官方 schema）：step_type 14 = 用户输入，15 = 模型回合（含工具调用），
 # 带 field 140 的 step = 工具结果
 USER, PLANNER = 14, 15
@@ -163,8 +163,9 @@ class AgySession(Session):
             elif get(p, 140):
                 body = text(one(p, 140, 2, 1))
                 cid = pending.popleft()[0] if pending else f"s{idx}"
-                codes = [int(c) for c in EXIT.findall(body)]
-                yield {"k": "result", "id": cid, "body": body, "error": bool(err) or any(c != 0 for c in codes)}
+                # 只检查 Command output: 之前的命令状态头，避免 stdout 引用历史报错文本时误报 ERROR
+                m = EXIT.search(body.split("Command output:", 1)[0])
+                yield {"k": "result", "id": cid, "body": body, "error": bool(err) or (m is not None and int(m.group(1)) != 0)}
             for _, _, _, i, o in by_step.pop(idx, []):
                 yield {"k": "usage", "ctx": i, "out": o}
         for gs in by_step.values():
