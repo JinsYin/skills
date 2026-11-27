@@ -16,7 +16,7 @@ Snapshot: upstream `e997ac5` (2026-11-23).
 1. Split args: first word = command, rest = command's `$ARGUMENTS` (`/addyspec build auto` → `build`, `$ARGUMENTS` = `auto`). `planning` (upstream Gemini name) = `plan`.
 2. Command missing or not in table → print table, ask user to pick.
 3. Every skill in row's Skills column (if any) installed (in your available skills)? Any missing → stop, name them, print `npx skills add addyosmani/agent-skills`.
-4. `local` row → read its `references/<command>.md` (if listed) and execute with `$ARGUMENTS`; else invoke row's skill directly with `$ARGUMENTS`. Upstream row → read `references/commands/<command>.md`, execute as upstream `/<command>`, per Adapter and Supplements.
+4. `local` row → read its `references/<command>.md` (if listed) and execute with `$ARGUMENTS`, else invoke row's skill directly with `$ARGUMENTS`; apply Supplements. Upstream row → read `references/commands/<command>.md`, execute as upstream `/<command>`, per Adapter and Supplements.
 
 | Command | Does | Skills | Personas |
 |---|---|---|---|
@@ -46,10 +46,11 @@ Command files are upstream verbatim, written for Claude Code plugin install. Tra
 
 ## Supplements
 
-Local additions to upstream commands (preserved by `scripts/sync.sh`):
+Local additions to commands (preserved by `scripts/sync.sh`):
 
 - **`spec`, `plan`** (incl. `build auto` Step 3): Interview user to confirm any unclear requirement before drafting or finalizing.
 - **`build`**: If `tasks/plan.md` exists with unapproved status (not `Approved`/`In Progress`/`Completed`), update to `Approved` and commit `tasks/plan.md` alone before implementing (`build auto`: after Step 4 approval; fold into preparatory commit if Step 3 created plan).
+- **`debug`**: Report root cause and fix options first; wait for user confirmation before editing files or committing unless explicitly asked to fix directly (fixes often trade off config, behavior, or deployment boundaries).
 
 ## Sync
 
