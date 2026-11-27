@@ -3,7 +3,7 @@
 
 - Commit after `/setup-matt-pocock-skills`, `/to-spec`, `/to-tickets`, `/implement`, `/tdd` or `/code-review`.
 - Invoke `/ponytail full` upon `/to-tickets`, `/implement`, `/implement-spec`, `/tdd`, `/code-review` and `/implement` quick tasks.
-- Record user prompts to `PROMPTS.md` upon completion of skills with source `mattpocock/skills` or `jinsyin/skills` in `skills-lock.json` (plus `/implement` quick tasks).
+- Record user prompts to `PROMPTS.md` before final commit (else on completion) of skills with source `mattpocock/skills` or `jinsyin/skills` in `skills-lock.json` (plus `/implement` quick tasks).
 - Before writing files after `/grill-with-docs`, ask if I have clarifying questions.
 
 ### Spec Pipeline
@@ -21,7 +21,7 @@
 ### Implement
 
 - `/implement <ticket>` from `/to-tickets`: in implementation commit, tick each met acceptance box in ticket file, set its Status to `resolved`. Any box unmet → leave unticked, keep status, report why.
-- `/implement` with no spec or ticket (quick task): commit code, then append row to `## Quick Tasks` in `.scratch/state.md` (create file or section if missing), commit that row alone:
+- `/implement` with no spec or ticket (quick task): commit code, then append row to `## Quick Tasks` in `.scratch/state.md` (create file or section if missing) and commit it (with `PROMPTS.md`/`CHANGELOG.md` if updated):
 
   ```markdown
   ## Quick Tasks

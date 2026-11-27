@@ -8,4 +8,4 @@
 - First SPEC involves deployment/delivery → split delivery into standalone stage after all business features complete: `spec-driven-development` (`spec/SPEC-delivery.md`) → `planning-and-task-breakdown` → `incremental-implementation`.
 - Active plan lives in `tasks/plan.md`, tasks in `tasks/todo.md`; archive completed pairs to `tasks/done/<module>-plan.md` and `tasks/done/<module>-todo.md`; quick slices live under `tasks/quick/` (`README.md` index, `<YYMMDD-xxx>-<slug>/plan.md` and `summary.md`).
 - In `incremental-implementation`: planned tasks tick `tasks/todo.md` (`- [x]`) and sync `tasks/plan.md` status + summary; quick slices record under `tasks/quick/`, leaving `tasks/plan.md` and `tasks/todo.md` untouched; verify browser tasks via `browser-testing-with-devtools`.
-- Record user prompts to `PROMPTS.md` upon completion of skills with source `addyosmani/agent-skills` or `jinsyin/skills` in `skills-lock.json`.
+- Record user prompts to `PROMPTS.md` before final commit (else on completion) of skills with source `addyosmani/agent-skills` or `jinsyin/skills` in `skills-lock.json`.

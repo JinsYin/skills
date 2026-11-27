@@ -5,7 +5,7 @@
 
 - Do not auto-invoke `using-superpowers`, `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development` or `test-driven-development` unless invoked by another skill; commit after manual invocation.
 - Invoke `/ponytail full` upon `writing-plans` (pass to plan subagents), `executing-plans`, `subagent-driven-development` (prepend to implementer `task-brief`), `test-driven-development`, `systematic-debugging`, and `finishing-a-development-branch` whole-branch review.
-- Record user prompts to `PROMPTS.md` upon completion of skills with source `obra/superpowers` or `jinsyin/skills` in `skills-lock.json`.
+- Record user prompts to `PROMPTS.md` before final commit (else on completion) of skills with source `obra/superpowers` or `jinsyin/skills` in `skills-lock.json`.
 - Spec lives at `docs/superpowers/specs/<milestone>-<topic>.SPEC.md`; everything else under `docs/superpowers/plans/<milestone>/`.
 - Name files `ROADMAP.md`, `<phase-num>-<plan-num>-<feature-name>.PLAN.md`, `<phase-num>-00.PATTERN.md`, `<plan-basename>.SUMMARY.md`.
 - Write `<milestone>` as `m1`; write phase and plan numbers as 2 digits, plan number restarting each phase (`01-01`, `02-01`).
@@ -56,7 +56,7 @@
 - Never fall back to `subagent-driven-development` when `executing-plans` was invoked by hand.
 - Always take a worktree via `using-git-worktrees` first, never asking whether to.
 - Close each plan the moment its verification pass is green: synthesize — never copy — `.superpowers/sdd/<plan-basename>/` into `<plan-basename>.SUMMARY.md`, one per executed plan.
-- Flip that one entry `planned` → `executed` in `ROADMAP.md`, then commit that summary and that edit and nothing else — never batch summaries or roadmap edits to the end of a phase.
+- Flip that one entry `planned` → `executed` in `ROADMAP.md`, then commit that summary and that edit (plus `PROMPTS.md`/`CHANGELOG.md` if updated, no code) — never batch summaries or roadmap edits to the end of a phase.
 - If the whole-branch review forces changes, amend the affected `<plan-basename>.SUMMARY.md` in the same fix commit.
 - In `finishing-a-development-branch`, this rule overrides its "Present Options" step: never print the option menu or ask "Which option?"; once tests pass, go straight to `Merge back to <base-branch> locally`, then clean up the worktree.
 - Once a phase is fully `executed` (after the merge under `subagent-driven-development`, at run end under `executing-plans`), invoke `version-release minor`, or `major` if the milestone is done.
