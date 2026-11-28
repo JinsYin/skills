@@ -94,6 +94,7 @@
 
 ### Fixed
 
+- **self-improve agy 退出码误报**：`runtimes/agy.py` 改为仅在 `Command output:` 之前的命令状态头按行匹配 `Command exited with code <n>`，不再因 `stdout` 包含历史报错或 digest 文本将退出码 `0` 的命令误标为 `ERROR`。
 - **self-improve digest 按段统计 skill 开销**：`[skill-cost]`/`HEAVY-SKILL` 从每次 skill 调用记到下一个 skill 或本轮结束，同一轮的多个 skill 不再各自背上整轮开销而误报 HEAVY-SKILL。
 - **self-improve 分段计费边界**：乱序时间戳不再重复累加耗时；同时点名多个 skill 时，实际调用或加载前的开销保持未归属。
 - **setup-rules Core 约定 zsh 引号示例**：示例由 `'====='` 改为 `echo '====='`，对准实际出错的 echo 分隔符写法，避免规则在场仍报 `== not found`（#39）。
